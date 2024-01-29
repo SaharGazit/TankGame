@@ -2,7 +2,7 @@ import socket
 import random
 import threading
 
-rendezvous = ('16.171.174.180', 50000)
+rendezvous = ('13.53.193.228', 50000)
 
 # TODO: send Keep-Alive packets
 
@@ -12,13 +12,14 @@ HOST = "0.0.0.0"
 # get other peer connection details (address, port) from the rendezvous server
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     sock.bind((HOST, 50500+random.randint(1, 100)))
-    sock.sendto("hello".encode('utf-8'), rendezvous)
+    sock.sendto("hello".encode(), rendezvous)
 
     data = []
+    print("* Waiting for data from the server")
     while True:
-        data = sock.recvfrom(1024)[0].decode('utf-8').split(';')
+        data = sock.recvfrom(1024)[0].decode().split(';')
         if len(data) == 3:
-            print("data:", data)
+            print("Data:", data)
             break
 
     peer_addr, peer_port, own_port = data
@@ -31,19 +32,18 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
 # hole punching
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     sock.bind((HOST, own_port))
-    print(f"Listening on {own_port}..\n")
+    print("Punching hole")
 
-    sock.sendto("punching hole".encode('utf-8'), peer)
+    sock.sendto("punching hole".encode(), peer)
 
 
 # receive messages from peer in another thread
 def recv_msgs():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.bind((HOST, own_port))
-        print("own_port:", own_port)
         while True:
             data, addr = sock.recvfrom(1024)
-            print(f"Peer: {data.decode('utf-8')}\n> ")
+            print(f"Peer: {data.decode()}\n> ")
 
 
 recv_msgs_thread = threading.Thread(target=recv_msgs)
@@ -59,4 +59,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         msg = input("> ")
         sock.sendto(msg.encode('utf-8'), peer)
 
+
 # https: // docs.aws.amazon.com / AWSEC2 / latest / UserGuide / ec2 - instance - lifecycle.html
+# a
+
