@@ -2,22 +2,47 @@ import socket
 import random
 import threading
 
-rendezvous = ('13.53.193.228', 50000)
+# insert ec2 instance ip here. 127.0.0.1 if the server runs on this PC.
+rendezvous = ('127.0.0.1', 50000)
 
-# TODO: send Keep-Alive packets
+GLOBAL_HOST = "0.0.0.0"
+LOCAL_HOST = f"127.0.0.{random.randint(1, 100)}"
+HOST = ""
+LOCAL_ADDRESS = socket.gethostbyname(socket.gethostname())
 
-HOST = "0.0.0.0"
-# HOST = f"127.0.0.{random.randint(1, 100)}"
+mode = ""
+while True:
+    try:
+        mode = input("Choose Mode: (DEBUG/LAN):\n").lower()
+        if mode == "debug":
+            HOST = LOCAL_HOST
+            break
+        if mode == "lan":
+            HOST = GLOBAL_HOST
+            break
+        if mode == "loopback":
+            HOST = LOCAL_HOST
+
+    finally:
+        pass
+    print("Invalid mode")
 
 # get other peer connection details (address, port) from the rendezvous server
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     sock.bind((HOST, 50500+random.randint(1, 100)))
-    sock.sendto("hello".encode(), rendezvous)
+    if mode == "lan":
+        sock.sendto((mode + ";" + socket.gethostbyname(socket.gethostname())).encode(), rendezvous)
+    elif mode == "debug":
+        sock.sendto((mode + ";" + HOST).encode(), rendezvous)
 
     data = []
     print("* Waiting for data from the server")
     while True:
         data = sock.recvfrom(1024)[0].decode().split(';')
+        if data[0] == "not compatible":
+            print("Rejected")
+            i = 1 / 0  # temp crash until i add classes
+            break
         if len(data) == 3:
             print("Data:", data)
             break
@@ -32,6 +57,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
 # hole punching
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     sock.bind((HOST, own_port))
+    print(HOST)
     print("Punching hole")
 
     sock.sendto("punching hole".encode(), peer)
