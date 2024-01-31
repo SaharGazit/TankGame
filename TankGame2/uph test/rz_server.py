@@ -14,6 +14,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as UDPServerSocket:
     while True:
         # add new client
         data = UDPServerSocket.recvfrom(1024)
+        print(data)
 
         # handle the communication mode and the local ip
         extra_data = data[0].decode().split(";")
