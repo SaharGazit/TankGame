@@ -2,6 +2,7 @@ import socket
 
 HOST = '0.0.0.0'
 PORT = 50000
+print('aaaa')
 
 # open server socket
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as UDPServerSocket:
@@ -25,7 +26,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as UDPServerSocket:
         if modes[-1] == 'lan':
             addr = data[0].decode().split(";")[1]
         print(f"[+] Connection from {addr}:{port}")
-
 
         # when 2 clients are connected, start trading info
         if len(peers) == 2:

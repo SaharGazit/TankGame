@@ -3,7 +3,7 @@ import random
 import threading
 
 # insert ec2 instance ip here. 127.0.0.1 if the server runs on this PC.
-rendezvous = ('127.0.0.1', 50000)
+rendezvous = ('13.60.30.13', 50000)
 
 GLOBAL_HOST = "0.0.0.0"
 LOCAL_HOST = f"127.0.0.{random.randint(1, 100)}"
@@ -14,14 +14,12 @@ mode = ""
 while True:
     try:
         mode = input("Choose Mode: (DEBUG/LAN):\n").lower()
-        if mode == "debug":
-            HOST = LOCAL_HOST
-            break
-        if mode == "lan":
+        if mode == "debug" or mode == "lan":
             HOST = GLOBAL_HOST
             break
         if mode == "loopback":
             HOST = LOCAL_HOST
+            break
 
     finally:
         pass
@@ -57,9 +55,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
 # hole punching
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     sock.bind((HOST, own_port))
-    print(HOST)
     print("Punching hole")
 
+    print(peer)
     sock.sendto("punching hole".encode(), peer)
 
 
