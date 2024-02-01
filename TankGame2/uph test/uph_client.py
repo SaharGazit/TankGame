@@ -29,7 +29,8 @@ while True:
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     sock.bind((HOST, 50500+random.randint(1, 100)))
     if mode == "lan":
-        sock.sendto((mode + ";" + socket.gethostbyname(socket.gethostname())).encode(), rendezvous)
+        sock.sendto((mode + ";" + LOCAL_ADDRESS).encode(), rendezvous)
+        print(LOCAL_ADDRESS)
     elif mode == "debug":
         sock.sendto((mode + ";" + LOCAL_HOST).encode(), rendezvous)
 
@@ -57,16 +58,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     sock.bind((HOST, own_port))
     print("Punching hole")
 
-    print("1)")
-    print(peer)
+
     sock.sendto("punching hole".encode(), peer)
 
 
 # receive messages from peer in another thread
 def recv_msgs():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-        print("2)")
-        print((HOST, own_port))
+
         sock.bind((HOST, own_port))
         while True:
             data, addr = sock.recvfrom(1024)
@@ -80,8 +79,7 @@ recv_msgs_thread.start()
 # send udp messages
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     # when sending UDP packets, bind to the other peer port
-    print("3)")
-    print((HOST, peer_port))
+
     sock.bind((HOST, peer_port + 1))
 
     while True:
