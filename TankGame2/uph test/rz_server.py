@@ -34,6 +34,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as UDPServerSocket:
                     UDPServerSocket.sendto(f"{peers_local[0]};{port2 + 5};{PORT + 5}".encode(), (addr1, port1))
                     UDPServerSocket.sendto(f"{peers_local[1]};{PORT + 5};{port2 + 5}".encode(), (addr2, port2))
                 if modes[0] == "lan":
+                    print(peers_local)
                     UDPServerSocket.sendto(f"{peers_local[0]};{port2 + 5};{PORT + 5}".encode(), (addr1, port1))
                     UDPServerSocket.sendto(f"{peers_local[1]};{PORT + 5};{port2 + 5}".encode(), (addr2, port2))
                 elif modes[0] == "internet" or modes[0] == "loopback":
