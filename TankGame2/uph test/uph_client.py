@@ -1,6 +1,8 @@
 import socket
 import random
 import threading
+import scapy.all as scapy
+from scapy.all import conf
 
 # insert ec2 instance ip here. 127.0.0.1 if the server runs on this PC.
 rendezvous = ('13.60.20.4', 50000)
@@ -8,7 +10,8 @@ rendezvous = ('13.60.20.4', 50000)
 GLOBAL_HOST = "0.0.0.0"
 LOCAL_HOST = f"127.0.0.{random.randint(1, 100)}"
 HOST = ""
-LOCAL_ADDRESS = socket.gethostbyname(socket.gethostname())
+LOCAL_ADDRESS = scapy.get_if_addr(conf.iface)
+print(LOCAL_ADDRESS)
 
 mode = ""
 while True:
