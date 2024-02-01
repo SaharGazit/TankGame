@@ -3,7 +3,7 @@ import random
 import threading
 
 # insert ec2 instance ip here. 127.0.0.1 if the server runs on this PC.
-rendezvous = ('13.60.30.13', 50000)
+rendezvous = ('13.60.20.4', 50000)
 
 GLOBAL_HOST = "0.0.0.0"
 LOCAL_HOST = f"127.0.0.{random.randint(1, 100)}"
@@ -90,5 +90,3 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
 
 
 # https: // docs.aws.amazon.com / AWSEC2 / latest / UserGuide / ec2 - instance - lifecycle.html
-# a
-
