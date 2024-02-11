@@ -2,14 +2,14 @@ import pygame
 
 
 class Title:
-    angle = 0
-    image = pygame.image.load("resources/tankbody.png")
 
     @staticmethod
     def main():
         # initiate program
         pygame.init()
         pygame.display.set_caption('TANK GAME')
+        title_font = pygame.font.SysFont("None", 30)
+        title_text = title_font.render('TANK GAME', False, (0, 0, 0))
 
         monitor_info = pygame.display.Info()
         screen = pygame.display.set_mode((int(monitor_info.current_w), int(monitor_info.current_h)))
@@ -21,20 +21,16 @@ class Title:
                 if event.type == pygame.QUIT:
                     running = False
 
-            screen.fill((159, 168, 191))
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
 
-            Title.rotate(screen, 100)
+            screen.fill((159, 168, 191))
+            screen.blit(title_text, (100, 100))
             pygame.display.flip()
 
         pygame.quit()
 
 
-    @staticmethod
-    def rotate(surf, top_left):
-        rotated_image = pygame.transform.rotate(Title.image, Title.angle)
-        new_rect = rotated_image.get_rect(center=Title.image.get_rect(topleft=top_left).center)
-
-        surf.blit(rotated_image, new_rect)
-
-
-Title.main()
+if __name__ == "__main__":
+    Title.main()
