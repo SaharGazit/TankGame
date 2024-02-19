@@ -30,7 +30,9 @@ class Title:
 
         # buttons and texts
         title_text = title_font.render('TANK GAME', False, (0, 0, 0))
+        play_button = Button((100, 400), (300, 70), 'Play')
         quit_button = Button((100, 800), (300, 70), 'Quit')
+        button_list = [play_button, quit_button]
 
         running = True
         while running:
@@ -55,8 +57,9 @@ class Title:
             # title (TANK GAME)
             screen.blit(title_text, (75, 75))
 
-            # quit button
-            quit_button.draw_button(screen)
+            # static buttons
+            for button in button_list:
+                button.draw_button(screen)
 
             pygame.display.flip()
 
