@@ -2,8 +2,6 @@ import pygame
 
 
 class Title:
-    angle = 0
-    image = pygame.image.load("resources/tankbody.png")
 
     @staticmethod
     def main():
@@ -11,8 +9,16 @@ class Title:
         pygame.init()
         pygame.display.set_caption('TANK GAME')
 
+        # technical
         monitor_info = pygame.display.Info()
         screen = pygame.display.set_mode((int(monitor_info.current_w), int(monitor_info.current_h)))
+        title_font = pygame.font.Font("resources\\font1.ttf", 90)
+        button_text_font = pygame.font.SysFont("None", 50)
+
+        # buttons and texts
+        title_text = title_font.render('TANK GAME', False, (0, 0, 0))
+        quit_button_text = button_text_font.render('Quit', False, (0, 0, 0))
+        quit_button = pygame.Rect((100, 800), (300, 70))
 
         running = True
         while running:
@@ -21,20 +27,25 @@ class Title:
                 if event.type == pygame.QUIT:
                     running = False
 
-            screen.fill((159, 168, 191))
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
 
-            Title.rotate(screen, 100)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        mouse_x, mouse_y = event.pos
+                        if quit_button.collidepoint(mouse_x, mouse_y):
+                            running = False
+
+
+            screen.fill((153, 230, 255))
+            screen.blit(title_text, (75, 75))
+            pygame.draw.rect(screen, (255, 255, 255), quit_button)
+            screen.blit(quit_button_text, (215, 815))
             pygame.display.flip()
 
         pygame.quit()
 
 
-    @staticmethod
-    def rotate(surf, top_left):
-        rotated_image = pygame.transform.rotate(Title.image, Title.angle)
-        new_rect = rotated_image.get_rect(center=Title.image.get_rect(topleft=top_left).center)
-
-        surf.blit(rotated_image, new_rect)
-
-
-Title.main()
+if __name__ == "__main__":
+    Title.main()
