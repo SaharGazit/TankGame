@@ -8,16 +8,24 @@ class Title:
         class Button:
             FONT = pygame.font.SysFont("None", 50)
 
-            def __init__(self, position, scale, text):
+            def __init__(self, position, scale, text, mini=False):
                 self.rect = pygame.Rect(position, scale)
                 self.text = Button.FONT.render(text, False, (0, 0, 0))
 
+                if mini:
+                    pass
+                else:
+                    self.text_position = 115 - 10 * (len(text) - 4)
+
             def draw_button(self, screen):
                 pygame.draw.rect(screen, (255, 255, 255), self.rect)
-                screen.blit(self.text, (self.rect.x + 115, self.rect.y + 15))
+                screen.blit(self.text, (self.rect.x + self.text_position, self.rect.y + 15))
 
             def get_rect(self):
                 return self.rect
+
+        class Window:
+            pass
 
         # initiate program
         pygame.init()
@@ -31,8 +39,10 @@ class Title:
         # buttons and texts
         title_text = title_font.render('TANK GAME', False, (0, 0, 0))
         play_button = Button((100, 400), (300, 70), 'Play')
+        debug_button = Button((500, 400), (50, 50), 'debug')
+        account_button = Button((100, 600), (300, 70), 'Account')
         quit_button = Button((100, 800), (300, 70), 'Quit')
-        button_list = [play_button, quit_button]
+        button_list = [play_button, account_button, quit_button]
 
         running = True
         while running:
@@ -48,6 +58,12 @@ class Title:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         mouse_x, mouse_y = event.pos
+                        # pressed play button
+                        if play_button.get_rect().collidepoint(mouse_x, mouse_y):
+                            # TODO: lan/online/debug
+                            button_list.append(debug_button)
+
+                        # pressed quit button
                         if quit_button.get_rect().collidepoint(mouse_x, mouse_y):
                             running = False
 
@@ -64,10 +80,6 @@ class Title:
             pygame.display.flip()
 
         pygame.quit()
-
-
-
-
 
 
 if __name__ == "__main__":
