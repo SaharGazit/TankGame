@@ -46,7 +46,7 @@ class Title:
         account_button = Button((100, 600), (300, 70), 'Account', 80)
 
         quit_button = Button((100, 800), (300, 70), 'Quit', 115)
-        confirm_quit_button = Button((500, 800), (150, 70), 'yes', 50)
+        confirm_quit_button = Button((500, 800), (150, 70), 'sure?', 35)
         quit_tab_open = False
 
         button_list = [play_button, account_button, quit_button]
@@ -92,6 +92,10 @@ class Title:
 
                             # switch quit tab mode
                             quit_tab_open = not quit_tab_open
+
+                        # pressed quit confirm button
+                        elif confirm_quit_button.get_rect().collidepoint(mouse_x, mouse_y):
+                            running = False
 
                         # pressed no button
                         else:
