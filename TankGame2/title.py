@@ -8,18 +8,16 @@ class Title:
         class Button:
             FONT = pygame.font.SysFont("None", 50)
 
-            def __init__(self, position, scale, text, mini=False):
+            def __init__(self, position, scale, text, text_position):
                 self.rect = pygame.Rect(position, scale)
                 self.text = Button.FONT.render(text, False, (0, 0, 0))
 
-                if mini:
-                    pass
-                else:
-                    self.text_position = 115 - 10 * (len(text) - 4)
 
-            def draw_button(self, screen):
-                pygame.draw.rect(screen, (255, 255, 255), self.rect)
-                screen.blit(self.text, (self.rect.x + self.text_position, self.rect.y + 15))
+                self.text_position = text_position
+
+            def draw_button(self, screen_):
+                pygame.draw.rect(screen_, (255, 255, 255), self.rect)
+                screen_.blit(self.text, (self.rect.x + self.text_position, self.rect.y + 15))
 
             def get_rect(self):
                 return self.rect
@@ -38,10 +36,19 @@ class Title:
 
         # buttons and texts
         title_text = title_font.render('TANK GAME', False, (0, 0, 0))
-        play_button = Button((100, 400), (300, 70), 'Play')
-        debug_button = Button((500, 400), (50, 50), 'debug')
-        account_button = Button((100, 600), (300, 70), 'Account')
-        quit_button = Button((100, 800), (300, 70), 'Quit')
+
+        play_button = Button((100, 400), (300, 70), 'Play', 115)
+        online_button = Button((500, 400), (150, 70), 'online', 27)
+        lan_button = Button((750, 400), (150, 70), 'LAN', 40)
+        debug_button = Button((1000, 400), (150, 70), 'debug', 25)
+        play_tab_open = False
+
+        account_button = Button((100, 600), (300, 70), 'Account', 80)
+
+        quit_button = Button((100, 800), (300, 70), 'Quit', 115)
+        confirm_quit_button = Button((500, 800), (150, 70), 'yes', 50)
+        quit_tab_open = False
+
         button_list = [play_button, account_button, quit_button]
 
         running = True
@@ -60,12 +67,38 @@ class Title:
                         mouse_x, mouse_y = event.pos
                         # pressed play button
                         if play_button.get_rect().collidepoint(mouse_x, mouse_y):
-                            # TODO: lan/online/debug
-                            button_list.append(debug_button)
+                            if play_tab_open:
+                                # remove buttons after pressing again
+                                button_list.remove(online_button)
+                                button_list.remove(lan_button)
+                                button_list.remove(debug_button)
+                            else:
+                                # show game mode buttons
+                                button_list.append(online_button)
+                                button_list.append(lan_button)
+                                button_list.append(debug_button)
+
+                            # switch play tab mode
+                            play_tab_open = not play_tab_open
 
                         # pressed quit button
-                        if quit_button.get_rect().collidepoint(mouse_x, mouse_y):
-                            running = False
+                        elif quit_button.get_rect().collidepoint(mouse_x, mouse_y):
+                            if quit_tab_open:
+                                # remove button after pressing again
+                                button_list.remove(confirm_quit_button)
+                            else:
+                                # show confirm button
+                                button_list.append(confirm_quit_button)
+
+                            # switch quit tab mode
+                            quit_tab_open = not quit_tab_open
+
+                        # pressed no button
+                        else:
+                            # reset buttons
+                            button_list = [play_button, account_button, quit_button]
+                            play_tab_open = False
+                            quit_tab_open = False
 
             # background
             screen.fill(Title.BACKGROUND_COLOR)
