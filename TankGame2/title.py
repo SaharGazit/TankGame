@@ -6,9 +6,9 @@ class Title:
 
     def main(self):
         class Button:
-            FONT = pygame.font.Font("resources\\font2.otf", 50)
+            FONT = pygame.font.Font("resources\\fonts\\font2.otf", 50)
 
-            def __init__(self, position, scale, text="", text_position=0, texture=pygame.image.load("resources/button.png")):
+            def __init__(self, position, scale, text="", text_position=0, texture=pygame.image.load("resources\\ui\\button.png")):
                 self.png = pygame.transform.smoothscale(texture, scale)
                 self.position = position
 
@@ -40,15 +40,16 @@ class Title:
                 return rect
 
         class Window:
-            FONT = pygame.font.Font("resources\\font2.otf", 30)
-            CON_TEXTURE = pygame.image.load("resources//confirm.png")
-            CAN_TEXTURE = pygame.image.load("resources//cancel.png")
+            FONT = pygame.font.Font("resources\\fonts\\font2.otf", 30)
+            CON_TEXTURE = pygame.image.load("resources\\ui\\confirm.png")
+            CAN_TEXTURE = pygame.image.load("resources\\ui\\cancel.png")
+            OPT_TEXTURE = pygame.image.load("resources\\ui\\panel2.png")
 
             Texts = {"Play": "Select Mode:", "Account": "Coming Soon", "Quit": "Are you sure you want to quit?"}
-            BUTTONS = {"Play": [], "Account": [], "Quit": [Button((1310.5, 170), (125, 125), texture=CON_TEXTURE), (Button((1584.5, 170), (125, 125), texture=CAN_TEXTURE))]}
+            BUTTONS = {"Play": [Button((1150, 190), (400, 100), 'Online', 85, OPT_TEXTURE), Button((1150, 300), (400, 100), 'LAN', 135, OPT_TEXTURE), Button((1150, 410), (400, 100), 'DEBUG', 95, OPT_TEXTURE)], "Account": [], "Quit": [Button((1310.5, 170), (125, 125), texture=CON_TEXTURE), (Button((1584.5, 170), (125, 125), texture=CAN_TEXTURE))]}
 
             def __init__(self, button_type):
-                self.png = pygame.transform.smoothscale(pygame.image.load("resources/window.png"), (820, 1080))
+                self.png = pygame.transform.smoothscale(pygame.image.load("resources\\ui\\window.png"), (820, 1080))
                 self.position = (1100, 0)
                 self.top_text = Window.Texts[button_type]
 
@@ -72,12 +73,15 @@ class Title:
         # technical
         monitor_info = pygame.display.Info()
         screen = pygame.display.set_mode((int(monitor_info.current_w), int(monitor_info.current_h)))
-        title_font = pygame.font.Font("resources\\font1.ttf", 90)
+        title_font = pygame.font.Font("resources\\fonts\\font1.ttf", 90)
 
         # buttons and texts
         title_text = title_font.render('TANK GAME', False, (0, 0, 0))
+        title_alpha = 255
+        title_alpha_up = False
 
         play_button = Button((100, 400), (400, 100), 'Play', 115)
+        secret_debug_held = False
         account_button = Button((100, 600), (400, 100), 'Account', 60)
         quit_button = Button((100, 800), (400, 100), 'Quit', 125)
 
@@ -86,13 +90,14 @@ class Title:
 
         running = True
         while running:
+            # buttons, keys and mouse effects
             for event in pygame.event.get():
                 # if user closes the window, stop the game from running.
                 if event.type == pygame.QUIT:
                     running = False
 
-                # actions for when the player presses Escape
                 if event.type == pygame.KEYUP:
+                    # actions for when the player presses Escape
                     if event.key == pygame.K_ESCAPE:
                         # when there is no activated window, open the quit confirmation window
                         if activated_window is None:
@@ -105,6 +110,15 @@ class Title:
                         else:
                             activated_window = None
                             button_list = button_list[:3]
+
+                    # cancel debug holding
+                    if event.key == pygame.K_b:
+                        secret_debug_held = False
+
+                if event.type == pygame.KEYDOWN:
+                    # debug button held
+                    if event.key == pygame.K_b:
+                        secret_debug_held = True
 
                 # left click events
                 mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -155,15 +169,28 @@ class Title:
             screen.fill(Title.BACKGROUND_COLOR)
 
             # title (TANK GAME)
+            title_text.set_alpha(title_alpha)
             screen.blit(title_text, (75, 75))
+            if activated_window is None:
+                # change title's alpha
+                if title_alpha_up:
+                    title_alpha += 1
+                else:
+                    title_alpha -= 1
+                # change alpha direction
+                if title_alpha <= 0 or title_alpha >= 255:
+                    title_alpha_up = not title_alpha_up
 
             # side-window
-            if activated_window is not None:
+            else:
                 activated_window.draw_window(screen)
 
             # buttons
-            for button in button_list:
+            for button in button_list[:-1]:
                 button.draw_button(screen)
+            # handle last button (may not appear)
+            if not(len(button_list) == 6 and not secret_debug_held):
+                button_list[-1].draw_button(screen)
 
             pygame.display.flip()
 
