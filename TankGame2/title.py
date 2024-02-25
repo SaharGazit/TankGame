@@ -8,8 +8,7 @@ class Title:
         class Button:
             FONT = pygame.font.Font("resources\\font2.otf", 50)
 
-            def __init__(self, position, scale, text="", text_position=0,
-                         texture=pygame.image.load("resources/button.png")):
+            def __init__(self, position, scale, text="", text_position=0, texture=pygame.image.load("resources/button.png")):
                 self.png = pygame.transform.smoothscale(texture, scale)
                 self.position = position
 
@@ -43,9 +42,10 @@ class Title:
         class Window:
             FONT = pygame.font.Font("resources\\font2.otf", 30)
             CON_TEXTURE = pygame.image.load("resources//confirm.png")
+            CAN_TEXTURE = pygame.image.load("resources//cancel.png")
 
-            Texts = {"Quit": "Are you sure you want to quit?"}
-            BUTTONS = {"Quit": Button((1300, 170), (125, 125), texture=CON_TEXTURE)}
+            Texts = {"Play": "Select Mode:", "Account": "Coming Soon", "Quit": "Are you sure you want to quit?"}
+            BUTTONS = {"Play": [], "Account": [], "Quit": [Button((1310.5, 170), (125, 125), texture=CON_TEXTURE), (Button((1584.5, 170), (125, 125), texture=CAN_TEXTURE))]}
 
             def __init__(self, button_type):
                 self.png = pygame.transform.smoothscale(pygame.image.load("resources/window.png"), (820, 1080))
@@ -97,7 +97,7 @@ class Title:
                         # when there is no activated window, open the quit confirmation window
                         if activated_window is None:
                             activated_window = Window(quit_button.text)
-                            button_list.append(activated_window.buttons)
+                            button_list += activated_window.buttons
                             # fake quit button hovering
                             quit_button.hovered = True
 
@@ -118,14 +118,23 @@ class Title:
                                 # activate the window that belongs to the button
                                 if button.get_rect().collidepoint(mouse_x, mouse_y):
                                     activated_window = Window(button.text)
-                                    button_list.append(activated_window.buttons)
+                                    button_list += activated_window.buttons
 
                         # check if player pressed inside the new window
                         elif activated_window.get_rect().collidepoint(mouse_x, mouse_y):
-                            # pressed a window button
-                            # TODO: add more shit
-                            if button_list[3].get_rect().collidepoint(mouse_x, mouse_y):
-                                running = False
+                            for button in button_list[3:]:
+                                # platform the button action
+                                if button.get_rect().collidepoint(mouse_x, mouse_y):
+
+                                    # quit case
+                                    if len(button_list[3:]) == 2:
+                                        # confirm quit
+                                        if button_list.index(button) == 3:
+                                            running = False
+                                        # cancel quit
+                                        else:
+                                            activated_window = None
+                                            button_list = button_list[:3]
 
                         # remove window if player clicked outside it
                         else:
