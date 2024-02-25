@@ -76,8 +76,11 @@ class Title:
 
         # buttons and texts
         title_text = title_font.render('TANK GAME', False, (0, 0, 0))
+        title_alpha = 255
+        title_alpha_up = False
 
         play_button = Button((100, 400), (400, 100), 'Play', 115)
+        secret_debug_held = False
         account_button = Button((100, 600), (400, 100), 'Account', 60)
         quit_button = Button((100, 800), (400, 100), 'Quit', 125)
 
@@ -155,10 +158,20 @@ class Title:
             screen.fill(Title.BACKGROUND_COLOR)
 
             # title (TANK GAME)
+            title_text.set_alpha(title_alpha)
             screen.blit(title_text, (75, 75))
+            if activated_window is None:
+                # change title's alpha
+                if title_alpha_up:
+                    title_alpha += 1
+                else:
+                    title_alpha -= 1
+                # change alpha direction
+                if title_alpha <= 0 or title_alpha >= 255:
+                    title_alpha_up = not title_alpha_up
 
             # side-window
-            if activated_window is not None:
+            else:
                 activated_window.draw_window(screen)
 
             # buttons
