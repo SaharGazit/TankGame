@@ -3,7 +3,7 @@ from TankGame2.objects.player import Player
 from TankGame2.objects.block import Block
 from TankGame2.objects.bullet import Bullet
 from TankGame2.objects.object import Object
-from TankGame2.resources.powerup import Powerup
+from TankGame2.scripts.objects.powerup import Powerup
 
 
 class MainGame:

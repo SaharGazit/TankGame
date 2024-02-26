@@ -4,7 +4,7 @@ import time
 import pygame.image
 
 from block import Block
-from TankGame2.objects.object import Object
+from object import Object
 
 
 class Bullet(Object):

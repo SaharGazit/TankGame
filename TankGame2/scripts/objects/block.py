@@ -1,5 +1,5 @@
 import pygame
-from TankGame2.objects.object import Object
+from object import Object
 
 
 class Block(Object):
