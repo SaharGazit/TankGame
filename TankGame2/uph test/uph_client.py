@@ -11,7 +11,6 @@ GLOBAL_HOST = "0.0.0.0"
 LOCAL_HOST = f"127.0.0.{random.randint(1, 100)}"
 HOST = ""
 LOCAL_ADDRESS = scapy.get_if_addr(conf.iface)
-print(LOCAL_ADDRESS)
 
 mode = ""
 while True:
@@ -33,7 +32,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     sock.bind((HOST, 50500+random.randint(1, 100)))
     if mode == "lan":
         sock.sendto((mode + ";" + LOCAL_ADDRESS).encode(), rendezvous)
-        print(LOCAL_ADDRESS)
     elif mode == "debug":
         sock.sendto((mode + ";" + LOCAL_HOST).encode(), rendezvous)
 
