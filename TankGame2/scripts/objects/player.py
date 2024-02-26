@@ -2,9 +2,9 @@ import math
 import time
 
 import pygame
-from TankGame2.objects.object import Object
-from TankGame2.objects.block import Block
-from TankGame2.resources.powerup import Powerup
+from object import Object
+from block import Block
+from powerup import Powerup
 
 
 class Player(Object):

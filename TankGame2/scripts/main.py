@@ -1,9 +1,9 @@
 import pygame
-from TankGame2.objects.player import Player
-from TankGame2.objects.block import Block
-from TankGame2.objects.bullet import Bullet
-from TankGame2.objects.object import Object
-from TankGame2.resources.powerup import Powerup
+from objects.player import Player
+from objects.block import Block
+from objects.bullet import Bullet
+from objects.object import Object
+from objects.powerup import Powerup
 
 
 class MainGame:
