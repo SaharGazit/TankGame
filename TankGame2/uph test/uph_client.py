@@ -5,7 +5,7 @@ import scapy.all as scapy
 from scapy.all import conf
 
 # insert ec2 instance ip here. 127.0.0.1 if the server runs on this PC.
-rendezvous = ('13.51.163.196', 50000)
+rendezvous = ('127.0.0.1', 50000)
 
 GLOBAL_HOST = "0.0.0.0"
 LOCAL_HOST = f"127.0.0.{random.randint(1, 100)}"

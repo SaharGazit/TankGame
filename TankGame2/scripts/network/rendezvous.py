@@ -1,50 +1,54 @@
 import socket
 
-HOST = '0.0.0.0'
-PORT = 50000
 
-# open server socket
-with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as UDPServerSocket:
-    peers = []  # list of 2 clients
-    modes = []
-    peers_local = []
-    UDPServerSocket.bind((HOST, PORT))
-    print("[!] Server is activated")
+class Server:
+    def __init__(self):
+        self.host = '0.0.0.0'
+        self.port = 50000
 
-    while True:
-        # add new client
-        data = UDPServerSocket.recvfrom(1024)
+    class Player:
+        def __init__(self, con, mode, local_ip):
+            self.ip = con[0]
+            self.port = con[1]
 
-        # handle the communication mode and the local ip
-        extra_data = data[0].decode().split(";")
-        modes.append(extra_data[0])
-        peers_local.append(extra_data[1])
+            self.mode = mode
+            self.local_ip = local_ip
 
-        addr, port = data[1]
-        peers.append((addr, port))
-        print(f"[+] Connection from {addr}:{port}")
+    def main(self):
+        # open server socket
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as UDPServerSocket:
+            lobby = []  # list of clients
+            UDPServerSocket.bind((self.host, self.port))
+            print("[!] Server is activated")
 
-        # when 2 clients are connected, start trading info
-        if len(peers) == 2:
-            addr1, port1 = peers.pop()
-            addr2, port2 = peers.pop()
-            if modes[0] == modes[1]:
-                if modes[0] == "debug":
-                    print(peers_local)
-                    UDPServerSocket.sendto(f"{peers_local[0]};{port2 + 5};{PORT + 5}".encode(), (addr1, port1))
-                    UDPServerSocket.sendto(f"{peers_local[1]};{PORT + 5};{port2 + 5}".encode(), (addr2, port2))
-                if modes[0] == "lan":
-                    print(peers_local)
-                    UDPServerSocket.sendto(f"{peers_local[0]};{port2 + 5};{PORT + 5}".encode(), (addr1, port1))
-                    UDPServerSocket.sendto(f"{peers_local[1]};{PORT + 5};{port2 + 5}".encode(), (addr2, port2))
-                elif modes[0] == "internet" or modes[0] == "loopback":
-                    UDPServerSocket.sendto(f"{addr2};{port2 + 5};{PORT + 5}".encode(), (addr1, port1))
-                    UDPServerSocket.sendto(f"{addr1};{PORT + 5};{port2 + 5}".encode(), (addr2, port2))
+            while True:
+                # add new client
+                data = UDPServerSocket.recvfrom(1024)
+                extra_data = data[0].decode().split(";")
+                client = self.Player(data[1], extra_data[0], extra_data[1])
 
-                print("[!] Connected two clients, shutting down server")
-            else:
-                UDPServerSocket.sendto(f"not compatible".encode(), (addr1, port1))
-                UDPServerSocket.sendto(f"not compatible".encode(), (addr2, port2))
-                print("[!] Rejected two clients, shutting down server")
+                lobby.append(client)
+                print(f"[+] Connection from {lobby[-1].ip}:{lobby[-1].port}")
 
-            break
+                for player in lobby[:len(lobby) - 1]:
+                    if player.mode == lobby[-1].mode:
+                        peer1 = lobby.pop(lobby.index(player))
+                        peer2 = lobby.pop()
+
+                        if peer1.mode == "debug":
+                            UDPServerSocket.sendto(f"{peer1.local_ip};{peer2.port + 5};{peer1.port + 5}".encode(), (peer1.ip, peer1.port))
+                            UDPServerSocket.sendto(f"{peer1.local_ip};{self.port + 5};{peer2.port + 5}".encode(), (peer2.ip, peer2.port))
+                        elif peer1.mode == "lan":
+                            UDPServerSocket.sendto(f"{peer1.local_ip};{peer2.port + 5};{self.port + 5}".encode(), (peer1.ip, peer1.port))
+                            UDPServerSocket.sendto(f"{peer1.local_ip};{self.port + 5};{peer2.port + 5}".encode(), (peer2.ip, peer2.port))
+                        elif peer1.mode == "online":
+                            UDPServerSocket.sendto(f"{peer2.ip};{peer2.port + 5};{self.port + 5}".encode(), (peer1.ip, peer1.port))
+                            UDPServerSocket.sendto(f"{peer1.ip};{self.port + 5};{peer2.port + 5}".encode(), (peer2.ip, peer2.port))
+
+                        print("[!] Connected two clients, shutting down server")
+                        break
+
+
+if __name__ == "__main__":
+    server = Server()
+    server.main()
