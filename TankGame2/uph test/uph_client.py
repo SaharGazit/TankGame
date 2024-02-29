@@ -59,11 +59,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     sock.bind((HOST, own_port))
     print("Punching hole")
 
-
     sock.sendto("punching hole".encode(), peer)
 
 
-# receive messages from peer in another thread
+# receive and send messages to the peer through two threads
 def recv_msgs():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
 

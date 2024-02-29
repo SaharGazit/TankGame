@@ -1,5 +1,6 @@
 import socket
 import random
+import threading
 
 
 class Client:
@@ -30,11 +31,39 @@ class Client:
 
             peer_addr, peer_port, own_port = data
             peer_port = int(peer_port)
-            own_port = int(own_port)
+            self.port = int(own_port)
             self.peer = (peer_addr, peer_port)
 
+    def main(self):
         # hole punching
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.bind((self.host, self.port))
+            print("Punching hole")
 
+            sock.sendto("punching hole".encode(), self.peer)
+
+        # receive data from the peer using another thread
+        def recv_msgs():
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock2:
+                sock2.bind((self.host, self.port))
+                while True:
+                    data2, addr = sock2.recvfrom(1024)
+                    print(f"Peer: " + data2.decode())
+                    # TODO: stuff with the data
+
+        recv_msgs_thread = threading.Thread(target=recv_msgs)
+        recv_msgs_thread.start()
+
+    # send data to the peer, called from main game
+    def send_data(self, data):
+        # send udp messages
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            # when sending UDP packets, bind to the other peer port
+
+            sock.bind((self.host, self.peer[1] + 1))
+
+            while True:
+                sock.sendto(data.encode('utf-8'), self.peer)
 
 
 if __name__ == "__main__":
