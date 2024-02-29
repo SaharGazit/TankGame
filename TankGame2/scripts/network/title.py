@@ -1,5 +1,7 @@
 import pygame
 from client import Client
+from ..main import Game
+
 
 class Title:
     BACKGROUND_COLOR = (230, 230, 230)
@@ -144,6 +146,8 @@ class Title:
                                     # play case
                                     if len(button_list) == 6:
                                         client = Client(button.text.lower())
+                                        # start the game
+                                        this_game = Game(client)
 
                                     # quit case
                                     if len(button_list) == 5:

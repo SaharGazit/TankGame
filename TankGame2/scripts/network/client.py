@@ -29,12 +29,12 @@ class Client:
                 if len(data) == 3:
                     break
 
+            # get peer
             peer_addr, peer_port, own_port = data
-            peer_port = int(peer_port)
             self.port = int(own_port)
-            self.peer = (peer_addr, peer_port)
+            self.peer = (peer_addr, int(peer_port))
 
-    def main(self):
+    def receive_data(self):
         # hole punching
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
             sock.bind((self.host, self.port))
@@ -51,7 +51,7 @@ class Client:
                     print(f"Peer: " + data2.decode())
                     # TODO: stuff with the data
 
-        recv_msgs_thread = threading.Thread(target=recv_msgs)
+        recv_msgs_thread = threading.Thread(target=recv_msgs, daemon=True)
         recv_msgs_thread.start()
 
     # send data to the peer, called from main game

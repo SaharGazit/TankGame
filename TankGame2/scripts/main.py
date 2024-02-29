@@ -6,12 +6,14 @@ from objects.object import Object
 from objects.powerup import Powerup
 
 
-class MainGame:
+class Game:
     SCREEN_DIVIDER = 1
 
-    def __init__(self):
+    def __init__(self, client):
         self.monitor_info = None
         self.screen = None
+
+        self.client = client
 
     def main(self):
         # initiate program
@@ -21,7 +23,7 @@ class MainGame:
         # screen settings
         self.monitor_info = pygame.display.Info()
         Object.screen_edges = [self.monitor_info.current_w, self.monitor_info.current_h]
-        self.screen = pygame.display.set_mode((int(self.monitor_info.current_w / MainGame.SCREEN_DIVIDER), int(self.monitor_info.current_h / MainGame.SCREEN_DIVIDER)))
+        self.screen = pygame.display.set_mode((int(self.monitor_info.current_w / Game.SCREEN_DIVIDER), int(self.monitor_info.current_h / Game.SCREEN_DIVIDER)))
         Object.screen = self.screen
 
         # objects currently on the map
@@ -78,7 +80,6 @@ class MainGame:
             self.screen.fill((159, 168, 191))
 
             # loop for handling every object
-
             for o in objects:
                 if o.in_screen():
                     o.draw_object()
@@ -101,5 +102,5 @@ class MainGame:
 
 
 if __name__ == "__main__":
-    game = MainGame()
+    game = Game(None)
     game.main()
