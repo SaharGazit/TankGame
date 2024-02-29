@@ -1,5 +1,5 @@
 import pygame
-
+from client import Client
 
 class Title:
     BACKGROUND_COLOR = (230, 230, 230)
@@ -143,16 +143,7 @@ class Title:
 
                                     # play case
                                     if len(button_list) == 6:
-                                        index = button_list.index(button)
-                                        # online
-                                        if index == 3:
-                                            pass
-                                        # lan
-                                        elif index == 4:
-                                            pass
-                                        # debug
-                                        elif secret_debug_held:
-                                            print("awooga")
+                                        client = Client(button.text.lower())
 
                                     # quit case
                                     if len(button_list) == 5:

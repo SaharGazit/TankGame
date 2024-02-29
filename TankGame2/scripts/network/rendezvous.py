@@ -45,8 +45,7 @@ class Server:
                             UDPServerSocket.sendto(f"{peer2.ip};{peer2.port + 5};{self.port + 5}".encode(), (peer1.ip, peer1.port))
                             UDPServerSocket.sendto(f"{peer1.ip};{self.port + 5};{peer2.port + 5}".encode(), (peer2.ip, peer2.port))
 
-                        print("[!] Connected two clients, shutting down server")
-                        break
+                        print("[!] Connected two clients")
 
 
 if __name__ == "__main__":
