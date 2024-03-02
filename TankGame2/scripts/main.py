@@ -1,9 +1,9 @@
 import pygame
-from objects.player import Player
-from objects.block import Block
-from objects.bullet import Bullet
-from objects.object import Object
-from objects.powerup import Powerup
+from player import Player
+from block import Block
+from bullet import Bullet
+from object import Object
+from powerup import Powerup
 
 
 class Game:

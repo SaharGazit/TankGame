@@ -1,14 +1,17 @@
 import pygame
+from client import Client
+from main import Game
 
 
 class Title:
     BACKGROUND_COLOR = (230, 230, 230)
+    RS_DIRECTORY = "../../"
 
     def main(self):
         class Button:
-            FONT = pygame.font.Font("..\\resources\\fonts\\font2.otf", 50)
+            FONT = pygame.font.Font(Title.RS_DIRECTORY + "resources/fonts/font2.otf", 50)
 
-            def __init__(self, position, scale, text="", text_position=0, texture=pygame.image.load("..\\resources\\ui\\button.png")):
+            def __init__(self, position, scale, text="", text_position=0, texture=pygame.image.load(Title.RS_DIRECTORY + "resources/ui/button.png")):
                 self.png = pygame.transform.smoothscale(texture, scale)
                 self.position = position
 
@@ -30,7 +33,7 @@ class Title:
                 # draw the button and its text with fixed positions
                 screen_.blit(self.png, position)
                 text_obj = button.FONT.render(self.text, False, text_color)
-                screen_.blit(text_obj, (position[0] + self.text_position, position[1] + 25))
+                screen_.blit(text_obj, (position[0] + self.text_position, position[1] + 12))
 
             # get the button's rect
             def get_rect(self):
@@ -40,16 +43,16 @@ class Title:
                 return rect
 
         class Window:
-            FONT = pygame.font.Font("..\\resources\\fonts\\font2.otf", 30)
-            CON_TEXTURE = pygame.image.load("..\\resources\\ui\\confirm.png")
-            CAN_TEXTURE = pygame.image.load("..\\resources\\ui\\cancel.png")
-            OPT_TEXTURE = pygame.image.load("..\\resources\\ui\\panel2.png")
+            FONT = pygame.font.Font(Title.RS_DIRECTORY + "resources/fonts/font2.otf", 30)
+            CON_TEXTURE = pygame.image.load(Title.RS_DIRECTORY + "resources/ui/confirm.png")
+            CAN_TEXTURE = pygame.image.load(Title.RS_DIRECTORY + "resources/ui/cancel.png")
+            OPT_TEXTURE = pygame.image.load(Title.RS_DIRECTORY + "resources/ui/panel2.png")
 
             Texts = {"Play": "Select Mode:", "Account": "Coming Soon", "Quit": "Are you sure you want to quit?"}
             BUTTONS = {"Play": [Button((1150, 190), (400, 100), 'Online', 85, OPT_TEXTURE), Button((1150, 300), (400, 100), 'LAN', 135, OPT_TEXTURE), Button((1150, 410), (400, 100), 'DEBUG', 95, OPT_TEXTURE)], "Account": [], "Quit": [Button((1310.5, 170), (125, 125), texture=CON_TEXTURE), (Button((1584.5, 170), (125, 125), texture=CAN_TEXTURE))]}
 
             def __init__(self, button_type):
-                self.png = pygame.transform.smoothscale(pygame.image.load("..\\resources\\ui\\window.png"), (820, 1080))
+                self.png = pygame.transform.smoothscale(pygame.image.load(Title.RS_DIRECTORY + "resources/ui/window.png"), (820, 1080))
                 self.position = (1100, 0)
                 self.top_text = Window.Texts[button_type]
 
@@ -73,7 +76,7 @@ class Title:
         # technical
         monitor_info = pygame.display.Info()
         screen = pygame.display.set_mode((int(monitor_info.current_w), int(monitor_info.current_h)))
-        title_font = pygame.font.Font("..\\resources\\fonts\\font1.ttf", 90)
+        title_font = pygame.font.Font(Title.RS_DIRECTORY + "resources/fonts/font1.ttf", 90)
 
         # buttons and texts
         title_text = title_font.render('TANK GAME', False, (0, 0, 0))
@@ -140,8 +143,14 @@ class Title:
                                 # platform the button action
                                 if button.get_rect().collidepoint(mouse_x, mouse_y):
 
+                                    # play case
+                                    if len(button_list) == 6:
+                                        client = Client(button.text.lower())
+                                        # start the game
+                                        this_game = Game(client)
+
                                     # quit case
-                                    if len(button_list[3:]) == 2:
+                                    if len(button_list) == 5:
                                         # confirm quit
                                         if button_list.index(button) == 3:
                                             running = False
