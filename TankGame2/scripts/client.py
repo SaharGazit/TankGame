@@ -7,11 +7,15 @@ class Client:
     # insert ec2 instance ip here. 127.0.0.1 if the server runs on this PC.
     RENDEZVOUS = ('127.0.0.1', 50000)
 
-    def __init__(self, mod):
+    def __init__(self, mod, title):
         self.host = "0.0.0.0"
         self.port = 0  # client port
         self.peer = ()
+
         self.mod = mod
+        self.program = title
+
+        self.force_stop_queueing = False
 
         # connect to rendezvous server
         conn_init_thread = threading.Thread(target=self.connect_with_rendezvous, daemon=True)
@@ -20,6 +24,7 @@ class Client:
     def connect_with_rendezvous(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
             sock.bind((self.host, 50500 + random.randint(1, 100)))
+            sock.settimeout(1)
 
             # send info to the server
             message = self.mod + ";"
@@ -28,20 +33,33 @@ class Client:
                 sock.sendto(message.encode(), Client.RENDEZVOUS)
                 # TODO: LAN
 
-            try:
-                # get data from the server
-                while True:
+
+            # get data from the server
+            while not self.force_stop_queueing:
+                try:
                     data = sock.recvfrom(1024)[0].decode().split(";")
-                    print("data: ", data)
-                    if len(data) == 3:
-                        # get peer
-                        peer_addr, peer_port, own_port = data
-                        self.port = int(own_port)
-                        self.peer = (peer_addr, int(peer_port))
-                        break
-            except ConnectionResetError:
-                print("invalid rendezvous ip address")
-                # TODO: invalid rendezvous ip address
+
+                # set error code if socket address is wrong
+                except ConnectionResetError:
+                    self.program.error_code = 1
+                    print("invalid rendezvous ip address")
+                    break
+
+                # check if the client canceled the queueing
+                except socket.timeout:
+                    continue
+
+                print("data: ", data)
+                if len(data) == 3:
+                    # get peer
+                    peer_addr, peer_port, own_port = data
+                    self.port = int(own_port)
+                    self.peer = (peer_addr, int(peer_port))
+                    break
+
+            # send cancel message to server
+            if self.force_stop_queueing:
+                sock.sendto("cancel".encode(), Client.RENDEZVOUS)
 
     def receive_data(self):
         self.punch_hole()
@@ -74,9 +92,3 @@ class Client:
             print("Punching hole")
 
             sock.sendto("punching hole".encode(), self.peer)
-
-
-if __name__ == "__main__":
-    test_client = Client('debug')
-
-

@@ -7,7 +7,11 @@ class Title:
     BACKGROUND_COLOR = (230, 230, 230)
     RS_DIRECTORY = "../"
 
+    def __init__(self):
+        self.error_code = 0
+
     def main(self):
+        # load fonts
         font = pygame.font.Font(Title.RS_DIRECTORY + "resources/fonts/font2.otf", 30)
         con_texture = pygame.image.load(Title.RS_DIRECTORY + "resources/ui/confirm.png")
         can_texture = pygame.image.load(Title.RS_DIRECTORY + "resources/ui/cancel.png")
@@ -48,7 +52,6 @@ class Title:
                 return rect
 
         class Window:
-
             Texts = {"Play": "Select Mode:", "Account": "Coming Soon", "Quit": "Are you sure you want to quit?"}
             BUTTONS = {"Play": [Button((1150, 190), (400, 100), 'Online', 85, opt_texture), Button((1150, 300), (400, 100), 'LAN', 135, opt_texture), Button((1150, 410), (400, 100), 'DEBUG', 95, opt_texture)], "Account": [], "Quit": [Button((1310.5, 170), (125, 125), texture=con_texture), (Button((1584.5, 170), (125, 125), texture=can_texture))]}
 
@@ -91,8 +94,12 @@ class Title:
         cancel_queue_button = Button((1447.5, 900), (125, 125), texture=can_texture)
         cancel_text = font.render('Waiting for Opponent', False, (255, 102, 102))
 
+        error1_test = font.render("Server is Offline", False, (128, 0, 0))
+
         button_list = [play_button, account_button, quit_button]
         activated_window = None
+
+        client = None
         waiting = False
 
         running = True
@@ -116,12 +123,13 @@ class Title:
                         # cancel queue
                         elif waiting:
                             waiting = False
-                            # TODO: cancel queue by pressing esc
+                            client.force_stop_queueing = True
 
                         # when there is an activated window, close it
                         else:
                             activated_window = None
                             button_list = button_list[:3]
+                            self.error_code = 0
 
                     # cancel debug holding
                     if event.key == pygame.K_b:
@@ -141,7 +149,7 @@ class Title:
                         if waiting:
                             if cancel_queue_button.get_rect().collidepoint(mouse_x, mouse_y):
                                 waiting = False
-                                # TODO: cancel queue
+                                client.force_stop_queueing = True
 
                         # check if another window is open
                         elif activated_window is None:
@@ -160,10 +168,12 @@ class Title:
 
                                     # play case
                                     if len(button_list) == 6:
-                                        if button_list.index(button) == 5:
+                                        if button_list.index(button) == 5 and secret_debug_held:
                                             waiting = True
                                             secret_debug_held = False
-                                            client = Client(button.text.lower())
+                                            self.error_code = 0
+
+                                            client = Client(button.text.lower(), self)
 
                                     # quit case
                                     if len(button_list) == 5:
@@ -179,22 +189,20 @@ class Title:
                         else:
                             activated_window = None
                             button_list = button_list[:3]
+                            self.error_code = 0
 
                 if activated_window is None:
                     new_button_list = button_list
+                elif waiting:
+                    new_button_list = [cancel_queue_button]
                 else:
                     new_button_list = button_list[3:]
 
                 # update button hovering
-                if waiting:
-                    cancel_queue_button.hovered = False
-                    if cancel_queue_button.get_rect().collidepoint(mouse_x, mouse_y):
-                        cancel_queue_button.hovered = True
-                else:
-                    for button in new_button_list:
-                        button.hovered = False
-                        if button.get_rect().collidepoint(mouse_x, mouse_y):
-                            button.hovered = True
+                for button in new_button_list:
+                    button.hovered = False
+                    if button.get_rect().collidepoint(mouse_x, mouse_y):
+                        button.hovered = True
 
             # background
             screen.fill(Title.BACKGROUND_COLOR)
@@ -226,6 +234,11 @@ class Title:
             if waiting:
                 screen.blit(cancel_text, (1276, 830))
                 cancel_queue_button.draw_button(screen)
+
+            # handle error codes
+            if self.error_code == 1:
+                waiting = False
+                screen.blit(error1_test, (1342, 830))
 
             pygame.display.flip()
         pygame.quit()
