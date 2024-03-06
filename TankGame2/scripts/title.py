@@ -224,21 +224,24 @@ class Title:
             else:
                 activated_window.draw_window(screen)
 
-            # buttons
+            # draw buttons
             for button in button_list[:-1]:
                 button.draw_button(screen)
-            # handle last button (may not appear)
+            # draw last button (may not appear)
             if not(len(button_list) == 6 and not secret_debug_held):
                 button_list[-1].draw_button(screen)
-            # cancel queue button and message
+
             if waiting:
+                # cancel button and message
                 screen.blit(cancel_text, (1276, 830))
                 cancel_queue_button.draw_button(screen)
 
             # handle error codes
             if self.error_code == 1:
                 waiting = False
-                screen.blit(error1_test, (1342, 830))
+                screen.blit(error1_test, (1330, 830))
+
+
 
             pygame.display.flip()
         pygame.quit()

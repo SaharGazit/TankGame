@@ -33,7 +33,6 @@ class Client:
                 sock.sendto(message.encode(), Client.RENDEZVOUS)
                 # TODO: LAN
 
-
             # get data from the server
             while not self.force_stop_queueing:
                 try:
@@ -62,7 +61,6 @@ class Client:
                 sock.sendto("cancel".encode(), Client.RENDEZVOUS)
 
     def receive_data(self):
-        self.punch_hole()
 
         # receive data from the peer using another thread
         def recv_msgs():
@@ -85,6 +83,7 @@ class Client:
             sock.bind((self.host, self.peer[1] + 1))
             sock.sendto(data.encode('utf-8'), self.peer)
 
+    # only required during online communication
     def punch_hole(self):
         # hole punching
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
