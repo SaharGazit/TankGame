@@ -15,6 +15,9 @@ class Client:
         self.mod = mod
         self.program = title
 
+        self.peer_socket_send = None
+        self.peer_socket_recv = None
+
         self.force_stop_queueing = False
 
         # connect to rendezvous server
@@ -60,28 +63,39 @@ class Client:
             if self.force_stop_queueing:
                 sock.sendto("cancel".encode(), Client.RENDEZVOUS)
 
-    def receive_data(self):
+            else:
+                # create peer socket for sending and receiving
+                self.peer_socket_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                self.peer_socket_send.bind((self.host, self.peer[1] + 1))
+                self.peer_socket_recv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                self.peer_socket_recv.bind((self.host, self.port))
 
+                # rock scissors papers game (view: protocol.py)
+                # TODO: that
+
+    def receive_data(self, r = False):
         # receive data from the peer using another thread
         def recv_msgs():
-            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock2:
-                sock2.bind((self.host, self.port))
-                while True:
-                    data2, addr = sock2.recvfrom(1024)
-                    print(f"Peer: " + data2.decode())
+            while True:
+                data2, addr = self.peer_socket_recv.recvfrom(1024)
+                print(f"Peer: " + data2.decode())
+                if r:
+                    return data2
+                else:
+                    pass
                     # TODO: stuff with the data
 
-        recv_msgs_thread = threading.Thread(target=recv_msgs, daemon=True)
-        recv_msgs_thread.start()
+        # r determines whether the client is waiting for a specific response (usually outside of game) or generally waiting for any data
+        if r:
+            return recv_msgs()
+        else:
+            recv_msgs_thread = threading.Thread(target=recv_msgs, daemon=True)
+            recv_msgs_thread.start()
 
     # send data to the peer, called from main game
     def send_data(self, data):
         # send udp messages
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-            # when sending UDP packets, bind to the other peer port
-
-            sock.bind((self.host, self.peer[1] + 1))
-            sock.sendto(data.encode('utf-8'), self.peer)
+        self.peer_socket_send.sendto(data.encode(), self.peer)
 
     # only required during online communication
     def punch_hole(self):

@@ -168,10 +168,11 @@ class Title:
 
                                     # play case
                                     if len(button_list) == 6:
+                                        # debug case
                                         if button_list.index(button) == 5 and secret_debug_held:
                                             waiting = True
                                             secret_debug_held = False
-                                            self.error_code = 0
+                                            self.error_code = 0  # reset error code
 
                                             client = Client(button.text.lower(), self)
 
@@ -191,6 +192,7 @@ class Title:
                             button_list = button_list[:3]
                             self.error_code = 0
 
+                # set relevant button list
                 if activated_window is None:
                     new_button_list = button_list
                 elif waiting:
