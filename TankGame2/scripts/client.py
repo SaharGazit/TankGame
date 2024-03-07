@@ -12,12 +12,14 @@ class Client:
         self.port = 0  # client port
         self.peer = ()
 
+        self.is_dm = None
+        self.rps_result = None
+
         self.mod = mod
         self.program = title
 
         self.peer_socket_send = None
         self.peer_socket_recv = None
-
         self.force_stop_queueing = False
 
         # connect to rendezvous server
@@ -63,7 +65,7 @@ class Client:
             if self.force_stop_queueing:
                 sock.sendto("cancel".encode(), Client.RENDEZVOUS)
 
-            else:
+            elif self.program.error_code == 0:
                 # create peer socket for sending and receiving
                 self.peer_socket_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 self.peer_socket_send.bind((self.host, self.peer[1] + 1))
@@ -71,29 +73,45 @@ class Client:
                 self.peer_socket_recv.bind((self.host, self.port))
 
                 # rock scissors papers game (view: protocol.py)
-                # TODO: that
+                while self.is_dm is None:
+                    print("aaa")
+                    # send and receive guess
+                    my_guess = random.randrange(3)
+                    self.send_data(my_guess)
+                    self.receive_data()
 
-    def receive_data(self, r = False):
+                    # wait for rps result
+                    while self.rps_result is None:
+                        pass
+
+                    print("my guess: " + str(my_guess))
+                    print("opponent's guess: " + str(self.rps_result))
+                    # tie
+                    if my_guess == self.rps_result:
+                        self.rps_result = None
+                    # win or lose
+                    else:
+                        self.is_dm = (my_guess, self.rps_result) in [(0, 2), (1, 0), (2, 1)]
+
+                print(self.is_dm)
+
+    def receive_data(self):
         # receive data from the peer using another thread
         def recv_msgs():
-            while True:
-                data2, addr = self.peer_socket_recv.recvfrom(1024)
-                print(f"Peer: " + data2.decode())
-                if r:
-                    return data2
-                else:
-                    pass
-                    # TODO: stuff with the data
+            data2, addr = self.peer_socket_recv.recvfrom(1024)
+            data2 = data2.decode()
+            print("Received " + data2 + " from the peer")
 
-        # r determines whether the client is waiting for a specific response (usually outside of game) or generally waiting for any data
-        if r:
-            return recv_msgs()
-        else:
-            recv_msgs_thread = threading.Thread(target=recv_msgs, daemon=True)
-            recv_msgs_thread.start()
+            # get RPS result
+            if self.is_dm is None:
+                self.rps_result = int(data2)
+
+        recv_msgs_thread = threading.Thread(target=recv_msgs, daemon=True)
+        recv_msgs_thread.start()
 
     # send data to the peer, called from main game
     def send_data(self, data):
+        data = str(data)
         # send udp messages
         self.peer_socket_send.sendto(data.encode(), self.peer)
 
