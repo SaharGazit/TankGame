@@ -12,7 +12,7 @@ class Bullet(Object):
     COLOR = (255, 0, 0)
 
     def __init__(self, position, rotation):
-        super().__init__(position, rotation, (20, 20), pygame.image.load("../resources/tankbody.png"))
+        super().__init__(position, rotation, (20, 20), pygame.image.load("../resources/tank_hull.png"))
 
         # Calculate x and y components of the velocity vector
         self.x_speed = Bullet.SPEED * math.cos(math.radians(rotation))

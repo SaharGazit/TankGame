@@ -13,7 +13,7 @@ class Player(Object):
 
     def __init__(self, name, starting_position, monitor_info, main_player=False):
         # inherited from Object class
-        super().__init__(starting_position, 0, (48, 48), pygame.image.load("../resources/tankbody.png"))
+        super().__init__(starting_position, 0, (48, 48), pygame.image.load("../resources/tank_hull.png"))
 
         # player data
         self.name = name  # player's name
@@ -28,6 +28,7 @@ class Player(Object):
         self.monitor_info = monitor_info
         self.blocked_direction = [False, False, False, False]
         self.movement_colliders = [pygame.Rect(self.global_position[0] + 9, self.global_position[1] + 2, 30, 3), pygame.Rect(self.global_position[0] + 43, self.global_position[1] + 9, 3, 30), pygame.Rect(self.global_position[0] + 9, self.global_position[1] + 42, 30, 3), pygame.Rect(self.global_position[0] + 2, self.global_position[1] + 9, 3, 30)]
+        self.turret_texture = pygame.image.load("../resources/tank_turret.png")
 
     # this function runs every game loop and is responsible for different continuous actions such as moving and rotating.
     def update(self, everything):
