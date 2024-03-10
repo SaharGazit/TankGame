@@ -71,8 +71,8 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:  # (1 = left mouse click)
                         # creates a bullet with the position and rotation of the player
-                        shooter_pos = list(this_player.global_position)
-                        objects.append(Bullet([shooter_pos[0] + 11.25, shooter_pos[1] + 11.25], this_player.rotation))
+                        shooter_pos = this_player.global_position
+                        objects.append(Bullet([shooter_pos[0] + (this_player.scale[0] / 2 - Bullet.SCALE[0] / 2), shooter_pos[1] + (this_player.scale[1] / 2 - Bullet.SCALE[1] / 2)], this_player.rotation))
 
             # game remains at 60 FPS
             clock.tick(60)
@@ -80,7 +80,7 @@ class Game:
             self.screen.fill((159, 168, 191))
 
             # loop for handling every object
-            for o in objects:
+            for o in objects[1:] + [this_player]:  # the player is "pushed" to the end in order to draw it last
                 if o.in_screen():
                     o.draw_object()
 

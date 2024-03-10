@@ -23,6 +23,7 @@ class Player(Object):
         self.acceleration = [0, 0]
         self.speed = [0, 0]
         self.powerups = {}  # list of powerup effects currently on the player.
+        self.rotation = 0
 
         # technical
         self.monitor_info = monitor_info
@@ -149,4 +150,19 @@ class Player(Object):
                 self.acceleration = [self.acceleration[0] / 5, self.acceleration[1] / 5]
 
             del self.powerups[i]
+
+    def draw_object(self):
+        # draw hull
+        super().draw_object()
+
+        # rotate the turret
+        turret_sprite = pygame.transform.rotate(self.turret_texture, -self.rotation - 90)
+        turret_rect = turret_sprite.get_rect(center=super().get_rect().center)
+        turret_rect.x -= 1  # minor position fixes
+        turret_rect.y -= 1  # minor position fixes
+
+        # draw turret
+        Object.screen.blit(turret_sprite, turret_rect)
+
+
 

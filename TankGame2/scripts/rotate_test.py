@@ -21,14 +21,14 @@ sprite_image = pygame.image.load('../resources/tank_turret.png').convert_alpha()
 sprite_rect = sprite_image.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
 
 # Main loop
-while True:
+running = False
+while running:
     window.fill(BLACK)
 
     # Handle events
     for event in pygame.event.get():
         if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
+            running = False
 
     # Get the position of the mouse
     mouse_x, mouse_y = pygame.mouse.get_pos()
