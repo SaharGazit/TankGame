@@ -1,6 +1,7 @@
 import socket
 import random
 import threading
+import time
 
 
 class Client:
@@ -72,13 +73,16 @@ class Client:
                 self.peer_socket_recv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 self.peer_socket_recv.bind((self.host, self.port))
 
+                # create a thread for listening
+                recv_msgs_thread = threading.Thread(target=self.receive_data(), daemon=True)
+                recv_msgs_thread.start()
+
                 # rock scissors papers game (view: protocol.py)
                 while self.is_dm is None:
                     print("aaa")
                     # send and receive guess
                     my_guess = random.randrange(3)
                     self.send_data(my_guess)
-                    self.receive_data()
 
                     # wait for rps result
                     while self.rps_result is None:
@@ -96,18 +100,19 @@ class Client:
                 print(self.is_dm)
 
     def receive_data(self):
-        # receive data from the peer using another thread
-        def recv_msgs():
+        print("aaaaa")
+        while True:
+            # get data
             data2, addr = self.peer_socket_recv.recvfrom(1024)
             data2 = data2.decode()
             print("Received " + data2 + " from the peer")
 
-            # get RPS result
+            # determine which status is the client in
             if self.is_dm is None:
+                # get rps result
                 self.rps_result = int(data2)
-
-        recv_msgs_thread = threading.Thread(target=recv_msgs, daemon=True)
-        recv_msgs_thread.start()
+            else:
+                print("idk wat to do wit it fam")
 
     # send data to the peer, called from main game
     def send_data(self, data):
