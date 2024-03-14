@@ -13,7 +13,7 @@ class Object:
         self.to_destroy = False  # if true, the object is about to be removed from the objects list
 
         # PNG of the object
-        self.texture = pygame.transform.smoothscale(texture, (self.scale[0], self.scale[1]))
+        self.texture = pygame.transform.scale(texture, (self.scale[0], self.scale[1]))
 
     def draw_object(self):
         self.screen.blit(self.texture, self.local_position())

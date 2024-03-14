@@ -9,7 +9,7 @@ class Client:
     RENDEZVOUS = ('127.0.0.1', 50000)
 
     def __init__(self, mod, title):
-        self.host = "0.0.0.0"
+        self.host = f"127.0.0.{random.randint(1, 100)}"
         self.port = 0  # client port
         self.peer = ()
 
@@ -35,7 +35,8 @@ class Client:
             # send info to the server
             message = self.mod + ";"
             if self.mod == "debug":
-                message += "127.0.0." + str(random.randint(1, 100))
+                # message += "127.0.0." + str(random.randint(1, 100))
+                message += self.host
                 sock.sendto(message.encode(), Client.RENDEZVOUS)
                 # TODO: LAN
 
@@ -67,40 +68,42 @@ class Client:
                 sock.sendto("cancel".encode(), Client.RENDEZVOUS)
 
             elif self.program.error_code == 0:
+                self.punch_hole()
+
                 # create peer socket for sending and receiving
                 self.peer_socket_send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                self.peer_socket_send.bind((self.host, self.peer[1] + 1))
+                self.peer_socket_send.bind((self.host, self.peer[1]))
                 self.peer_socket_recv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 self.peer_socket_recv.bind((self.host, self.port))
 
                 # create a thread for listening
-                recv_msgs_thread = threading.Thread(target=self.receive_data(), daemon=True)
+                recv_msgs_thread = threading.Thread(target=self.receive_data, daemon=True)
                 recv_msgs_thread.start()
 
                 # rock scissors papers game (view: protocol.py)
-                while self.is_dm is None:
-                    print("aaa")
-                    # send and receive guess
-                    my_guess = random.randrange(3)
-                    self.send_data(my_guess)
-
-                    # wait for rps result
-                    while self.rps_result is None:
-                        pass
-
-                    print("my guess: " + str(my_guess))
-                    print("opponent's guess: " + str(self.rps_result))
-                    # tie
-                    if my_guess == self.rps_result:
-                        self.rps_result = None
-                    # win or lose
-                    else:
-                        self.is_dm = (my_guess, self.rps_result) in [(0, 2), (1, 0), (2, 1)]
-
-                print(self.is_dm)
+                # while self.is_dm is None:
+                #     # send and receive guess
+                #     my_guess = random.randrange(3)
+                #     print("sent " + str(my_guess))
+                #     self.send_data(my_guess)
+                #
+                #     # wait for rps result
+                #     while self.rps_result is None:
+                #         pass
+                #
+                #     print("my guess: " + str(my_guess))
+                #     print("opponent's guess: " + str(self.rps_result))
+                #     # tie
+                #     if my_guess == self.rps_result:
+                #         self.rps_result = None
+                #     # win or lose
+                #     else:
+                #         self.is_dm = (my_guess, self.rps_result) in [(0, 2), (1, 0), (2, 1)]
+                self.send_data(3011)
+                print("hello")
 
     def receive_data(self):
-        print("aaaaa")
+        print("listening")
         while True:
             # get data
             data2, addr = self.peer_socket_recv.recvfrom(1024)
@@ -108,16 +111,17 @@ class Client:
             print("Received " + data2 + " from the peer")
 
             # determine which status is the client in
-            if self.is_dm is None:
-                # get rps result
-                self.rps_result = int(data2)
-            else:
-                print("idk wat to do wit it fam")
+            # if self.is_dm is None:
+            #     # get rps result
+            #     self.rps_result = int(data2)
+            # else:
+            #     print("idk wat to do wit it fam")
 
     # send data to the peer, called from main game
     def send_data(self, data):
         data = str(data)
         # send udp messages
+        print(f"sending to nigga?{self.peer}")
         self.peer_socket_send.sendto(data.encode(), self.peer)
 
     # only required during online communication
