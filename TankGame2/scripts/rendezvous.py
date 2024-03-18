@@ -3,7 +3,7 @@ import socket
 
 class Server:
     def __init__(self):
-        self.host = '0.0.0.0'
+        self.host = '127.0.0.2'
         self.port = 50000
 
     class Player:
@@ -47,7 +47,7 @@ class Server:
 
                         if peer1.mod == "debug":
                             UDPServerSocket.sendto(f"{peer2.local_ip};{peer2.port + 5};{peer1.port + 5}".encode(), (peer1.ip, peer1.port))
-                            UDPServerSocket.sendto(f"{peer1.local_ip};{self.port + 5};{peer2.port + 5}".encode(), (peer2.ip, peer2.port))
+                            UDPServerSocket.sendto(f"{peer1.local_ip};{peer1.port + 5};{peer2.port + 5}".encode(), (peer2.ip, peer2.port))
                         elif peer1.mod == "lan":
                             UDPServerSocket.sendto(f"{peer2.local_ip};{peer2.port + 5};{self.port + 5}".encode(), (peer1.ip, peer1.port))
                             UDPServerSocket.sendto(f"{peer1.local_ip};{self.port + 5};{peer2.port + 5}".encode(), (peer2.ip, peer2.port))
