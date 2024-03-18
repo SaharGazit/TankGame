@@ -35,6 +35,7 @@ class Server:
 
                 else:
                     extra_data = data[0].decode().split(";")
+                    print(extra_data)
                     client = self.Player(data[1], extra_data[0], extra_data[1])
 
                     lobby.append(client)
@@ -46,6 +47,8 @@ class Server:
                         peer2 = lobby.pop()
 
                         if peer1.mod == "debug":
+                            print(f"{peer2.local_ip};{peer2.port + 5};{peer1.port + 5}")
+                            print(f"{peer1.local_ip};{peer1.port + 5};{peer2.port + 5}")
                             UDPServerSocket.sendto(f"{peer2.local_ip};{peer2.port + 5};{peer1.port + 5}".encode(), (peer1.ip, peer1.port))
                             UDPServerSocket.sendto(f"{peer1.local_ip};{peer1.port + 5};{peer2.port + 5}".encode(), (peer2.ip, peer2.port))
                         elif peer1.mod == "lan":

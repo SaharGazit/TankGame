@@ -36,7 +36,7 @@ class Client:
             # send info to the server
             message = self.mod + ";"
             if self.mod == "debug":
-                message += "127.0.0." + str(random.randint(3, 100))
+                message += self.host
                 sock.sendto(message.encode(), Client.RENDEZVOUS)
                 # TODO: LAN
 
