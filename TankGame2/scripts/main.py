@@ -28,7 +28,7 @@ class Game:
 
         # objects currently on the map
         this_player = Player("PLAYER", [self.monitor_info.current_w / 2 - 22.5, self.monitor_info.current_h / 2 - 22.5], self.monitor_info, True)
-        objects = [this_player, Block((500, 500), (100, 100)), Block((700, 500), (100, 100)), Block((1100, 500), (100, 100)), Block((1300, 500), (100, 100)), Powerup((1000, 1000), 'speed')]
+        objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1), Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3), Powerup((1000, 1000), 'speed')]
 
         # clock
         clock = pygame.time.Clock()
@@ -81,8 +81,6 @@ class Game:
 
             # loop for handling every object
             for o in objects[1:] + [this_player]:  # the player is "pushed" to the end in order to draw it last
-                if o.in_screen():
-                    o.draw_object()
 
                 # prevents the object from colliding with itself
                 potential_collisions = list(objects)
@@ -93,6 +91,10 @@ class Game:
                 # destroy object if needed by removing it from the objects list
                 if o.to_destroy:
                     objects.remove(o)
+
+                # draw object
+                if o.in_screen():
+                    o.draw_object()
 
             # update screen
             pygame.display.flip()

@@ -3,24 +3,25 @@ import time
 
 import pygame.image
 
-from block import Block
 from object import Object
 
 
 class Bullet(Object):
-    SPEED = 25
+    SPEED = 15
     COLOR = (255, 0, 0)
     SCALE = (15, 15)
 
     def __init__(self, position, rotation):
-        super().__init__(position, rotation, Bullet.SCALE, pygame.image.load("../resources/bullet.png"))
+        super().__init__(position, rotation, Bullet.SCALE, pygame.image.load("../resources/bullet.png"), 0)
 
         # Calculate x and y components of the velocity vector
         self.x_speed = Bullet.SPEED * math.cos(math.radians(rotation))
         self.y_speed = Bullet.SPEED * math.sin(math.radians(rotation))
+        self.wall_list = [-1]  # list of wall blocks collided with (contains dupes)
 
         # Get time of creation to set time for burnout
         self.time_of_creation = time.perf_counter()
+        self.lifetime = 2
 
     def update(self, everything):
         # update bullet position using its speed
@@ -28,17 +29,14 @@ class Bullet(Object):
         self.global_position[1] += self.y_speed
 
         # destroy bullet if it burned out
-        if self.time_of_creation + 1 <= time.perf_counter():
+        if self.time_of_creation + self.lifetime <= time.perf_counter():
             self.destroy()
+        # reverse the bullets speed when it hits a wall
+        if self.block_collision[0] or self.block_collision[2]:
+            self.y_speed *= -1
+        if self.block_collision[1] or self.block_collision[3]:
+            self.x_speed *= -1
 
-        # remove the player that had shot the bullet, so they won't collide with each other.
-        everything.pop(0)
-        # take the object colliding
-        i = self.get_rect().collidelist([i.get_rect() for i in everything])
-        if i != -1:
-            obj = everything[i]
-            # if it's a block, destroy bullet
-            if type(obj) == Block:
-                self.destroy()
-
+        # reset block collisions
+        self.block_collision = [False, False, False, False]
 

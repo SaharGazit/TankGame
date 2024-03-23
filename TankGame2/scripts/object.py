@@ -6,7 +6,8 @@ class Object:
     screen_edges = [0, 0]  # marks the positions of the right side and the bottom of the screen
     screen = None  # pygame screen used to draw the objects
 
-    def __init__(self, starting_position, rotation, scale, texture):
+    def __init__(self, starting_position, rotation, scale, texture, object_id):
+        self.id = object_id
         self.global_position = starting_position  # global position in the world map
         self.rotation = rotation
         self.scale = scale  # size of the object
@@ -14,6 +15,8 @@ class Object:
 
         # PNG of the object
         self.texture = pygame.transform.scale(texture, (self.scale[0], self.scale[1]))
+
+        self.block_collision = [False, False, False, False]
 
     def draw_object(self):
         self.screen.blit(self.texture, self.local_position())

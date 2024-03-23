@@ -13,7 +13,7 @@ class Player(Object):
 
     def __init__(self, name, starting_position, monitor_info, main_player=False):
         # inherited from Object class
-        super().__init__(starting_position, 0, (48, 48), pygame.image.load("../resources/tank_hull.png"))
+        super().__init__(starting_position, 0, (48, 48), pygame.image.load("../resources/tank_hull.png"), 1)
 
         # player data
         self.name = name  # player's name
@@ -42,7 +42,7 @@ class Player(Object):
 
         collide_list = self.get_all_colliding_objects(everything)
         for side in range(4):  # checks every side of the player
-            for collided in collide_list[side]:  # checks every object that collided with the play at the moment
+            for collided in collide_list[side]:  # checks every object that collided with the player at the moment
 
                 if type(collided) == Block:
                     # block movement to the direction the block has collided with.
@@ -124,13 +124,10 @@ class Player(Object):
         elif direction == 3:
             self.acceleration[0] -= acceleration
 
-    def get_rect(self):
-        return self.movement_colliders
-
     # returns a list of objects colliding with each side of the player
     def get_all_colliding_objects(self, candidates):
         colliding = []
-        for side in self.get_rect():
+        for side in self.movement_colliders:
             indices = side.collidelistall([i.get_rect() for i in candidates])
             colliding.append([candidates[i] for i in indices])
         return colliding
