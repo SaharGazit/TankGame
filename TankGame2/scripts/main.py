@@ -72,7 +72,7 @@ class Game:
                     if event.button == 1:  # (1 = left mouse click)
                         # creates a bullet with the position and rotation of the player
                         shooter_pos = this_player.global_position
-                        objects.append(Bullet([shooter_pos[0] + (this_player.scale[0] / 2 - Bullet.SCALE[0] / 2), shooter_pos[1] + (this_player.scale[1] / 2 - Bullet.SCALE[1] / 2)], this_player.rotation))
+                        objects.append(Bullet([shooter_pos[0] + (this_player.scale[0] / 2 - Bullet.SCALE[0] / 2), shooter_pos[1] + (this_player.scale[1] / 2 - Bullet.SCALE[1] / 2)], this_player.rotation, this_player))
 
             # game remains at 60 FPS
             clock.tick(60)
@@ -83,7 +83,7 @@ class Game:
             for o in objects[1:] + [this_player]:  # the player is "pushed" to the end in order to draw it last
 
                 # prevents the object from colliding with itself
-                potential_collisions = list(objects)
+                potential_collisions = list(objects)  # TODO: move this into the object's class?
                 potential_collisions.remove(o)
                 # update object
                 o.update(potential_collisions)

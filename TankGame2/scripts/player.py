@@ -3,7 +3,7 @@ import time
 
 import pygame
 from object import Object
-from block import Block
+from bullet import Bullet
 from powerup import Powerup
 
 
@@ -21,13 +21,13 @@ class Player(Object):
 
         # gameplay variables
         self.acceleration = [0, 0]
-        self.speed = [0, 0]
+        self.speed_x = 0
+        self.speed_y = 0
         self.powerups = {}  # list of powerup effects currently on the player.
         self.rotation = 0
 
         # technical
         self.monitor_info = monitor_info
-        self.blocked_direction = [False, False, False, False]
         self.movement_colliders = [pygame.Rect(self.global_position[0] + 9, self.global_position[1] + 2, 30, 3), pygame.Rect(self.global_position[0] + 43, self.global_position[1] + 9, 3, 30), pygame.Rect(self.global_position[0] + 9, self.global_position[1] + 42, 30, 3), pygame.Rect(self.global_position[0] + 2, self.global_position[1] + 9, 3, 30)]
         self.turret_texture = pygame.image.load("../resources/tank_turret.png")
 
@@ -37,28 +37,24 @@ class Player(Object):
         self.rotate_by_mouse()
         self.handle_powerups()
 
-        #  for c in self.movement_colliders:
-        #  pygame.draw.rect(self.screen, (255, 255, 255), c)
+        for coll in self.get_all_colliding_objects(everything):
+            if type(coll) == Powerup:
 
-        collide_list = self.get_all_colliding_objects(everything)
-        for side in range(4):  # checks every side of the player
-            for collided in collide_list[side]:  # checks every object that collided with the player at the moment
+                # add the powerup effect to the player
+                self.powerups[coll.effect] = time.perf_counter()
 
-                if type(collided) == Block:
-                    # block movement to the direction the block has collided with.
-                    self.blocked_direction[side] = True
+                # speed effect fix
+                if coll.effect == 'speed':
+                    self.acceleration = [self.acceleration[0] * 5, self.acceleration[1] * 5]
 
-                if type(collided) == Powerup:
+                # destroy powerup
+                coll.to_destroy = True
 
-                    effect = collided.effect
-                    # speed effect fix
-                    if effect == 'speed':
-                        self.acceleration = [self.acceleration[0] * 5, self.acceleration[1] * 5]
-                    # add the powerup effect to the player
-                    self.powerups[collided.effect] = time.perf_counter()
-
-                    # destroy object
-                    collided.to_destroy = True
+            if type(coll) == Bullet:
+                if len(coll.wall_list) > 1 or coll.parent.id != self.id:
+                    print("Hit by a bullet")
+                    # TODO: bullet effects
+                    coll.to_destroy = True
 
     def move_player(self):
         # increase maximum speed if player is under "speed" effect
@@ -67,32 +63,32 @@ class Player(Object):
             max_speed += 5
 
         # increase or decrease speed by acceleration, and check that it doesn't pass the max/min speed.
-        if -max_speed <= self.speed[0] <= max_speed:
-            self.speed[0] += self.acceleration[0]
-        if -max_speed <= self.speed[1] <= max_speed:
-            self.speed[1] += self.acceleration[1]
+        if -max_speed <= self.speed_x <= max_speed:
+            self.speed_x += self.acceleration[0]
+        if -max_speed <= self.speed_y <= max_speed:
+            self.speed_y += self.acceleration[1]
 
         # increase or decrease position by speed. check if play is not blocked in the direction he goes to.
-        if (self.speed[0] > 0 and not self.blocked_direction[1]) or (self.speed[0] < 0 and not self.blocked_direction[3]):
-            self.global_position[0] += self.speed[0]
-        if (self.speed[1] > 0 and not self.blocked_direction[2]) or (self.speed[1] < 0 and not self.blocked_direction[0]):
-            self.global_position[1] += self.speed[1]
+        if (self.speed_x > 0 and not self.block_collision[3]) or (self.speed_x < 0 and not self.block_collision[1]):  # TODO: fix corners bug
+            self.global_position[0] += self.speed_x
+        if (self.speed_y > 0 and not self.block_collision[0]) or (self.speed_y < 0 and not self.block_collision[2]):
+            self.global_position[1] += self.speed_y
 
         # reduce speed by natural deceleration
-        self.speed[0] *= 0.940
-        self.speed[1] *= 0.940
+        self.speed_x *= 0.940
+        self.speed_y *= 0.940
 
-        if -0.1 < self.speed[0] < 0.1:
-            self.speed[0] = 0
-        if -0.1 < self.speed[1] < 0.1:
-            self.speed[1] = 0
+        if -0.1 < self.speed_x < 0.1:
+            self.speed_x = 0
+        if -0.1 < self.speed_y < 0.1:
+            self.speed_y = 0
 
         # update camera
         Object.camera_position = [22.5 + self.global_position[0] - self.monitor_info.current_w / 2, 22.5 + self.global_position[1] - self.monitor_info.current_h / 2]
 
         # reset all blockers
         for i in range(4):
-            self.blocked_direction[i] = False
+            self.block_collision[i] = False
 
     # sets the rotation of the player by the mouse position
     def rotate_by_mouse(self):
@@ -124,14 +120,6 @@ class Player(Object):
         elif direction == 3:
             self.acceleration[0] -= acceleration
 
-    # returns a list of objects colliding with each side of the player
-    def get_all_colliding_objects(self, candidates):
-        colliding = []
-        for side in self.movement_colliders:
-            indices = side.collidelistall([i.get_rect() for i in candidates])
-            colliding.append([candidates[i] for i in indices])
-        return colliding
-
     def handle_powerups(self):
         to_delete = []
         for i in self.powerups:
@@ -155,11 +143,9 @@ class Player(Object):
         # rotate the turret
         turret_sprite = pygame.transform.rotate(self.turret_texture, -self.rotation - 90)
         turret_rect = turret_sprite.get_rect(center=super().get_rect().center)
-        turret_rect.x -= 1  # minor position fixes
-        turret_rect.y -= 1  # minor position fixes
+        # minor position fixes
+        turret_rect.x -= 1
+        turret_rect.y -= 1
 
         # draw turret
         Object.screen.blit(turret_sprite, turret_rect)
-
-
-

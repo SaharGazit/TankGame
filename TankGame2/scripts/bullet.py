@@ -11,13 +11,16 @@ class Bullet(Object):
     COLOR = (255, 0, 0)
     SCALE = (15, 15)
 
-    def __init__(self, position, rotation):
+    def __init__(self, position, rotation, parent):
         super().__init__(position, rotation, Bullet.SCALE, pygame.image.load("../resources/bullet.png"), 0)
 
         # Calculate x and y components of the velocity vector
         self.x_speed = Bullet.SPEED * math.cos(math.radians(rotation))
         self.y_speed = Bullet.SPEED * math.sin(math.radians(rotation))
-        self.wall_list = [-1]  # list of wall blocks collided with (contains dupes)
+        self.wall_list = [-1]  # list of wall blocks ids collided with (contains dupes)
+
+        # The play who shot the bullet
+        self.parent = parent
 
         # Get time of creation to set time for burnout
         self.time_of_creation = time.perf_counter()
