@@ -1,9 +1,6 @@
 import pygame
-from player import Player
-from block import Block
-from bullet import Bullet
-from object import Object
-from powerup import Powerup
+from TankGame2.object import Object, Player, Powerup, Bullet, Block
+# TODO: sort imports, files
 
 
 class Game:
@@ -51,6 +48,8 @@ class Game:
                         this_player.add_force(2)
                     if event.key == pygame.K_a:
                         this_player.add_force(3)
+                    if event.key == pygame.K_k:
+                        this_player.global_position[1] -= 10  # temp
 
                 # the player loses acceleration (accelerated backwards) by un-pressing a key
                 if event.type == pygame.KEYUP:
@@ -71,8 +70,7 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:  # (1 = left mouse click)
                         # creates a bullet with the position and rotation of the player
-                        shooter_pos = this_player.global_position
-                        objects.append(Bullet([shooter_pos[0] + (this_player.scale[0] / 2 - Bullet.SCALE[0] / 2), shooter_pos[1] + (this_player.scale[1] / 2 - Bullet.SCALE[1] / 2)], this_player.rotation, this_player))
+                        objects.append(Bullet(this_player))
 
             # game remains at 60 FPS
             clock.tick(60)

@@ -1,6 +1,5 @@
 import pygame
-from client import Client
-from main import Game
+from TankGame2.archive.client import Client
 
 
 class Title:

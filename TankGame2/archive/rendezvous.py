@@ -64,3 +64,5 @@ class Server:
 if __name__ == "__main__":
     server = Server()
     server.main()
+
+# TODO: this python file is nominated to be deleted

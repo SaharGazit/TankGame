@@ -16,8 +16,8 @@ pygame.display.set_caption('Mouse Rotation')
 BLACK = (0, 0, 0)
 
 # Load the sprite
-hull = pygame.image.load('../resources/tank_hull.png')
-sprite_image = pygame.image.load('../resources/tank_turret.png').convert_alpha()
+hull = pygame.image.load('../resources/objects/tank_hull.png')
+sprite_image = pygame.image.load('../resources/objects/tank_turret.png').convert_alpha()
 sprite_rect = sprite_image.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
 
 # Main loop
@@ -51,3 +51,5 @@ while running:
 
     # Update the display
     pygame.display.flip()
+
+# TODO: this python file is nominated to be archived
