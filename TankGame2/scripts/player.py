@@ -69,7 +69,7 @@ class Player(Object):
             self.speed_y += self.acceleration[1]
 
         # increase or decrease position by speed. check if play is not blocked in the direction he goes to.
-        if (self.speed_x > 0 and not self.block_collision[3]) or (self.speed_x < 0 and not self.block_collision[1]):  # TODO: fix corners bug
+        if (self.speed_x > 0 and not self.block_collision[3]) or (self.speed_x < 0 and not self.block_collision[1]):
             self.global_position[0] += self.speed_x
         if (self.speed_y > 0 and not self.block_collision[0]) or (self.speed_y < 0 and not self.block_collision[2]):
             self.global_position[1] += self.speed_y

@@ -7,20 +7,28 @@ from object import Object
 
 
 class Bullet(Object):
-    SPEED = 15
-    COLOR = (255, 0, 0)
+    # notice: increasing bullet speed might result in unexpected collision glitches (both visual and practical)
+    SPEED = 8
     SCALE = (15, 15)
+    DISTANCE_FROM_CENTER = 6  # on spawn
 
-    def __init__(self, position, rotation, parent):
-        super().__init__(position, rotation, Bullet.SCALE, pygame.image.load("../resources/bullet.png"), 0)
+    def __init__(self, parent):
 
         # Calculate x and y components of the velocity vector
-        self.x_speed = Bullet.SPEED * math.cos(math.radians(rotation))
-        self.y_speed = Bullet.SPEED * math.sin(math.radians(rotation))
-        self.wall_list = [-1]  # list of wall blocks ids collided with (contains dupes)
+        self.x_speed = Bullet.SPEED * math.cos(math.radians(parent.rotation))
+        self.y_speed = Bullet.SPEED * math.sin(math.radians(parent.rotation))
+
+        # get bullet spawn position (which is between the base and the tip of the turret)
+        bullet_position = [parent.global_position[0] + (parent.scale[0] / 2 - Bullet.SCALE[0] / 2), parent.global_position[1] + (parent.scale[1] / 2 - Bullet.SCALE[1] / 2)]
+        bullet_position[0] += self.x_speed * Bullet.DISTANCE_FROM_CENTER
+        bullet_position[1] += self.y_speed * Bullet.DISTANCE_FROM_CENTER
+
+
+        super().__init__(bullet_position, parent.rotation, Bullet.SCALE, pygame.image.load("../resources/bullet.png"), 0)
 
         # The play who shot the bullet
         self.parent = parent
+        self.wall_list = [-1]  # list of wall blocks ids collided with (contains dupes)
 
         # Get time of creation to set time for burnout
         self.time_of_creation = time.perf_counter()
