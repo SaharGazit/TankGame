@@ -12,7 +12,7 @@ RATE = 44100
 # Initialize PyAudio
 audio = pyaudio.PyAudio()
 
-# Create a UDP socket
+# create a UDP socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.bind((HOST, PORT))
 
