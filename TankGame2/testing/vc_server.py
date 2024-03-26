@@ -1,27 +1,41 @@
 import socket
+import pyaudio
 
+# Server settings
+HOST = '127.0.0.1'
+PORT = 12345
+CHUNK = 1024
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 44100
 
-def main():
-    # Create a socket object
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# Initialize PyAudio
+audio = pyaudio.PyAudio()
 
-    # Server host and port
-    server_host = "192.168.5.87"
-    server_port = 12345
+# Create a UDP socket
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_socket.bind((HOST, PORT))
 
-    # Connect to the server
-    client_socket.connect((server_host, server_port))
+print("Server listening...")
 
-    # Send a message to the server
-    message = "Hello, server!"
-    client_socket.send(message.encode())
+# Accept connection
+client_address = None
 
-    # Receive response from the server
-    response = client_socket.recv(1024).decode()
-    print("Response from server:", response)
+# Open stream
+stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, output=True, frames_per_buffer=CHUNK)
 
-    # Close the connection
-    client_socket.close()
+try:
+    while True:
+        data, addr = server_socket.recvfrom(4096)
+        if client_address is None:
+            client_address = addr
+            print(f"Client connected from {client_address}")
 
-if __name__ == "__main__":
-    main()
+        # Play received audio
+        stream.write(data)
+finally:
+    # Clean up
+    stream.stop_stream()
+    stream.close()
+    audio.terminate()
+    server_socket.close()
