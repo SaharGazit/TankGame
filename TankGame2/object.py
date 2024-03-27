@@ -120,10 +120,10 @@ class Block(Object):
     def update(self, everything):
         # update side colliders
         local = self.local_position()
-        self.side_colliders = [pygame.Rect(local[0] + 6, local[1], 89, 4),
-                               pygame.Rect(local[0] + 97, local[1] + 6, 4, 89),
-                               pygame.Rect(local[0] + 6, local[1] + 97, 89, 4),
-                               pygame.Rect(local[0], local[1] + 6, 4, 89)]
+        self.side_colliders = [pygame.Rect(local[0] + 6, local[1] - 4, 89, 4),
+                               pygame.Rect(local[0] + 101, local[1] + 6, 4, 89),
+                               pygame.Rect(local[0] + 6, local[1] + 101, 89, 4),
+                               pygame.Rect(local[0] - 4, local[1] + 6, 4, 89)]
 
         # get collided object lists
         collide_list = self.get_all_colliding_objects(everything)
