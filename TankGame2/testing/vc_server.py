@@ -1,41 +1,23 @@
 import socket
-import pyaudio
+#  TODO: import "client" from main server
 
-# Server settings
-HOST = '127.0.0.1'
-PORT = 12345
-CHUNK = 1024
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 44100
 
-# Initialize PyAudio
-audio = pyaudio.PyAudio()
+class VoiceServer:
+    HOST = "0.0.0.0"
+    PORT = 51410
 
-# create a UDP socket
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_socket.bind((HOST, PORT))
+    LOBBY_CAPACITY = 8
 
-print("Server listening...")
+    def __init__(self, team1, team2):
+        self.team_chat1 = team1
+        self.team_chat2 = team2
 
-# Accept connection
-client_address = None
 
-# Open stream
-stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, output=True, frames_per_buffer=CHUNK)
+    def start_server(self):
+        pass
 
-try:
-    while True:
-        data, addr = server_socket.recvfrom(4096)
-        if client_address is None:
-            client_address = addr
-            print(f"Client connected from {client_address}")
 
-        # Play received audio
-        stream.write(data)
-finally:
-    # Clean up
-    stream.stop_stream()
-    stream.close()
-    audio.terminate()
-    server_socket.close()
+
+if __name__ == "__main__":
+    vs = VoiceServer([('127.0.0.1', 10000)], ['127.0.0.1', 12000])
+    vs.start_server()

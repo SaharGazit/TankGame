@@ -1,32 +1,43 @@
 import socket
 import pyaudio
 
-# Client settings
-HOST = '127.0.0.1'
-PORT = 12345
+HOST = '192.168.5.87'  # server ip
+PORT = 12345  # server port
+
+# determines the size of each block of audio data that is processed at a time
 CHUNK = 1024
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
+# states how many samples of audio are played or captured every second. has to match with the server's rate
 RATE = 44100
 
-# Initialize PyAudio
+# the audio data's format. should stay pyaudio.paInt16 (16-bit signed integer format) as it is a common format for audio data
+FORMAT = pyaudio.paInt16
+# 1 - mono audio (all audio comes from a single channel) 2 - stereo audio (comes from multiple channels, like left and right)
+CHANNELS = 1
+
+# initialize PyAudio
 audio = pyaudio.PyAudio()
 
-# Create a UDP socket
+# create a UDP socket
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_address = None
 
 # Open microphone stream
-stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
+stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, output=True, frames_per_buffer=CHUNK)
 
 print("Client started. Press Ctrl+C to exit.")
 
 try:
     while True:
-        # Read microphone data
+        # read microphone data
         data = stream.read(CHUNK)
 
-        # Send microphone data to server
+        # send microphone data to server
         client_socket.sendto(data, (HOST, PORT))
+
+        data, addr = client_socket.recvfrom(4096)
+
+        # Play received audio
+        stream.write(data)
 except KeyboardInterrupt:
     pass
 finally:

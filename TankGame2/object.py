@@ -54,6 +54,11 @@ class Object:
     def destroy(self):
         self.to_destroy = True
 
+    @staticmethod
+    def distance(obj1, obj2):
+        return math.sqrt(math.pow(obj2.global_position[1] - obj2.global_position[0], 2) + math.pow(obj1.global_position[1] - obj1.global_position[0], 2))
+        # TODO: test this ^
+
 
 class Bullet(Object):
     # notice: increasing bullet speed might result in unexpected collision glitches (both visual and practical)
