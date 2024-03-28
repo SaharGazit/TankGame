@@ -48,5 +48,3 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as UDPServerSocket:
                 print("[!] Rejected two clients, shutting down server")
 
             break
-
-# TODO: this python file is nominated to be deleted

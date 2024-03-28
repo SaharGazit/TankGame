@@ -88,4 +88,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
 
 
 # https: // docs.aws.amazon.com / AWSEC2 / latest / UserGuide / ec2 - instance - lifecycle.html
-# TODO: this python file is nominated to be deleted
+

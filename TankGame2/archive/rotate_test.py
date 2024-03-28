@@ -52,4 +52,3 @@ while running:
     # Update the display
     pygame.display.flip()
 
-# TODO: this python file is nominated to be archived

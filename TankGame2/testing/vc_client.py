@@ -1,8 +1,9 @@
+import random
 import socket
 import pyaudio
 
-HOST = '192.168.5.87'  # server ip
-PORT = 12345  # server port
+HOST = '127.0.0.1'  # server ip
+PORT = random.randrange(10000, 50000)  # port
 
 # determines the size of each block of audio data that is processed at a time
 CHUNK = 1024
@@ -19,6 +20,7 @@ audio = pyaudio.PyAudio()
 
 # create a UDP socket
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+client_socket.bind(('127.0.0.1', 40000))
 server_address = None
 
 # Open microphone stream
