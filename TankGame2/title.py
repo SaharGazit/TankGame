@@ -4,22 +4,22 @@ from TankGame2.archive.client import Client
 
 class Title:
     BACKGROUND_COLOR = (230, 230, 230)
-    RS_DIRECTORY = "../"
+    RS_DIRECTORY = "resources/"
 
     def __init__(self):
         self.error_code = 0
 
     def main(self):
         # load fonts
-        font = pygame.font.Font(Title.RS_DIRECTORY + "resources/fonts/font2.otf", 30)
-        con_texture = pygame.image.load(Title.RS_DIRECTORY + "resources/ui/confirm.png")
-        can_texture = pygame.image.load(Title.RS_DIRECTORY + "resources/ui/cancel.png")
-        opt_texture = pygame.image.load(Title.RS_DIRECTORY + "resources/ui/panel2.png")
+        font = pygame.font.Font(Title.RS_DIRECTORY + "fonts/font2.otf", 30)
+        con_texture = pygame.image.load(Title.RS_DIRECTORY + "ui/confirm.png")
+        can_texture = pygame.image.load(Title.RS_DIRECTORY + "ui/cancel.png")
+        opt_texture = pygame.image.load(Title.RS_DIRECTORY + "ui/panel2.png")
 
         class Button:
-            FONT = pygame.font.Font(Title.RS_DIRECTORY + "resources/fonts/font2.otf", 50)
+            FONT = pygame.font.Font(Title.RS_DIRECTORY + "fonts/font2.otf", 50)
 
-            def __init__(self, position, scale, text="", text_position=0, texture=pygame.image.load(Title.RS_DIRECTORY + "resources/ui/button.png")):
+            def __init__(self, position, scale, text="", text_position=0, texture=pygame.image.load(Title.RS_DIRECTORY + "ui/button.png")):
                 self.png = pygame.transform.smoothscale(texture, scale)
                 self.position = position
 
@@ -55,7 +55,7 @@ class Title:
             BUTTONS = {"Play": [Button((1150, 190), (400, 100), 'Online', 85, opt_texture), Button((1150, 300), (400, 100), 'LAN', 135, opt_texture), Button((1150, 410), (400, 100), 'DEBUG', 95, opt_texture)], "Account": [], "Quit": [Button((1310.5, 170), (125, 125), texture=con_texture), (Button((1584.5, 170), (125, 125), texture=can_texture))]}
 
             def __init__(self, button_type):
-                self.png = pygame.transform.smoothscale(pygame.image.load(Title.RS_DIRECTORY + "resources/ui/window.png"), (820, 1080))
+                self.png = pygame.transform.smoothscale(pygame.image.load(Title.RS_DIRECTORY + "ui/window.png"), (820, 1080))
                 self.position = (1100, 0)
                 self.top_text = Window.Texts[button_type]
 
@@ -79,7 +79,7 @@ class Title:
         # technical
         monitor_info = pygame.display.Info()
         screen = pygame.display.set_mode((int(monitor_info.current_w), int(monitor_info.current_h)))
-        tank_game_font = pygame.font.Font(Title.RS_DIRECTORY + "resources/fonts/font1.ttf", 90)
+        tank_game_font = pygame.font.Font(Title.RS_DIRECTORY + "fonts/font1.ttf", 90)
 
         # buttons and texts
         title_text = tank_game_font.render('TANK GAME', False, (0, 0, 0))
