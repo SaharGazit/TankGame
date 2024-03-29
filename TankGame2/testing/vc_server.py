@@ -1,33 +1,40 @@
 import socket
-#  TODO: import "client" from main server
 
 
-class VoiceServer:
-    HOST = "0.0.0.0"
-    PORT = 51410
-
-    LOBBY_CAPACITY = 8
-
+class VoiceChatServer:
     def __init__(self):
-        self.lobby = []
+        self.host = '0.0.0.0'  # Server IP
+        self.port = 31410  # Server port
+        self.clients = []
+        self.MAX_CLIENTS = 4
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.bind((VoiceServer.HOST, VoiceServer.PORT))
+    def start(self):
+        self.server_socket.bind((self.host, self.port))
+        print("Server started on {}:{}".format(self.host, self.port))
 
-    # this server temporary connects only two players and in a limited way
-    def start_server(self):
-        print("listening")
         while True:
-            data, addr = self.socket.recvfrom(2048)
-            if addr not in self.lobby:
-                self.lobby.append(addr)
-                print("added")
+            data, client_address = self.server_socket.recvfrom(2048)
+            if client_address not in self.clients:
+                if len(self.clients) < self.MAX_CLIENTS:
+                    self.clients.append(client_address)
+                    print("Client {} connected".format(client_address))
+                else:
+                    print("Connection refused. Maximum clients reached.")
+            self.broadcast(data, client_address)
 
-            for client_address in self.lobby:
-                if client_address != addr:
-                    self.socket.sendto(data, client_address)
+
+    def broadcast(self, data, sender_address):
+        for client_address in self.clients:
+            if client_address != sender_address:
+                self.server_socket.sendto(data, client_address)
+            else:
+                self.server_socket.sendto("0".encode(), client_address)
 
 
 if __name__ == "__main__":
-    vs = VoiceServer()
-    vs.start_server()
+    server = VoiceChatServer()
+    try:
+        server.start()
+    except KeyboardInterrupt:
+        print("Server Stopped")

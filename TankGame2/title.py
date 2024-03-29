@@ -51,8 +51,8 @@ class Title:
                 return rect
 
         class Window:
-            Texts = {"Play": "Select Mode:", "Account": "Coming Soon", "Quit": "Are you sure you want to quit?"}
-            BUTTONS = {"Play": [Button((1150, 190), (400, 100), 'Online', 85, opt_texture), Button((1150, 300), (400, 100), 'LAN', 135, opt_texture), Button((1150, 410), (400, 100), 'DEBUG', 95, opt_texture)], "Account": [], "Quit": [Button((1310.5, 170), (125, 125), texture=con_texture), (Button((1584.5, 170), (125, 125), texture=can_texture))]}
+            Texts = {"Play": "Select Option:", "Account": "Coming Soon", "Quit": "Are you sure you want to quit?"}
+            BUTTONS = {"Play": [Button((1150, 190), (400, 100), 'Online', 85, opt_texture), Button((1150, 300), (400, 100), 'LAN', 135, opt_texture), Button((1150, 410), (400, 100), 'PRACTICE', 48, opt_texture)], "Account": [], "Quit": [Button((1310.5, 170), (125, 125), texture=con_texture), (Button((1584.5, 170), (125, 125), texture=can_texture))]}
 
             def __init__(self, button_type):
                 self.png = pygame.transform.smoothscale(pygame.image.load(Title.RS_DIRECTORY + "ui/window.png"), (820, 1080))
@@ -84,23 +84,29 @@ class Title:
         # buttons and texts
         title_text = tank_game_font.render('TANK GAME', False, (0, 0, 0))
         title_alpha = 255
-        title_alpha_up = False
 
         play_button = Button((100, 400), (400, 100), 'Play', 115)
-        secret_debug_held = False
         account_button = Button((100, 600), (400, 100), 'Account', 60)
         quit_button = Button((100, 800), (400, 100), 'Quit', 125)
         cancel_queue_button = Button((1447.5, 900), (125, 125), texture=can_texture)
-        cancel_text = font.render('Waiting for Opponent', False, (255, 102, 102))
 
+        cancel_text = font.render('Waiting for Opponent', False, (255, 102, 102))
         error1_test = font.render("Server is Offline", False, (128, 0, 0))
 
+        # contains all visible buttons currently on the screen
         button_list = [play_button, account_button, quit_button]
-        activated_window = None
+        # contains all visual sprites (like tanks and bullets) for decoration purposes # TODO: add bullets and turrets
+        decoration_sprites = [pygame.transform.scale(pygame.image.load(f"{title.RS_DIRECTORY}/objects/box.png"), (100, 100)),
+                              pygame.transform.scale(pygame.image.load(f"{title.RS_DIRECTORY}/objects/tank_hull.png"), (48, 48)),
+                              pygame.transform.scale(pygame.image.load(f"{title.RS_DIRECTORY}/objects/tank_hull.png"), (48, 48)),
+                              pygame.transform.scale(pygame.image.load(f"{title.RS_DIRECTORY}/objects/box.png"), (100, 100)),
+                              pygame.transform.scale(pygame.image.load(f"{title.RS_DIRECTORY}/objects/speed.png"), (32, 32))]
+        decoration_sprites_positions = [(1300, 350), (1600, 150), (1100, 500), (1650, 570), (1500, 600)]
 
+
+        activated_window = None
         client = None
         waiting = False
-
         running = True
         while running:
             # buttons, keys and mouse effects
@@ -167,13 +173,7 @@ class Title:
 
                                     # play case
                                     if len(button_list) == 6:
-                                        # debug case
-                                        if button_list.index(button) == 5 and secret_debug_held:
-                                            waiting = True
-                                            secret_debug_held = False
-                                            self.error_code = 0  # reset error code
-
-                                            client = Client(button.text.lower(), self)
+                                        pass
 
                                     # quit case
                                     if len(button_list) == 5:
@@ -205,32 +205,32 @@ class Title:
                     if button.get_rect().collidepoint(mouse_x, mouse_y):
                         button.hovered = True
 
-            # background
+            # background decoration
             screen.fill(Title.BACKGROUND_COLOR)
+            for i in range(len(decoration_sprites)):
+                screen.blit(decoration_sprites[i], decoration_sprites_positions[i])
 
             # title (TANK GAME)
-            title_text.set_alpha(title_alpha)
+            title_text.set_alpha(abs(title_alpha))
             screen.blit(title_text, (75, 75))
             if activated_window is None:
-                # change title's alpha
-                if title_alpha_up:
-                    title_alpha += 1
-                else:
-                    title_alpha -= 1
-                # change alpha direction
-                if title_alpha <= 0 or title_alpha >= 255:
-                    title_alpha_up = not title_alpha_up
+                # change title's transparency
+                title_alpha -= 1
+                # change transparency direction
+                if title_alpha <= -255:
+                    title_alpha = 255
 
             # side-window
             else:
                 activated_window.draw_window(screen)
 
+            # temp square at the corner
+            sq = pygame.Rect((screen.get_width() - 10, screen.get_height() - 10), (10, 10))
+            pygame.draw.rect(screen, (255, 0, 0), sq)
+
             # draw buttons
-            for button in button_list[:-1]:
+            for button in button_list:
                 button.draw_button(screen)
-            # draw last button (may not appear)
-            if not(len(button_list) == 6 and not secret_debug_held):
-                button_list[-1].draw_button(screen)
 
             if waiting:
                 # cancel button and message
@@ -241,7 +241,6 @@ class Title:
             if self.error_code == 1:
                 waiting = False
                 screen.blit(error1_test, (1330, 830))
-
 
 
             pygame.display.flip()
