@@ -7,7 +7,7 @@ import threading
 class VoiceChatClient:
     # determines the size of each block of audio data that is processed at a time
     CHUNK = 2024
-    # states how many samples of audio are played or captured every second. has to match with the server's rate
+    # states how many samples of audio are played or captured every second
     RATE = 44100
     # the audio data's format. should stay pyaudio.paInt16 (16-bit signed integer format) as it is a common format for audio data
     FORMAT = pyaudio.paInt16
@@ -23,36 +23,49 @@ class VoiceChatClient:
 
         # create a UDP socket
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.client_socket.bind(('0.0.0.0', 40000 + random.randrange(10000)))
+        self.client_socket.bind((self.host, 30000 + random.randrange(20000)))
 
-        self.stream = None
+        self.read_stream = None
+        self.write_streams = {}
+        a = None
 
     def start_client(self):
         # open audio stream
-        self.stream = self.audio.open(format=VoiceChatClient.FORMAT, channels=VoiceChatClient.CHANNELS,
-                                      rate=VoiceChatClient.RATE, input=True, output=True,
-                                      frames_per_buffer=VoiceChatClient.CHUNK)
+        self.read_stream = self.audio.open(format=VoiceChatClient.FORMAT, channels=VoiceChatClient.CHANNELS,
+                                           rate=VoiceChatClient.RATE, input=True,
+                                           frames_per_buffer=VoiceChatClient.CHUNK)
 
         # start reading and writing threads
-        write_thread = threading.Thread(target=self.write, daemon=True)
+        write_thread = threading.Thread(target=self.create_stream, daemon=True)
         write_thread.start()
-        self.read()
 
-
-    def read(self):
-        while True:
-            # read audio from this computer
-            data = self.stream.read(VoiceChatClient.CHUNK)
-
-            # send audio
-            self.client_socket.sendto(data, (self.host, self.server_port))
-
-    def write(self):
         while True:
             # get audio from server
             data, addr = self.client_socket.recvfrom(4096)
 
-            self.stream.write(data)
+            # get data index
+            if data != b'empty':
+                addr_id = data[0] - 48
+                if addr_id in self.write_streams.keys():
+                    data = data[1:]
+                    self.write_streams[addr_id].write(data)
+                else:
+                    # create a new stream
+                    self.write_streams[addr_id] = self.audio.open(format=VoiceChatClient.FORMAT,
+                                                                  channels=VoiceChatClient.CHANNELS,
+                                                                  rate=VoiceChatClient.RATE, output=True,
+                                                                  frames_per_buffer=VoiceChatClient.CHUNK)
+
+    def create_stream(self):
+        while True:
+            # read audio from this computer
+            data = self.read_stream.read(VoiceChatClient.CHUNK)
+
+            # send audio
+            self.client_socket.sendto(data, (self.host, self.server_port))
+
+    def stream_thread(self, voice_id):
+        pass
 
 
 if __name__ == "__main__":
