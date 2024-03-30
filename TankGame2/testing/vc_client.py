@@ -15,7 +15,7 @@ class VoiceChatClient:
     CHANNELS = 1
 
     def __init__(self):
-        self.host = '13.60.58.175'  # server ip
+        self.host = '127.0.0.1'  # server ip
         self.server_port = 31410
 
         # initialize PyAudio
@@ -52,9 +52,7 @@ class VoiceChatClient:
             # get audio from server
             data, addr = self.client_socket.recvfrom(4096)
 
-            if data != b'0':
-                # write audio (play it)
-                self.stream.write(data)
+            self.stream.write(data)
 
 
 if __name__ == "__main__":

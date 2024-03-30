@@ -1,5 +1,5 @@
 import socket
-
+import threading
 
 class VoiceChatServer:
     def __init__(self):
@@ -8,9 +8,9 @@ class VoiceChatServer:
         self.clients = []
         self.MAX_CLIENTS = 4
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.server_socket.bind((self.host, self.port))
 
     def start(self):
-        self.server_socket.bind((self.host, self.port))
         print("Server started on {}:{}".format(self.host, self.port))
 
         while True:
@@ -19,16 +19,18 @@ class VoiceChatServer:
                 if len(self.clients) < self.MAX_CLIENTS:
                     self.clients.append(client_address)
                     print("Client {} connected".format(client_address))
+
                 else:
                     print("Connection refused. Maximum clients reached.")
             self.broadcast(data, client_address)
+
 
 
     def broadcast(self, data, sender_address):
         for client_address in self.clients:
             if client_address != sender_address:
                 self.server_socket.sendto(data, client_address)
-            else:
+            elif len(self.clients) == 1:
                 self.server_socket.sendto("0".encode(), client_address)
 
 
