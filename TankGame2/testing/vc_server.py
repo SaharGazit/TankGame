@@ -14,7 +14,7 @@ class VoiceChatServer:
         print("Server started on {}:{}".format(self.host, self.port))
 
         while True:
-            data, client_address = self.server_socket.recvfrom(2048)
+            data, client_address = self.server_socket.recvfrom(4096)
             if client_address not in self.clients:
                 if len(self.clients) < self.MAX_CLIENTS:
                     self.clients.append(client_address)

@@ -1,0 +1,25 @@
+To start the ec2 instance:
+1. Go to https://eu-north-1.console.aws.amazon.com/ec2/home?region=eu-north-1#Instances:
+2. Right click on TankGameServer Instance
+3. Press "Start instance"
+4. Reload until the instance's Status check is "2/2 checks passed"
+5. Don't leave this site while working, stop the instance once you leave.
+
+To run the server in the instance:
+1. In the instances screen, right click on the TankGameServer instance
+2. Click "Connect"
+3. Copy the command below "Example:"
+4. Go to User/.ssh/ in the file explorer (.ssh is a hidden file)
+5. Make sure the .pem key (SaharKey.pem) is there
+6. Click on the directory path, type "cmd"
+7. Paste the command from before
+8. Enter "yes" and wait
+9. Enter "cd TankGame/TankGame2/testing/" * path might change in the future
+10. Enter python3 {desired server}.py
+11. To force the server to stop, press Ctrl+c
+
+To update the code:
+1. After you get to the ssh program (after pasting the command), Enter: "rm -rf TankGame/"
+2. Make sure you pushed the changes to GitHub
+2. Enter "git clone https://github.com/SaharGazit/TankGame"
+3. Enter "ls" to see it's there
