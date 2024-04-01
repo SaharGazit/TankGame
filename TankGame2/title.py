@@ -52,7 +52,7 @@ class Title:
 
         class Window:
             Texts = {"Play": "Select Option:", "Account": "Coming Soon", "Quit": "Are you sure you want to quit?"}
-            BUTTONS = {"Play": [Button((1150, 190), (400, 100), 'Online', 85, opt_texture), Button((1150, 300), (400, 100), 'LAN', 135, opt_texture), Button((1150, 410), (400, 100), 'PRACTICE', 48, opt_texture)], "Account": [], "Quit": [Button((1310.5, 170), (125, 125), texture=con_texture), (Button((1584.5, 170), (125, 125), texture=can_texture))]}
+            BUTTONS = {"Play": [Button((1150, 190), (400, 100), 'Host', 115, opt_texture), Button((1150, 300), (400, 100), 'Join', 125, opt_texture), Button((1150, 410), (400, 100), 'PRACTICE', 48, opt_texture)], "Account": [], "Quit": [Button((1310.5, 170), (125, 125), texture=con_texture), (Button((1584.5, 170), (125, 125), texture=can_texture))]}
 
             def __init__(self, button_type):
                 self.png = pygame.transform.smoothscale(pygame.image.load(Title.RS_DIRECTORY + "ui/window.png"), (820, 1080))

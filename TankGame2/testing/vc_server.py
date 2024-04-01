@@ -21,7 +21,6 @@ class VoiceChatServer:
                     self.clients.append(client_address)
                     print("Client {} connected".format(client_address))
 
-
                 else:
                     print("Connection refused. Maximum clients reached.")
             else:
@@ -29,7 +28,6 @@ class VoiceChatServer:
                 data = f"{self.clients.index(client_address)}".encode() + data
 
                 self.broadcast(data, client_address)
-
 
     def broadcast(self, data, sender_address):
         for client_address in self.clients:
