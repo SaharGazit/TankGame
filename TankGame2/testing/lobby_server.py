@@ -36,14 +36,16 @@ class LobbyServer:
                     lobby_player_count = len(self.lobby)
                     # check if server is full
                     if lobby_player_count == 8:
+                        # reject client if server is full
                         print("Rejected " + str(addr) + " because server is already full")
                         conn.close()
-
                     else:
+                        # accept client
                         print(f"Accepted connection from {addr}")
                         team = (lobby_player_count % 2) + 1
                         self.lobby[conn] = User(name, lobby_player_count, team)
-                        self.broadcast(str(self.lobby))
+                        # update lobby for other clients
+                        self.broadcast(User.get_name_list(self.lobby))
 
                 else:
                     # get data
@@ -63,6 +65,8 @@ class LobbyServer:
                         sock.close()
                         print(f"{user.name} disconnected")
                         del self.lobby[sock]
+                        # update lobby for other clients
+                        self.broadcast(User.get_name_list(self.lobby))
 
     def start_game(self):
         # TODO: broadcast the game-server port instead of t
@@ -73,7 +77,7 @@ class LobbyServer:
     def broadcast(self, data, broadcaster=None):
         for client in self.lobby.keys():
             if client != broadcaster:
-                client.send_data(data.encode())
+                client.sendall(data.encode())
 
 
 class User:
@@ -82,6 +86,10 @@ class User:
 
         self.id = _id
         self.team = team
+
+    @staticmethod
+    def get_name_list(user_dict):
+        return "|".join([user.name for user in user_dict.values()])
 
 
 if __name__ == "__main__":

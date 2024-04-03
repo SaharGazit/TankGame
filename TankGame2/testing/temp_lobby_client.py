@@ -6,7 +6,7 @@ server_port = 31410
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.connect((server_ip, server_port))
-server_socket.sendall("Sahar".encode())
+server_socket.sendall("Sahar2".encode())
 
 running = True
 
@@ -15,6 +15,7 @@ def listen():
     while running:
         data = server_socket.recv(1024)
         # handle data
+        print(data.decode())
 
 
 listening_thread = threading.Thread(target=listen, daemon=True)
