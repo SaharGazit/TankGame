@@ -13,20 +13,30 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
     can_texture = "resources/ui/cancel.png"
     opt_texture = "resources/ui/panel2.png"
 
+    def __init__(self):
+        # initiate program
+        pygame.init()
+        pygame.display.set_caption('TANK GAME')
+
+        # screen
+        self.monitor_info = pygame.display.Info()
+        self.screen = pygame.display.set_mode((int(self.monitor_info.current_w), int(self.monitor_info.current_h)))
+
+        # screens
+        self.title = self.Title(self.screen)
+
+    def main(self):
+        # run title screen
+        self.title.main()
+
     class Title:
         BACKGROUND_COLOR = (230, 230, 230)
 
-        def __init__(self):
+        def __init__(self, screen):
+            self.screen = screen
             self.error_code = 0
 
         def main(self):
-            # initiate program
-            pygame.init()
-            pygame.display.set_caption('TANK GAME')
-
-            # technical
-            monitor_info = pygame.display.Info()
-            screen = pygame.display.set_mode((int(monitor_info.current_w), int(monitor_info.current_h)))
             Button = LobbyUI.Button
             Window = LobbyUI.Window
 
@@ -38,12 +48,7 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
             play_button = Button((100, 400), (400, 100), button_texture, 'Play', 115)
             account_button = Button((100, 600), (400, 100), button_texture, 'Account', 60)
             quit_button = Button((100, 800), (400, 100), button_texture, 'Quit', 125)
-
             window_texture = pygame.image.load(LobbyUI.window_texture)
-            cancel_queue_button = Button((1447.5, 900), (125, 125), texture=pygame.image.load(LobbyUI.can_texture))
-            button_font = pygame.font.Font(LobbyUI.button_font, 50)
-            cancel_text = button_font.render('Waiting for Opponent', False, (255, 102, 102))
-            error1_test = button_font.render("Server is Offline", False, (128, 0, 0))
 
             # contains all visible buttons currently on the screen
             button_list = [play_button, account_button, quit_button]
@@ -57,8 +62,6 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
             decoration_sprites_positions = [(1300, 350), (1600, 150), (1100, 500), (1650, 570), (1500, 600)]
 
             activated_window = None
-            client = None
-            waiting = False
             running = True
             while running:
                 # buttons, keys and mouse effects
@@ -77,11 +80,6 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
                                 # fake quit button hovering
                                 quit_button.hovered = True
 
-                            # cancel queue
-                            elif waiting:
-                                waiting = False
-                                client.force_stop_queueing = True
-
                             # when there is an activated window, close it
                             else:
                                 activated_window = None
@@ -92,15 +90,8 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
                     mouse_x, mouse_y = pygame.mouse.get_pos()
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         if event.button == 1:
-
-                            # if the player is waiting, the only available button is the one canceling the queue
-                            if waiting:
-                                if cancel_queue_button.get_rect().collidepoint(mouse_x, mouse_y):
-                                    waiting = False
-                                    client.force_stop_queueing = True
-
                             # check if another window is open
-                            elif activated_window is None:
+                            if activated_window is None:
                                 # pressed a main button
                                 for button in button_list:
                                     # activate the window that belongs to the button
@@ -137,8 +128,6 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
                     # set relevant button list
                     if activated_window is None:
                         new_button_list = button_list
-                    elif waiting:
-                        new_button_list = [cancel_queue_button]
                     else:
                         new_button_list = button_list[3:]
 
@@ -149,13 +138,13 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
                             button.hovered = True
 
                 # background decoration
-                screen.fill(LobbyUI.Title.BACKGROUND_COLOR)
+                self.screen.fill(LobbyUI.Title.BACKGROUND_COLOR)
                 for i in range(len(decoration_sprites)):
-                    screen.blit(decoration_sprites[i], decoration_sprites_positions[i])
+                    self.screen.blit(decoration_sprites[i], decoration_sprites_positions[i])
 
                 # title (TANK GAME)
                 title_text.set_alpha(abs(title_alpha))
-                screen.blit(title_text, (75, 75))
+                self.screen.blit(title_text, (75, 75))
                 if activated_window is None:
                     # change title's transparency
                     title_alpha -= 1
@@ -165,28 +154,25 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
 
                 # side-window
                 else:
-                    activated_window.draw_window(screen)
+                    activated_window.draw_window(self.screen)
 
                 # temp square at the corner
-                sq = pygame.Rect((screen.get_width() - 10, screen.get_height() - 10), (10, 10))
-                pygame.draw.rect(screen, (255, 0, 0), sq)
+                sq = pygame.Rect((self.screen.get_width() - 10, self.screen.get_height() - 10), (10, 10))
+                pygame.draw.rect(self.screen, (255, 0, 0), sq)
 
                 # draw buttons
                 for button in button_list:
-                    button.draw_button(screen)
-
-                if waiting:
-                    # cancel button and message
-                    screen.blit(cancel_text, (1276, 830))
-                    cancel_queue_button.draw_button(screen)
+                    button.draw_button(self.screen)
 
                 # handle error codes
                 if self.error_code == 1:
-                    waiting = False
-                    screen.blit(error1_test, (1330, 830))
+                    pass
 
                 pygame.display.flip()
-            pygame.quit()
+
+    class Lobby:
+        pass
+
 
     class Button:
         def __init__(self, position, scale, texture, text="", text_position=0):
@@ -240,7 +226,8 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
             # TODO: I really don't like the way this code works. consider changing it in the future
             # get button attributes and set correct texture (this is required because static fonts can be initialized, due to the code structure)
             for button in LobbyUI.Window.BUTTONS[button_type]:
-                exec(f"button[2] = pygame.image.load(LobbyUI.{button[2]}_texture")
+                if type(button[2]) == str:
+                    exec(f"button[2] = pygame.image.load(LobbyUI.{button[2]}_texture)")
                 if len(button) == 5:
                     self.buttons.append(LobbyUI.Button(button[0], button[1], button[2], button[3], button[4]))
                 else:
@@ -257,10 +244,7 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
             rect.y = self.position[1]
             return rect
 
-    class Lobby:
-        pass
-
 
 if __name__ == "__main__":
-    title = LobbyUI.Title()
-    title.main()
+    lobby_ui = LobbyUI()
+    lobby_ui.main()
