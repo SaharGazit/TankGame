@@ -14,18 +14,16 @@ class LobbyServer:
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((self.host, self.port))
 
-
     def start_server(self):
         print("Server started on {}:{}".format(self.host, self.port))
 
         # listen for incoming connections
         self.server_socket.listen()
 
-
         while True:
             # use select to wait for incoming connections or data from existing connections
-            sockets, _, _ = select.select([self.server_socket] + [user.socket for user in self.lobby.keys()], [], [])
-
+            sockets, _, _ = select.select([self.server_socket] + [user_address for user_address in self.lobby.keys()], [], [])
+            print(sockets)
             for sock in sockets:
                 # check if the new client is already in the lobby or not
                 if sock == self.server_socket:
@@ -50,13 +48,16 @@ class LobbyServer:
                     data = sock.recv(1024)
                     # identify user
                     user = self.lobby[sock]
+
                     if data:
+                        # handle data
                         data = data.decode()
                         print(user.name + " said " + data)
                     else:
-                        # kick player if he disconnected
+                        # remove disconnected player
                         sock.close()
-                        print(f"Connection from {user.name} closed")
+                        print(f"{user.name} disconnected")
+                        del self.lobby[sock]
 
 
 class User:
@@ -65,7 +66,6 @@ class User:
 
         self.id = _id
         self.team = team
-
 
 
 if __name__ == "__main__":
