@@ -27,7 +27,6 @@ class VoiceChatClient:
 
         self.read_stream = None
         self.write_streams = {}
-        a = None
 
     def start_client(self):
         # open audio stream
