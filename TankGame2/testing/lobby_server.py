@@ -20,7 +20,8 @@ class LobbyServer:
         # listen for incoming connections
         self.server_socket.listen()
 
-        while True:
+        running = True
+        while running:
             # use select to wait for incoming connections or data from existing connections
             sockets, _, _ = select.select([self.server_socket] + [user_address for user_address in self.lobby.keys()], [], [])
             print(sockets)
@@ -42,6 +43,7 @@ class LobbyServer:
                         print(f"Accepted connection from {addr}")
                         team = (lobby_player_count % 2) + 1
                         self.lobby[conn] = User(name, lobby_player_count, team)
+                        self.broadcast(str(self.lobby))
 
                 else:
                     # get data
@@ -52,12 +54,26 @@ class LobbyServer:
                     if data:
                         # handle data
                         data = data.decode()
-                        print(user.name + " said " + data)
+                        if data == "start":
+                            # start the game
+                            self.start_server()
+                            running = False
                     else:
                         # remove disconnected player
                         sock.close()
                         print(f"{user.name} disconnected")
                         del self.lobby[sock]
+
+    def start_game(self):
+        # TODO: broadcast the game-server port instead of t
+        self.broadcast("t")
+        for client in self.lobby.keys():
+            client.close()
+
+    def broadcast(self, data, broadcaster=None):
+        for client in self.lobby.keys():
+            if client != broadcaster:
+                client.send_data(data.encode())
 
 
 class User:
