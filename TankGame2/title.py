@@ -13,6 +13,8 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
     can_texture = "resources/ui/cancel.png"
     opt_texture = "resources/ui/panel2.png"
 
+    background_color = (230, 230, 230)
+
     def __init__(self):
         # initiate program
         pygame.init()
@@ -22,157 +24,249 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
         self.monitor_info = pygame.display.Info()
         self.screen = pygame.display.set_mode((int(self.monitor_info.current_w), int(self.monitor_info.current_h)))
 
-        # screens
-        self.title = self.Title(self.screen)
+        self.running = True
+        self.error_code = 0
 
-    def main(self):
-        # run title screen
-        self.title.main()
+    def main(self, temp=0):
+        if temp == 0:
+            # run title screen
+            self.title()
 
-    class Title:
-        BACKGROUND_COLOR = (230, 230, 230)
+        if temp == 1:
+            # run lobby screen
+            self.lobby('WizardTNT')
 
-        def __init__(self, screen):
-            self.screen = screen
-            self.error_code = 0
+    def title(self):
+        Button = LobbyUI.Button
+        Window = LobbyUI.Window
 
-        def main(self):
-            Button = LobbyUI.Button
-            Window = LobbyUI.Window
+        # buttons and texts
+        title_font = pygame.font.Font(LobbyUI.title_font, 80)
+        title_text = title_font.render('TANK GAME', False, (0, 0, 0))
+        title_alpha = 255
+        button_texture = pygame.image.load(LobbyUI.button_texture)
+        play_button = Button((100, 400), (400, 100), button_texture, 'Play', 115)
+        account_button = Button((100, 600), (400, 100), button_texture, 'Account', 60)
+        quit_button = Button((100, 800), (400, 100), button_texture, 'Quit', 125)
 
-            # buttons and texts
-            title_font = pygame.font.Font(LobbyUI.title_font, 80)
-            title_text = title_font.render('TANK GAME', False, (0, 0, 0))
-            title_alpha = 255
-            button_texture = pygame.image.load(LobbyUI.button_texture)
-            play_button = Button((100, 400), (400, 100), button_texture, 'Play', 115)
-            account_button = Button((100, 600), (400, 100), button_texture, 'Account', 60)
-            quit_button = Button((100, 800), (400, 100), button_texture, 'Quit', 125)
-            window_texture = pygame.image.load(LobbyUI.window_texture)
+        # contains all visible buttons currently on the screen
+        button_list = [play_button, account_button, quit_button]
+        # TODO: have a screenshot from the game as a side-background (behind the window)
 
-            # contains all visible buttons currently on the screen
-            button_list = [play_button, account_button, quit_button]
-            # contains all visual sprites (like tanks and bullets) for decoration purposes # TODO: replace this with an image of a screenshot of the gameplay
-            decoration_sprites = [
-                pygame.transform.scale(pygame.image.load("resources/objects/box.png"), (100, 100)),
-                pygame.transform.scale(pygame.image.load("resources/objects/tank_hull.png"), (48, 48)),
-                pygame.transform.scale(pygame.image.load("resources/objects/tank_hull.png"), (48, 48)),
-                pygame.transform.scale(pygame.image.load("resources/objects/box.png"), (100, 100)),
-                pygame.transform.scale(pygame.image.load("resources/objects/speed.png"), (32, 32))]
-            decoration_sprites_positions = [(1300, 350), (1600, 150), (1100, 500), (1650, 570), (1500, 600)]
+        activated_window = None
+        self.running = True
+        while self.running:
+            for event in pygame.event.get():
+                # if user closes the window, stop the game from running.
+                if event.type == pygame.QUIT:
+                    self.running = False
 
-            activated_window = None
-            running = True
-            while running:
-                # buttons, keys and mouse effects
-                for event in pygame.event.get():
-                    # if user closes the window, stop the game from running.
-                    if event.type == pygame.QUIT:
-                        running = False
+                if event.type == pygame.KEYUP:
+                    # actions for when the player presses Escape
+                    if event.key == pygame.K_ESCAPE:
+                        # when there is no activated window, open the quit confirmation window
+                        if activated_window is None:
+                            activated_window = Window(quit_button.text)
+                            button_list += activated_window.buttons
+                            # fake quit button hovering
+                            quit_button.hovered = True
 
-                    if event.type == pygame.KEYUP:
-                        # actions for when the player presses Escape
-                        if event.key == pygame.K_ESCAPE:
-                            # when there is no activated window, open the quit confirmation window
-                            if activated_window is None:
-                                activated_window = Window(quit_button.text, window_texture)
-                                button_list += activated_window.buttons
-                                # fake quit button hovering
-                                quit_button.hovered = True
+                        # when there is an activated window, close it
+                        else:
+                            activated_window = None
+                            button_list = button_list[:3]
 
-                            # when there is an activated window, close it
-                            else:
-                                activated_window = None
-                                button_list = button_list[:3]
-                                self.error_code = 0
+                # left click events
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        # check if another window is open
+                        if activated_window is None:
+                            # pressed a main button
+                            for button in button_list:
+                                # activate the window that belongs to the button
+                                if button.get_rect().collidepoint(mouse_x, mouse_y):
+                                    activated_window = Window(button.text)
+                                    button_list += activated_window.buttons
 
-                    # left click events
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
-                    if event.type == pygame.MOUSEBUTTONDOWN:
-                        if event.button == 1:
-                            # check if another window is open
-                            if activated_window is None:
-                                # pressed a main button
-                                for button in button_list:
-                                    # activate the window that belongs to the button
-                                    if button.get_rect().collidepoint(mouse_x, mouse_y):
-                                        activated_window = Window(button.text, window_texture)
-                                        button_list += activated_window.buttons
+                        # check if player pressed inside the new window
+                        elif activated_window.get_rect().collidepoint(mouse_x, mouse_y):
+                            for button in button_list[3:]:
+                                # platform the button action
+                                if button.get_rect().collidepoint(mouse_x, mouse_y):
 
-                            # check if player pressed inside the new window
-                            elif activated_window.get_rect().collidepoint(mouse_x, mouse_y):
-                                for button in button_list[3:]:
-                                    # platform the button action
-                                    if button.get_rect().collidepoint(mouse_x, mouse_y):
+                                    # play case
+                                    if len(button_list) == 6:
+                                        # TODO: HOST, JOIN AND PRACTICE
+                                        pass
 
-                                        # play case
-                                        if len(button_list) == 6:
-                                            pass
+                                    # quit case
+                                    if len(button_list) == 5:
+                                        # confirm quit
+                                        if button_list.index(button) == 3:
+                                            self.running = False
+                                        # cancel quit
+                                        else:
+                                            activated_window = None
+                                            button_list = button_list[:3]
 
-                                        # quit case
-                                        if len(button_list) == 5:
-                                            # confirm quit
-                                            if button_list.index(button) == 3:
-                                                running = False
-                                            # cancel quit
-                                            else:
-                                                activated_window = None
-                                                button_list = button_list[:3]
+                        # remove window if player clicked outside it
+                        else:
+                            activated_window = None
+                            button_list = button_list[:3]
 
-                            # remove window if player clicked outside it
-                            else:
-                                activated_window = None
-                                button_list = button_list[:3]
-                                self.error_code = 0
-
-                    # set relevant button list
-                    if activated_window is None:
-                        new_button_list = button_list
-                    else:
-                        new_button_list = button_list[3:]
-
-                    # update button hovering
-                    for button in new_button_list:
-                        button.hovered = False
-                        if button.get_rect().collidepoint(mouse_x, mouse_y):
-                            button.hovered = True
-
-                # background decoration
-                self.screen.fill(LobbyUI.Title.BACKGROUND_COLOR)
-                for i in range(len(decoration_sprites)):
-                    self.screen.blit(decoration_sprites[i], decoration_sprites_positions[i])
-
-                # title (TANK GAME)
-                title_text.set_alpha(abs(title_alpha))
-                self.screen.blit(title_text, (75, 75))
+                # set relevant button list
                 if activated_window is None:
-                    # change title's transparency
-                    title_alpha -= 1
-                    # change transparency direction
-                    if title_alpha <= -255:
-                        title_alpha = 255
-
-                # side-window
+                    new_button_list = button_list
                 else:
-                    activated_window.draw_window(self.screen)
+                    new_button_list = button_list[3:]
 
-                # temp square at the corner
-                sq = pygame.Rect((self.screen.get_width() - 10, self.screen.get_height() - 10), (10, 10))
-                pygame.draw.rect(self.screen, (255, 0, 0), sq)
+                # update button hovering
+                for button in new_button_list:
+                    button.hovered = False
+                    if button.get_rect().collidepoint(mouse_x, mouse_y):
+                        button.hovered = True
 
-                # draw buttons
-                for button in button_list:
-                    button.draw_button(self.screen)
+            # background
+            self.screen.fill(LobbyUI.background_color)
 
-                # handle error codes
-                if self.error_code == 1:
-                    pass
+            # title (TANK GAME)
+            title_text.set_alpha(abs(title_alpha))
+            self.screen.blit(title_text, (75, 75))
+            if activated_window is None:
+                # change title's transparency
+                title_alpha -= 1
+                # change transparency direction
+                if title_alpha <= -255:
+                    title_alpha = 255
 
-                pygame.display.flip()
+            # side-window
+            else:
+                activated_window.draw_window(self.screen)
 
-    class Lobby:
-        pass
+            # temp square at the corner TODO: resolution testing
+            sq = pygame.Rect((self.screen.get_width() - 10, self.screen.get_height() - 10), (10, 10))
+            pygame.draw.rect(self.screen, (255, 0, 0), sq)
 
+            # draw buttons
+            for button in button_list:
+                button.draw_button(self.screen)
+
+            # handle error codes
+            if self.error_code == 1:
+                pass
+
+            pygame.display.flip()
+
+    def lobby(self, owner):
+        Button = LobbyUI.Button
+        Window = LobbyUI.Window
+
+        # fonts and texts
+        title_font = pygame.font.Font(LobbyUI.button_font, 60)
+        title_test = title_font.render(f"{owner}'s Game", False, (0, 0, 0))
+
+        # one constant side window
+        side_window = Window("Lobby")
+
+        # button list
+        button_list = side_window.buttons
+
+        self.running = True
+        while self.running:
+            for event in pygame.event.get():
+                # if user closes the window, stop the game from running.
+                if event.type == pygame.QUIT:
+                    self.running = False
+
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_ESCAPE:
+                        self.running = False
+
+            # background
+            self.screen.fill(LobbyUI.background_color)
+
+            # lobby's name, side window
+            self.screen.blit(title_test, (30, 55))
+            side_window.draw_window(self.screen)
+
+            # draw buttons
+            for button in button_list:
+                button.draw_button(self.screen)
+            pygame.display.flip()
+
+    # handles UI events that are similar in all screens
+    def event_handler(self):
+        for event in pygame.event.get():
+            # if user closes the window, stop the game from running.
+            if event.type == pygame.QUIT:
+                self.running = False
+
+            if event.type == pygame.KEYUP:
+                # actions for when the player presses Escape
+                if event.key == pygame.K_ESCAPE:
+                    # when there is no activated window, open the quit confirmation window
+                    if activated_window is None:
+                        activated_window = Window(quit_button.text)
+                        button_list += activated_window.buttons
+                        # fake quit button hovering
+                        quit_button.hovered = True
+
+                    # when there is an activated window, close it
+                    else:
+                        activated_window = None
+                        button_list = button_list[:3]
+
+            # left click events
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    # check if another window is open
+                    if activated_window is None:
+                        # pressed a main button
+                        for button in button_list:
+                            # activate the window that belongs to the button
+                            if button.get_rect().collidepoint(mouse_x, mouse_y):
+                                activated_window = Window(button.text)
+                                button_list += activated_window.buttons
+
+                    # check if player pressed inside the new window
+                    elif activated_window.get_rect().collidepoint(mouse_x, mouse_y):
+                        for button in button_list[3:]:
+                            # platform the button action
+                            if button.get_rect().collidepoint(mouse_x, mouse_y):
+
+                                # play case
+                                if len(button_list) == 6:
+                                    # TODO: HOST, JOIN AND PRACTICE
+                                    pass
+
+                                # quit case
+                                if len(button_list) == 5:
+                                    # confirm quit
+                                    if button_list.index(button) == 3:
+                                        self.running = False
+                                    # cancel quit
+                                    else:
+                                        activated_window = None
+                                        button_list = button_list[:3]
+
+                    # remove window if player clicked outside it
+                    else:
+                        activated_window = None
+                        button_list = button_list[:3]
+
+            # set relevant button list
+            if activated_window is None:
+                new_button_list = button_list
+            else:
+                new_button_list = button_list[3:]
+
+            # update button hovering
+            for button in new_button_list:
+                button.hovered = False
+                if button.get_rect().collidepoint(mouse_x, mouse_y):
+                    button.hovered = True
 
     class Button:
         def __init__(self, position, scale, texture, text="", text_position=0):
@@ -198,7 +292,7 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
             # draw the button and its text with fixed positions
             screen_.blit(self.png, position)
             text_obj = self.font.render(self.text, False, text_color)
-            screen_.blit(text_obj, (position[0] + self.text_position, position[1] + 12))
+            screen_.blit(text_obj, (position[0] + self.text_position, position[1] + 23))
 
         # get the button's rect
         def get_rect(self):
@@ -208,16 +302,19 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
             return rect
 
     class Window:
-        Texts = {"Play": "Select Option:", "Account": "Coming Soon", "Quit": "Are you sure you want to quit?"}
+        Texts = {"Play": "Select Option:", "Account": "Coming Soon", "Quit": "Are you sure you want to quit?",
+                 "Lobby": "Game Info"}
         BUTTONS = {"Play": [[(1150, 190), (400, 100), "opt", 'Host', 115],
                             [(1150, 300), (400, 100), "opt", 'Join', 125],
                             [(1150, 410), (400, 100), "opt", 'Practice', 48]],
                    "Account": [],
                    "Quit": [[(1310.5, 170), (125, 125), "con"],
-                            [(1584.5, 170), (125, 125), "can"]]}
+                            [(1584.5, 170), (125, 125), "can"]],
+                   "Lobby": [[(1750, 30), (125, 125), "can"]]}
 
-        def __init__(self, button_type, texture):
-            self.png = pygame.transform.smoothscale(texture, (820, 1080))
+        def __init__(self, button_type):
+            window_texture = pygame.image.load(LobbyUI.window_texture)
+            self.png = pygame.transform.smoothscale(window_texture, (820, 1080))
             self.position = (1100, 0)
             self.top_text = LobbyUI.Window.Texts[button_type]
             self.top_text_font = pygame.font.Font(LobbyUI.button_font, 30)
@@ -247,4 +344,4 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
 
 if __name__ == "__main__":
     lobby_ui = LobbyUI()
-    lobby_ui.main()
+    lobby_ui.main(1)
