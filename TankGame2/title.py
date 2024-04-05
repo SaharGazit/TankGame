@@ -24,8 +24,13 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
         self.monitor_info = pygame.display.Info()
         self.screen = pygame.display.set_mode((int(self.monitor_info.current_w), int(self.monitor_info.current_h)))
 
+        # running process for current screen
         self.running = True
         self.error_code = 0
+        self.activated_window = None
+
+        # list of available buttons
+        self.button_list = []
 
     def main(self, temp=0):
         if temp == 0:
@@ -50,82 +55,13 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
         quit_button = Button((100, 800), (400, 100), button_texture, 'Quit', 125)
 
         # contains all visible buttons currently on the screen
-        button_list = [play_button, account_button, quit_button]
+        self.button_list = [play_button, account_button, quit_button]
         # TODO: have a screenshot from the game as a side-background (behind the window)
 
-        activated_window = None
+        self.activated_window = None
         self.running = True
         while self.running:
-            for event in pygame.event.get():
-                # if user closes the window, stop the game from running.
-                if event.type == pygame.QUIT:
-                    self.running = False
-
-                if event.type == pygame.KEYUP:
-                    # actions for when the player presses Escape
-                    if event.key == pygame.K_ESCAPE:
-                        # when there is no activated window, open the quit confirmation window
-                        if activated_window is None:
-                            activated_window = Window(quit_button.text)
-                            button_list += activated_window.buttons
-                            # fake quit button hovering
-                            quit_button.hovered = True
-
-                        # when there is an activated window, close it
-                        else:
-                            activated_window = None
-                            button_list = button_list[:3]
-
-                # left click events
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1:
-                        # check if another window is open
-                        if activated_window is None:
-                            # pressed a main button
-                            for button in button_list:
-                                # activate the window that belongs to the button
-                                if button.get_rect().collidepoint(mouse_x, mouse_y):
-                                    activated_window = Window(button.text)
-                                    button_list += activated_window.buttons
-
-                        # check if player pressed inside the new window
-                        elif activated_window.get_rect().collidepoint(mouse_x, mouse_y):
-                            for button in button_list[3:]:
-                                # platform the button action
-                                if button.get_rect().collidepoint(mouse_x, mouse_y):
-
-                                    # play case
-                                    if len(button_list) == 6:
-                                        # TODO: HOST, JOIN AND PRACTICE
-                                        pass
-
-                                    # quit case
-                                    if len(button_list) == 5:
-                                        # confirm quit
-                                        if button_list.index(button) == 3:
-                                            self.running = False
-                                        # cancel quit
-                                        else:
-                                            activated_window = None
-                                            button_list = button_list[:3]
-
-                        # remove window if player clicked outside it
-                        else:
-                            activated_window = None
-                            button_list = button_list[:3]
-
-                # set relevant button list
-                if activated_window is None:
-                    new_button_list = button_list
-                else:
-                    new_button_list = button_list[3:]
-
-                # update button hovering
-                for button in new_button_list:
-                    button.hovered = False
-                    if button.get_rect().collidepoint(mouse_x, mouse_y):
-                        button.hovered = True
+            self.event_handler()
 
             # background
             self.screen.fill(LobbyUI.background_color)
@@ -133,7 +69,7 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
             # title (TANK GAME)
             title_text.set_alpha(abs(title_alpha))
             self.screen.blit(title_text, (75, 75))
-            if activated_window is None:
+            if self.activated_window is None:
                 # change title's transparency
                 title_alpha -= 1
                 # change transparency direction
@@ -142,14 +78,14 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
 
             # side-window
             else:
-                activated_window.draw_window(self.screen)
+                self.activated_window.draw_window(self.screen)
 
             # temp square at the corner TODO: resolution testing
             sq = pygame.Rect((self.screen.get_width() - 10, self.screen.get_height() - 10), (10, 10))
             pygame.draw.rect(self.screen, (255, 0, 0), sq)
 
             # draw buttons
-            for button in button_list:
+            for button in self.button_list:
                 button.draw_button(self.screen)
 
             # handle error codes
@@ -206,61 +142,61 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
                 # actions for when the player presses Escape
                 if event.key == pygame.K_ESCAPE:
                     # when there is no activated window, open the quit confirmation window
-                    if activated_window is None:
-                        activated_window = Window(quit_button.text)
-                        button_list += activated_window.buttons
+                    if self.activated_window is None:
+                        self.activated_window = LobbyUI.Window(self.button_list[2].text)
+                        self.button_list += self.activated_window.buttons
                         # fake quit button hovering
-                        quit_button.hovered = True
+                        self.button_list[2].hovered = True
 
                     # when there is an activated window, close it
                     else:
-                        activated_window = None
-                        button_list = button_list[:3]
+                        self.activated_window = None
+                        self.button_list = self.button_list[:3]
 
             # left click events
             mouse_x, mouse_y = pygame.mouse.get_pos()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     # check if another window is open
-                    if activated_window is None:
+                    if self.activated_window is None:
                         # pressed a main button
-                        for button in button_list:
+                        for button in self.button_list:
                             # activate the window that belongs to the button
                             if button.get_rect().collidepoint(mouse_x, mouse_y):
-                                activated_window = Window(button.text)
-                                button_list += activated_window.buttons
+                                self.activated_window = LobbyUI.Window(button.text)
+                                self.button_list += self.activated_window.buttons
 
                     # check if player pressed inside the new window
-                    elif activated_window.get_rect().collidepoint(mouse_x, mouse_y):
-                        for button in button_list[3:]:
+                    elif self.activated_window.get_rect().collidepoint(mouse_x, mouse_y):
+                        for button in self.button_list[3:]:
                             # platform the button action
                             if button.get_rect().collidepoint(mouse_x, mouse_y):
 
                                 # play case
-                                if len(button_list) == 6:
+                                if len(self.button_list) == 6:
                                     # TODO: HOST, JOIN AND PRACTICE
                                     pass
 
                                 # quit case
-                                if len(button_list) == 5:
+                                if len(self.button_list) == 5:
                                     # confirm quit
-                                    if button_list.index(button) == 3:
+                                    if self.button_list.index(button) == 3:
                                         self.running = False
                                     # cancel quit
                                     else:
-                                        activated_window = None
-                                        button_list = button_list[:3]
+                                        self.activated_window = None
+                                        self.button_list = self.button_list[:3]
 
                     # remove window if player clicked outside it
                     else:
-                        activated_window = None
-                        button_list = button_list[:3]
+                        self.activated_window = None
+                        self.button_list = self.button_list[:3]
 
             # set relevant button list
-            if activated_window is None:
-                new_button_list = button_list
+            if self.activated_window is None:
+                new_button_list = self.button_list
             else:
-                new_button_list = button_list[3:]
+                new_button_list = self.button_list[3:]
 
             # update button hovering
             for button in new_button_list:
@@ -344,4 +280,4 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
 
 if __name__ == "__main__":
     lobby_ui = LobbyUI()
-    lobby_ui.main(1)
+    lobby_ui.main(0)
