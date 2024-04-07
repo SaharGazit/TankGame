@@ -34,6 +34,8 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
         self.button_list = []
 
     def main(self, temp=0):
+        self.screen_number = temp + 1
+
         if temp == 0:
             # run title screen
             self.title()
@@ -99,15 +101,17 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
         Button = LobbyUI.Button
         Window = LobbyUI.Window
 
-        # fonts and texts
+        # buttons and texts
+        can_texture = pygame.image.load(LobbyUI.can_texture)
         title_font = pygame.font.Font(LobbyUI.button_font, 60)
         title_test = title_font.render(f"{owner}'s Game", False, (0, 0, 0))
+        quit_button = Button('Quit', (950, 22.5), (125, 125), can_texture, static=True)
 
         # default window in the lobby is a lobby window
         self.activated_window = Window("Lobby")
 
         # button list
-        self.button_list = self.activated_window.buttons
+        self.button_list = [quit_button] + self.activated_window.buttons
 
         self.running = True
         while self.running:
@@ -138,7 +142,7 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
             # in the lobby screen, the side window can't be removed
             elif self.screen_number == 2:
                 self.activated_window = LobbyUI.Window("Lobby")
-                print("aaa")
+
                 # remove all window buttons except lobby window buttons
                 self.button_list = [b for b in self.button_list if b.static] + self.activated_window.buttons
 
@@ -152,10 +156,12 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
                 if event.key == pygame.K_ESCAPE:
                     # when there is no activated window, or the current window is the lobby window, open the quit confirmation window
                     if self.activated_window.window_type == "None" or self.activated_window.window_type == "Lobby":
-                        self.activated_window = LobbyUI.Window(self.button_list[2].text)
+                        self.activated_window = LobbyUI.Window("Quit")
                         self.button_list += self.activated_window.buttons
                         # fake quit button hovering
-                        self.button_list[2].hovered = True
+                        for button in self.button_list:
+                            if button.button_type == "Quit":
+                                button.hovered = True
 
                     # when there is an activated window, close it
                     else:
@@ -194,19 +200,17 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
                     # remove the window, and check for main button interactions
                     else:
                         remove_window()
-
                         # pressed a main button
                         for button in [a for a in self.button_list if a.static]:
                             # activate the window that belongs to the button
                             if button.get_rect().collidepoint(mouse_x, mouse_y):
-                                self.activated_window = LobbyUI.Window(button.text)
+                                self.activated_window = LobbyUI.Window(button.button_type)
                                 self.button_list += self.activated_window.buttons
 
             # update button hovering
-            for button in [a for a in self.button_list if (not a.static or self.activated_window.window_type == "None")]:
-                button.hovered = False
-                if button.get_rect().collidepoint(mouse_x, mouse_y):
-                    button.hovered = True
+            for button in self.button_list:
+                # requirements for a button to be hovered: 1.
+                button.hovered = self.activated_window.window_type == button.button_type or button.get_rect().collidepoint(mouse_x, mouse_y) and (not button.static or self.activated_window.window_type == "None" or self.screen_number == 2)
 
     class Button:
         def __init__(self, name, position, scale, texture, has_text=False, text_position=0, static=False):
@@ -258,7 +262,7 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
                    "Account": [],
                    "Quit": [['ConfirmQuit', (1310.5, 170), (125, 125), "con"],
                             ['CancelQuit', (1584.5, 170), (125, 125), "can"]],
-                   "Lobby": [['Leave', (1750, 30), (125, 125), "can"]],
+                   "Lobby": [],
                    "None": []}
 
         def __init__(self, button_type):
@@ -298,4 +302,4 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
 
 if __name__ == "__main__":
     lobby_ui = LobbyUI()
-    lobby_ui.main(0)
+    lobby_ui.main(1)
