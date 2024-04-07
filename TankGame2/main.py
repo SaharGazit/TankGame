@@ -1,42 +1,34 @@
 import pygame
 from TankGame2.object import Object, Player, Powerup, Bullet, Block
-# TODO: sort imports, files
 
 
 class Game:
     SCREEN_DIVIDER = 1
 
-    def __init__(self, client):
-        self.monitor_info = None
-        self.screen = None
+    def __init__(self, screen):
+        self.screen = screen
 
-        self.client = client
+        self.exit_code = 0
 
-    def main(self):
-        # initiate program
-        pygame.init()
-        pygame.display.set_caption('TANK GAME')
-
-        # screen settings
-        self.monitor_info = pygame.display.Info()
-        Object.screen_edges = [self.monitor_info.current_w, self.monitor_info.current_h]
-        self.screen = pygame.display.set_mode((int(self.monitor_info.current_w / Game.SCREEN_DIVIDER), int(self.monitor_info.current_h / Game.SCREEN_DIVIDER)))
+    def main(self):  # (pygame is initialized beforehand)
+        # object screen settings
+        screen_size = self.screen.get_size()
+        Object.screen_size = screen_size
         Object.screen = self.screen
 
         # objects currently on the map
-        this_player = Player("PLAYER", [self.monitor_info.current_w / 2 - 22.5, self.monitor_info.current_h / 2 - 22.5], self.monitor_info, True)
+        this_player = Player("PLAYER", [screen_size[0] / 2 - 22.5, screen_size[1] / 2 - 22.5], True)
         objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1), Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3), Powerup((1000, 1000), 'speed')]
 
         # clock
         clock = pygame.time.Clock()
 
         # main game loop
-        running = True
-        while running:
+        while self.exit_code == 0:
             for event in pygame.event.get():
                 # if user closes the window, stop the game from running.
                 if event.type == pygame.QUIT:
-                    running = False
+                    self.exit_code = -1
 
                 # WASD keys for moving with the player. the player receives acceleration by pressing down a key.
                 if event.type == pygame.KEYDOWN:
@@ -64,7 +56,8 @@ class Game:
 
                     # pressing escape will also exit the game
                     if event.key == pygame.K_ESCAPE:
-                        running = False
+                        # TODO: pause menu
+                        self.exit_code = 1
 
                 # pressing left mouse buttons shoots a bullet
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -97,10 +90,5 @@ class Game:
             # update screen
             pygame.display.flip()
 
-        # when main game loop is finished, close pygame
-        pygame.quit()
-
-
-if __name__ == "__main__":
-    game = Game(None)
-    game.main()
+        # return exit code to the lobby when the main loop is over
+        return self.exit_code

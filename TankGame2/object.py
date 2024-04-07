@@ -7,8 +7,8 @@ class Object:
     SPRITE_DIRECTORY = "resources/objects"
 
     camera_position = [0, 0]
-    screen_edges = [0, 0]  # marks the positions of the right side and the bottom of the screen
     screen = None  # pygame screen used to draw the objects
+    screen_size = None
 
     def __init__(self, starting_position, rotation, scale, texture, object_id):
         self.id = object_id
@@ -45,7 +45,7 @@ class Object:
     # checks if the object is in the screen
     def in_screen(self):
         local_position = self.local_position()
-        return local_position[0] + self.scale[0] > 0 and local_position[0] < Object.screen_edges[0] and local_position[1] + self.scale[1] > 0 and local_position[1] < Object.screen_edges[1]
+        return local_position[0] + self.scale[0] > 0 and local_position[0] < Object.screen_size[0] and local_position[1] + self.scale[1] > 0 and local_position[1] < Object.screen_size[1]
 
     def update(self, everything):
         pass
@@ -64,7 +64,7 @@ class Player(Object):
     MAX_SPEED = 5.2
     ACCELERATION = 0.8
 
-    def __init__(self, name, starting_position, monitor_info, main_player=False):
+    def __init__(self, name, starting_position, main_player=False):
         # inherited from Object class
         super().__init__(starting_position, 0, (48, 48), pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_hull.png"), 1)
 
@@ -80,7 +80,6 @@ class Player(Object):
         self.rotation = 0
 
         # technical
-        self.monitor_info = monitor_info
         self.movement_colliders = [pygame.Rect(self.global_position[0] + 9, self.global_position[1] + 2, 30, 3), pygame.Rect(self.global_position[0] + 43, self.global_position[1] + 9, 3, 30), pygame.Rect(self.global_position[0] + 9, self.global_position[1] + 42, 30, 3), pygame.Rect(self.global_position[0] + 2, self.global_position[1] + 9, 3, 30)]
         self.turret_texture = pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_turret.png")
 
@@ -141,7 +140,7 @@ class Player(Object):
             self.speed_y = 0
 
         # update camera
-        Object.camera_position = [22.5 + self.global_position[0] - self.monitor_info.current_w / 2, 22.5 + self.global_position[1] - self.monitor_info.current_h / 2]
+        Object.camera_position = [22.5 + self.global_position[0] - Object.screen_size[0] / 2, 22.5 + self.global_position[1] - Object.screen_size[1] / 2]
 
         # reset all blockers
         for i in range(4):

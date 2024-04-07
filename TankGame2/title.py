@@ -1,7 +1,8 @@
 import pygame
+import main
 
 
-class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI as well)
+class LobbyUI:
     # fonts
     button_font = "resources/fonts/font2.otf"
     title_font = "resources/fonts/font1.ttf"
@@ -15,6 +16,7 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
 
     background_color = (230, 230, 230)
 
+
     def __init__(self):
         # initiate program
         pygame.init()
@@ -23,26 +25,52 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
         # screen
         self.monitor_info = pygame.display.Info()
         self.screen = pygame.display.set_mode((int(self.monitor_info.current_w), int(self.monitor_info.current_h)))
-        self.screen_number = 1
+        self.screen_name = "title" # determines which screen to print and interact with
 
         # running process for current screen
-        self.running = True
-        self.error_code = 0
         self.activated_window = LobbyUI.Window("None")
+        self.exit_code = 0  # equals 0 while the program is running. after the program finishes, it determines what to do next
 
         # list of available buttons
         self.button_list = []
 
-    def main(self, temp=0):
-        self.screen_number = temp + 1
+    def main(self):
+        arguments = ""
+        running = True
+        while running:
 
-        if temp == 0:
-            # run title screen
-            self.title()
+            # executes the current screen function
+            exec(f"self.{self.screen_name}({arguments})")
 
-        if temp == 1:
-            # run lobby screen
-            self.lobby('WizardTNT')
+            # code -1: shut down program immediately
+            if self.exit_code == -1:
+                running = False
+            # code 0: program running. not supposed to reach this point with code 0
+            elif self.exit_code == 0:
+                raise Exception("Screen closed with exit code 0")
+            # code 1: quit the screen, go back
+            elif self.exit_code == 1:
+                # quitting the title screens quits the game
+                if self.screen_name == "title":
+                    running = False
+                else:
+                    # go back to title screen
+                    self.screen_name = "title"
+            # code 2: move to lobby screen (after hosting or joining a server)
+            elif self.exit_code == 2:
+                self.screen_name = "lobby"
+            # code 3: move to lobby list screen (before joining a server)
+            elif self.exit_code == 3:
+                pass
+            # code 4: move to game screen (after a lobby starts or after pressing practice)
+            elif self.exit_code == 4:
+                self.screen_name = "game"
+
+            # reset exit code
+            self.exit_code = 0
+
+        print("Tank Game closed")
+        pygame.quit()
 
     def title(self):
         Button = LobbyUI.Button
@@ -58,11 +86,10 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
 
         # contains all visible buttons currently on the screen
         self.button_list = [play_button, account_button, quit_button]
-        # TODO: have a screenshot from the game as a side-background (behind the window)
 
         self.activated_window = LobbyUI.Window("None")
-        self.running = True
-        while self.running:
+        # main program loop
+        while self.exit_code == 0:
             # handles pygame events
             self.event_handler()
 
@@ -83,7 +110,7 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
             else:
                 self.activated_window.draw_window(self.screen)
 
-            # temp square at the corner TODO: resolution testing
+            # temp square at the corner
             sq = pygame.Rect((self.screen.get_width() - 10, self.screen.get_height() - 10), (10, 10))
             pygame.draw.rect(self.screen, (255, 0, 0), sq)
 
@@ -91,20 +118,16 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
             for button in self.button_list:
                 button.draw_button(self.screen)
 
-            # handle error codes
-            if self.error_code == 1:
-                pass
-
             pygame.display.flip()
 
-    def lobby(self, owner):
+    def lobby(self):
         Button = LobbyUI.Button
         Window = LobbyUI.Window
 
         # buttons and texts
         can_texture = pygame.image.load(LobbyUI.can_texture)
         title_font = pygame.font.Font(LobbyUI.button_font, 60)
-        title_test = title_font.render(f"{owner}'s Game", False, (0, 0, 0))
+        title_test = title_font.render(f"WizardTNT's Game", False, (0, 0, 0))
         quit_button = Button('Quit', (950, 22.5), (125, 125), can_texture, static=True)
 
         # default window in the lobby is a lobby window
@@ -113,8 +136,8 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
         # button list
         self.button_list = [quit_button] + self.activated_window.buttons
 
-        self.running = True
-        while self.running:
+        # main program loop
+        while self.exit_code == 0:
             self.event_handler()
 
             # background
@@ -129,27 +152,31 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
                 button.draw_button(self.screen)
             pygame.display.flip()
 
+    def game(self):
+        game = main.Game(self.screen)
+        self.exit_code = game.main()
+
     # handles UI events that are similar in all screens
     def event_handler(self):
         def remove_window():
-            if self.screen_number == 1:
+            if self.screen_name == "lobby":
+                self.activated_window = LobbyUI.Window("Lobby")
+
+                # remove all window buttons except lobby window buttons
+                self.button_list = [b for b in self.button_list if b.static] + self.activated_window.buttons
+
+            # in the lobby screen, the side window can't be removed
+            else:
                 # remove the activated window
                 self.activated_window = LobbyUI.Window("None")
 
                 # remove all window buttons
                 self.button_list = [b for b in self.button_list if b.static]
 
-            # in the lobby screen, the side window can't be removed
-            elif self.screen_number == 2:
-                self.activated_window = LobbyUI.Window("Lobby")
-
-                # remove all window buttons except lobby window buttons
-                self.button_list = [b for b in self.button_list if b.static] + self.activated_window.buttons
-
         for event in pygame.event.get():
             # if user closes the window, stop the game from running.
             if event.type == pygame.QUIT:
-                self.running = False
+                self.exit_code = -1
 
             if event.type == pygame.KEYUP:
                 # actions for when the player presses Escape
@@ -179,17 +206,17 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
 
                                 # host case: open a lobby server
                                 if button.button_type == "Host":
-                                    pass
+                                    self.exit_code = 2
                                 # join case: open the lobby searching screen
                                 if button.button_type == "Join":
                                     pass
                                 # practice case: start the offline practice game
                                 if button.button_type == "Practice":
-                                    pass
+                                    self.exit_code = 4
 
                                 # confirm quit case: stop running the program
                                 if button.button_type == "ConfirmQuit":
-                                    self.running = False
+                                    self.exit_code = 1
                                 # cancel quit case: remove the quit window
                                 elif button.button_type == "CancelQuit":
                                     remove_window()
@@ -199,18 +226,24 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
 
                     # remove the window, and check for main button interactions
                     else:
+                        prev_type = self.activated_window.window_type
                         remove_window()
                         # pressed a main button
                         for button in [a for a in self.button_list if a.static]:
-                            # activate the window that belongs to the button
+                            # find the interacted button
                             if button.get_rect().collidepoint(mouse_x, mouse_y):
-                                self.activated_window = LobbyUI.Window(button.button_type)
-                                self.button_list += self.activated_window.buttons
+                                # close the window, if the player pressed on its button twice
+                                if button.button_type == prev_type:
+                                    remove_window()
+                                # activate the window that belongs to the button
+                                else:
+                                    self.activated_window = LobbyUI.Window(button.button_type)
+                                    self.button_list += self.activated_window.buttons
 
             # update button hovering
             for button in self.button_list:
                 # requirements for a button to be hovered: 1.
-                button.hovered = self.activated_window.window_type == button.button_type or button.get_rect().collidepoint(mouse_x, mouse_y) and (not button.static or self.activated_window.window_type == "None" or self.screen_number == 2)
+                button.hovered = self.activated_window.window_type == button.button_type or button.get_rect().collidepoint(mouse_x, mouse_y) and (not button.static or self.activated_window.window_type == "None" or self.screen_name == "lobby")
 
     class Button:
         def __init__(self, name, position, scale, texture, has_text=False, text_position=0, static=False):
@@ -256,9 +289,9 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
     class Window:
         Texts = {"Play": "Select Option:", "Account": "Coming Soon", "Quit": "Are you sure you want to quit?",
                  "Lobby": "Game Info", "None": "None"}
-        BUTTONS = {"Play": [['Host', (1150, 190), (400, 100), "opt", 115],
-                            ['Join', (1150, 300), (400, 100), "opt", 125],
-                            ['Practice', (1150, 410), (400, 100), "opt", 48]],
+        BUTTONS = {"Play": [['Host', (1150, 170), (400, 100), "opt", 115],
+                            ['Join', (1150, 280), (400, 100), "opt", 125],
+                            ['Practice', (1150, 390), (400, 100), "opt", 48]],
                    "Account": [],
                    "Quit": [['ConfirmQuit', (1310.5, 170), (125, 125), "con"],
                             ['CancelQuit', (1584.5, 170), (125, 125), "can"]],
@@ -302,4 +335,4 @@ class LobbyUI:  # TODO: LobbyUI will inherit UI class (there should be a GameUI 
 
 if __name__ == "__main__":
     lobby_ui = LobbyUI()
-    lobby_ui.main(1)
+    lobby_ui.main()
