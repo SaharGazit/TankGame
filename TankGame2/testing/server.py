@@ -51,13 +51,15 @@ class MainServer:
 
                     else:
                         # remove disconnected player
-                        sock.close()
                         print(f"{user.name} disconnected")
-                        del self.players[sock]
+                        self.disconnect_user(sock)
 
     def get_lobby_list(self):
         pass
 
+    def disconnect_user(self, sock):
+        sock.close()
+        del self.players[sock]
 
 class LobbyServer:
 
@@ -155,10 +157,6 @@ class User:
     def get_name_list(user_dict):
         return "|".join([user.name for user in user_dict.values()])
 
-
-if __name__ == "__main__":
-    main_server = LobbyServer()
-    main_server.start_server()
 
 
 if __name__ == "__main__":
