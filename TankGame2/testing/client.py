@@ -35,7 +35,7 @@ class Client:
             self.buffer.append(data.decode())
 
     def get_buffer_data(self):
-        data = self.buffer
+        data = self.buffer.copy()
         self.buffer = []  # empty buffer
         return data
 

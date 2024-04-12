@@ -42,6 +42,11 @@ class LobbyUI:
     def main(self):
         # connect to the server
         self.client.connect()
+
+        # wait for account data:
+        while len(self.client.buffer) == 0:
+            pass
+        # get account data
         self.name = self.client.get_buffer_data()[0]
         print(self.name)
 
@@ -92,6 +97,8 @@ class LobbyUI:
         play_button = Button('Play', (100, 400), (400, 100), button_texture, True, 115, True)
         account_button = Button('Account', (100, 600), (400, 100), button_texture, True, 60, True)
         quit_button = Button('Quit', (100, 800), (400, 100), button_texture, True, 125, True)
+        name_font = pygame.font.Font(LobbyUI.button_font, 25)
+        name_text = name_font.render(f"Logged as   {self.name}", False, (0, 0, 0))
 
         # contains all visible buttons currently on the screen
         self.button_list = [play_button, account_button, quit_button]
@@ -115,6 +122,9 @@ class LobbyUI:
                 if title_alpha <= -255:
                     title_alpha = 255
 
+                # top right name
+                self.screen.blit(name_text, (1150, 30))
+
             # side-window
             else:
                 self.activated_window.draw_window(self.screen)
@@ -136,7 +146,7 @@ class LobbyUI:
         # buttons and texts
         can_texture = pygame.image.load(LobbyUI.can_texture)
         title_font = pygame.font.Font(LobbyUI.button_font, 60)
-        title_test = title_font.render(f"WizardTNT's Game", False, (0, 0, 0))
+        title_text = title_font.render(f"WizardTNT's Game", False, (0, 0, 0))
         quit_button = Button('Quit', (950, 22.5), (125, 125), can_texture, static=True)
 
         # default window in the lobby is a lobby window
@@ -153,7 +163,7 @@ class LobbyUI:
             self.screen.fill(LobbyUI.background_color)
 
             # lobby's name, side window
-            self.screen.blit(title_test, (30, 55))
+            self.screen.blit(title_text, (30, 55))
             self.activated_window.draw_window(self.screen)
 
             # draw buttons
