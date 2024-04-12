@@ -1,5 +1,6 @@
 import pygame
 import main
+from testing.client import Client
 
 
 class LobbyUI:
@@ -34,11 +35,19 @@ class LobbyUI:
         # list of available buttons
         self.button_list = []
 
+        # client
+        self.client = Client()
+        self.name = "Guest"
+
     def main(self):
+        # connect to the server
+        self.client.connect()
+        self.name = self.client.get_buffer_data()[0]
+        print(self.name)
+
         arguments = ""
         running = True
         while running:
-
             # executes the current screen function
             exec(f"self.{self.screen_name}({arguments})")
 
@@ -152,6 +161,9 @@ class LobbyUI:
                 button.draw_button(self.screen)
             pygame.display.flip()
 
+    def lobby_browser(self):
+        pass
+
     def game(self):
         game = main.Game(self.screen)
         self.exit_code = game.main()
@@ -244,6 +256,10 @@ class LobbyUI:
             for button in self.button_list:
                 # requirements for a button to be hovered: 1.
                 button.hovered = self.activated_window.window_type == button.button_type or button.get_rect().collidepoint(mouse_x, mouse_y) and (not button.static or self.activated_window.window_type == "None" or self.screen_name == "lobby")
+
+    def client_data_handler(self, data):
+        pass
+
 
     class Button:
         def __init__(self, name, position, scale, texture, has_text=False, text_position=0, static=False):
