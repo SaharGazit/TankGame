@@ -43,12 +43,11 @@ class LobbyUI:
         # connect to the server
         self.client.connect()
 
-        # wait for account data:
-        while len(self.client.buffer) == 0:
-            pass
         # get account data
-        self.name = self.client.get_buffer_data()[0]
-        print(self.name)
+        if self.client.offline_mode:
+            self.name = "guest"
+        else:
+            self.name = self.client.get_buffer_data(False)[0]
 
         arguments = ""
         running = True
@@ -95,10 +94,13 @@ class LobbyUI:
         title_alpha = 255
         button_texture = pygame.image.load(LobbyUI.button_texture)
         play_button = Button('Play', (100, 400), (400, 100), button_texture, True, 115, True)
+        button_font = pygame.font.Font(LobbyUI.button_font, 20)
+        name_text = button_font.render(f'Logged as   "{self.name}"', False, (0, 0, 0))
+        offline_text = button_font.render(f'(offline mode)', False, (155, 155, 155))
         account_button = Button('Account', (100, 600), (400, 100), button_texture, True, 60, True)
         quit_button = Button('Quit', (100, 800), (400, 100), button_texture, True, 125, True)
-        name_font = pygame.font.Font(LobbyUI.button_font, 25)
-        name_text = name_font.render(f"Logged as   {self.name}", False, (0, 0, 0))
+
+
 
         # contains all visible buttons currently on the screen
         self.button_list = [play_button, account_button, quit_button]
@@ -122,8 +124,6 @@ class LobbyUI:
                 if title_alpha <= -255:
                     title_alpha = 255
 
-                # top right name
-                self.screen.blit(name_text, (1150, 30))
 
             # side-window
             else:
@@ -136,6 +136,12 @@ class LobbyUI:
             # draw buttons
             for button in self.button_list:
                 button.draw_button(self.screen)
+
+            # player's name at the button, and an offline mode disclaimer
+            if self.client.offline_mode:
+                self.screen.blit(offline_text, (195, 575))
+            else:
+                self.screen.blit(name_text, (155, 575))
 
             pygame.display.flip()
 
@@ -259,7 +265,7 @@ class LobbyUI:
                                     remove_window()
                                 # activate the window that belongs to the button
                                 else:
-                                    self.activated_window = LobbyUI.Window(button.button_type)
+                                    self.activated_window = LobbyUI.Window(button.button_type, self.client.offline_mode)
                                     self.button_list += self.activated_window.buttons
 
             # update button hovering
@@ -280,8 +286,10 @@ class LobbyUI:
 
             # true if the player's mouse is on the button
             self.hovered = False
-            # true if the button doesn't depend on
+            # true if the button doesn't depend on the window
             self.static = static
+            # gray and can't be interacted with when true
+            self.disabled = False
 
             # set text
             if has_text:
@@ -292,21 +300,28 @@ class LobbyUI:
             self.text_position = text_position
 
         def draw_button(self, screen_):
-            # change button attributes if they are hovered
+            # change button attributes depending on them being hovered or disabled
+            text_color = (4, 0, 87)
+            position = (self.position[0], self.position[1])
+            if self.disabled:
+                self.png.set_alpha(100)
+            else:
+                self.png.set_alpha(255)
             if self.hovered:
                 text_color = (148, 5, 0)
                 position = (self.position[0], self.position[1] + 5)
-            else:
-                text_color = (4, 0, 87)
-                position = self.position
 
             # draw the button and its text with fixed positions
             screen_.blit(self.png, position)
             text_obj = self.font.render(self.text, False, text_color)
+            text_obj.set_alpha(self.png.get_alpha())
             screen_.blit(text_obj, (position[0] + self.text_position, position[1] + 23))
 
         # get the button's rect
         def get_rect(self):
+            # button can't be pressed or hovered while disabled
+            if self.disabled:
+                return pygame.Rect(-10, -10, 0, 0)
             rect = self.png.get_rect()
             rect.x = self.position[0]
             rect.y = self.position[1]
@@ -324,7 +339,7 @@ class LobbyUI:
                    "Lobby": [],
                    "None": []}
 
-        def __init__(self, button_type):
+        def __init__(self, button_type, offline=False):
             window_texture = pygame.image.load(LobbyUI.window_texture)
             self.window_type = button_type
 
@@ -343,6 +358,8 @@ class LobbyUI:
                     self.buttons.append(LobbyUI.Button(button[0], button[1], button[2], button[3], True, button[4]))
                 else:
                     self.buttons.append(LobbyUI.Button(button[0], button[1], button[2], button[3]))
+                if offline and (button[0] == "Host" or button[0] == "Join"):
+                    self.buttons[-1].disabled = True
 
         # incase the button type is None, these functions wouldn't run in the first place. (view event_handler)
         # prints the window on the screen

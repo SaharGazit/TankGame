@@ -36,7 +36,7 @@ class MainServer:
                     # create a user object
                     self.players[conn] = User()
                     # temp: the server manually logins the user - this will be done until I start working on the databases
-                    self.players[conn].login(r.word(include_parts_of_speech=["adjective"], word_min_length=3, word_max_length=8))
+                    self.players[conn].login(r.word(include_parts_of_speech=["noun"], word_min_length=3, word_max_length=8))
                     # accept client
                     print(f"Accepted Connection from {addr}")
 
