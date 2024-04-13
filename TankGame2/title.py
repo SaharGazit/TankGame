@@ -234,6 +234,7 @@ class LobbyUI:
 
                                 # host case: open a lobby server
                                 if button.button_type == "Host":
+                                    self.client.send_data("host")
                                     self.exit_code = 2
                                 # join case: open the lobby searching screen
                                 if button.button_type == "Join":
