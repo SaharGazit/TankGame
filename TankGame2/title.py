@@ -101,7 +101,6 @@ class LobbyUI:
         quit_button = Button('Quit', (100, 800), (400, 100), button_texture, True, 125, True)
 
 
-
         # contains all visible buttons currently on the screen
         self.button_list = [play_button, account_button, quit_button]
 
@@ -201,6 +200,7 @@ class LobbyUI:
                 # remove all window buttons
                 self.button_list = [b for b in self.button_list if b.static]
 
+        mouse_x, mouse_y = pygame.mouse.get_pos()
         for event in pygame.event.get():
             # if user closes the window, stop the game from running.
             if event.type == pygame.QUIT:
@@ -223,7 +223,6 @@ class LobbyUI:
                         remove_window()
 
             # left click events
-            mouse_x, mouse_y = pygame.mouse.get_pos()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     # check if player pressed inside the new window
@@ -269,12 +268,16 @@ class LobbyUI:
                                     self.activated_window = LobbyUI.Window(button.button_type, self.client.offline_mode)
                                     self.button_list += self.activated_window.buttons
 
-            # update button hovering
-            for button in self.button_list:
-                # requirements for a button to be hovered: 1.
-                button.hovered = self.activated_window.window_type == button.button_type or button.get_rect().collidepoint(mouse_x, mouse_y) and (not button.static or self.activated_window.window_type == "None" or self.screen_name == "lobby")
+        # update button hovering
+        for button in self.button_list:
+            # requirements for a button to be hovered: 1.
+            button.hovered = self.activated_window.window_type == button.button_type or button.get_rect().collidepoint(mouse_x, mouse_y) and (not button.static or self.activated_window.window_type == "None" or self.screen_name == "lobby")
 
-    def client_data_handler(self, data):
+        # handle data from the client
+        if not self.client.offline_mode:
+            self.client_data_handler()
+
+    def client_data_handler(self):
         pass
 
 

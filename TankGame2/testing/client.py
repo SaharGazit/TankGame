@@ -33,8 +33,8 @@ class Client:
     def listen(self):
         while self.running:
 
-            # get data
             data = self.server_socket.recv(1024)
+            print(data.decode())
 
             # push data to the buffer
             self.buffer.append(data.decode())
