@@ -9,14 +9,13 @@ class LobbyUI:
     title_font = "resources/fonts/font1.ttf"
 
     # textures
-    button_texture = "resources/ui/button.png"
     window_texture = "resources/ui/window.png"
-    con_texture = "resources/ui/confirm.png"
-    can_texture = "resources/ui/cancel.png"
-    opt_texture = "resources/ui/panel2.png"
+    button1_texture = "resources/ui/button1.png"
+    button2_texture = "resources/ui/button2.png"
+    confirm_texture = "resources/ui/confirm.png"
+    cancel_texture = "resources/ui/cancel.png"
 
     background_color = (230, 230, 230)
-
 
     def __init__(self):
         # initiate program
@@ -26,7 +25,7 @@ class LobbyUI:
         # screen
         self.monitor_info = pygame.display.Info()
         self.screen = pygame.display.set_mode((int(self.monitor_info.current_w), int(self.monitor_info.current_h)))
-        self.screen_name = "title" # determines which screen to print and interact with
+        self.screen_name = "title"  # determines which screen to print and interact with
 
         # running process for current screen
         self.activated_window = LobbyUI.Window("None")
@@ -92,14 +91,13 @@ class LobbyUI:
         title_font = pygame.font.Font(LobbyUI.title_font, 80)
         title_text = title_font.render('TANK GAME', False, (0, 0, 0))
         title_alpha = 255
-        button_texture = pygame.image.load(LobbyUI.button_texture)
+        button_texture = pygame.image.load(LobbyUI.button1_texture)
         play_button = Button('Play', (100, 400), (400, 100), button_texture, True, 115, True)
         button_font = pygame.font.Font(LobbyUI.button_font, 20)
         name_text = button_font.render(f'Logged as   "{self.name}"', False, (0, 0, 0))
         offline_text = button_font.render(f'(offline mode)', False, (155, 155, 155))
         account_button = Button('Account', (100, 600), (400, 100), button_texture, True, 60, True)
         quit_button = Button('Quit', (100, 800), (400, 100), button_texture, True, 125, True)
-
 
         # contains all visible buttons currently on the screen
         self.button_list = [play_button, account_button, quit_button]
@@ -153,7 +151,7 @@ class LobbyUI:
         lobby_id = None
 
         # buttons and texts
-        can_texture = pygame.image.load(LobbyUI.can_texture)
+        can_texture = pygame.image.load(LobbyUI.cancel_texture)
         title_font = pygame.font.Font(LobbyUI.button_font, 60)
         title_text = title_font.render(f"WizardTNT's Game", False, (0, 0, 0))
         quit_button = Button('Quit', (950, 22.5), (125, 125), can_texture, static=True)
@@ -180,8 +178,6 @@ class LobbyUI:
                             user_list = data[1:]
                     except IndexError:
                         pass
-
-
 
             # background
             self.screen.fill(LobbyUI.background_color)
@@ -290,14 +286,9 @@ class LobbyUI:
         # update button hovering
         for button in self.button_list:
             # requirements for a button to be hovered: 1.
-            button.hovered = self.activated_window.window_type == button.button_type or button.get_rect().collidepoint(mouse_x, mouse_y) and (not button.static or self.activated_window.window_type == "None" or self.screen_name == "lobby")
-
-        # handle data from the client
-        if not self.client.offline_mode:
-            self.client_data_handler()
-
-    def client_data_handler(self):
-        pass
+            button.hovered = self.activated_window.window_type == button.button_type or button.get_rect().collidepoint(
+                mouse_x, mouse_y) and (
+                                         not button.static or self.activated_window.window_type == "None" or self.screen_name == "lobby")
 
 
     class Button:
@@ -351,16 +342,22 @@ class LobbyUI:
             return rect
 
     class Window:
-        Texts = {"Play": "Select Option:", "Account": "Coming Soon", "Quit": "Are you sure you want to quit?",
-                 "Lobby": "Game Info", "None": "None"}
-        BUTTONS = {"Play": [['Host', (1150, 170), (400, 100), "opt", 115],
-                            ['Join', (1150, 280), (400, 100), "opt", 125],
-                            ['Practice', (1150, 390), (400, 100), "opt", 48]],
-                   "Account": [],
-                   "Quit": [['ConfirmQuit', (1310.5, 170), (125, 125), "con"],
-                            ['CancelQuit', (1584.5, 170), (125, 125), "can"]],
-                   "Lobby": [],
-                   "None": []}
+        TEXTS = {"None": "[]",
+                 "Play": "[(self.text_font.render('Select Option:', False, (0, 0, 0)), (1185, 90))]",
+                 "Account": "[(self.text_font.render('Coming Soon', False, (0, 0, 0)), (1185, 90))]",
+                 "Quit": "[(self.text_font.render('Are you sure you want to quit?', False, (0, 0, 0)), (1185, 90))]",
+                 "Lobby": "[(self.text_font.render('Game Info', False, (0, 0, 0)), (1185, 90))]",
+                 }
+
+        BUTTONS = {"None": "[]",
+                   "Play": "[LobbyUI.Button('Host', (1150, 170), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 115), "
+                           "LobbyUI.Button('Join', (1150, 280), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 125), "
+                           "LobbyUI.Button('Practice', (1150, 390), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 48)]",
+                   "Account": "[]",
+                   "Quit": "[LobbyUI.Button('ConfirmQuit', (1310.5, 170), (125, 125), pygame.image.load(LobbyUI.confirm_texture)), "
+                           "LobbyUI.Button('CancelQuit', (1584.5, 170), (125, 125), pygame.image.load(LobbyUI.cancel_texture))]",
+                   "Lobby": "[]"
+                   }
 
         def __init__(self, button_type, offline=False):
             window_texture = pygame.image.load(LobbyUI.window_texture)
@@ -368,28 +365,25 @@ class LobbyUI:
 
             self.png = pygame.transform.smoothscale(window_texture, (820, 1080))
             self.position = (1100, 0)
-            self.top_text = LobbyUI.Window.Texts[button_type]
-            self.top_text_font = pygame.font.Font(LobbyUI.button_font, 30)
+            self.text_font = pygame.font.Font(LobbyUI.button_font, 30)
+
+            self.texts = []
+            exec(f"self.texts = {LobbyUI.Window.TEXTS[self.window_type]}")
 
             self.buttons = []
-            # TODO: I really don't like the way this code works. consider changing it in the future
-            # get button attributes and set correct texture (this is required because static fonts can be initialized, due to the code structure)
-            for button in LobbyUI.Window.BUTTONS[button_type]:
-                if type(button[3]) == str:
-                    exec(f"button[3] = pygame.image.load(LobbyUI.{button[3]}_texture)")
-                if len(button) == 5:
-                    self.buttons.append(LobbyUI.Button(button[0], button[1], button[2], button[3], True, button[4]))
-                else:
-                    self.buttons.append(LobbyUI.Button(button[0], button[1], button[2], button[3]))
-                if offline and (button[0] == "Host" or button[0] == "Join"):
-                    self.buttons[-1].disabled = True
+            exec(f"self.buttons = {LobbyUI.Window.BUTTONS[self.window_type]}")
+            # disable Host and Join buttons if offline mode is activated
+            if offline:
+                for button in self.buttons:
+                    if button.button_type == "Host" or button.button_type == "Join":
+                        button.disabled = True
 
         # incase the button type is None, these functions wouldn't run in the first place. (view event_handler)
         # prints the window on the screen
         def draw_window(self, screen_):
             screen_.blit(self.png, self.position)
-            text = self.top_text_font.render(self.top_text, False, (0, 0, 0))
-            screen_.blit(text, (1185, 90))
+            for text, pos in self.texts:
+                screen_.blit(text, pos)
 
         # returns the Rect of the window object
         def get_rect(self):
