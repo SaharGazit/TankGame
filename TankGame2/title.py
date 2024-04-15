@@ -36,17 +36,14 @@ class LobbyUI:
 
         # client
         self.client = Client()
-        self.name = "Guest"
 
     def main(self):
         # connect to the server
         self.client.connect()
 
         # get account data
-        if self.client.offline_mode:
-            self.name = "guest"
-        else:
-            self.name = self.client.get_buffer_data(False)[0]
+        if not self.client.offline_mode:
+            self.client.name = self.client.get_buffer_data(False)[0]
 
         arguments = ""
         running = True
@@ -94,7 +91,7 @@ class LobbyUI:
         button_texture = pygame.image.load(LobbyUI.button1_texture)
         play_button = Button('Play', (100, 400), (400, 100), button_texture, True, 115, True)
         button_font = pygame.font.Font(LobbyUI.button_font, 20)
-        name_text = button_font.render(f'Logged as   "{self.name}"', False, (0, 0, 0))
+        name_text = button_font.render(f'Logged as   "{self.client.name}"', False, (0, 0, 0))
         offline_text = button_font.render(f'(offline mode)', False, (155, 155, 155))
         account_button = Button('Account', (100, 600), (400, 100), button_texture, True, 60, True)
         quit_button = Button('Quit', (100, 800), (400, 100), button_texture, True, 125, True)
@@ -146,9 +143,7 @@ class LobbyUI:
         Button = LobbyUI.Button
         Window = LobbyUI.Window
 
-        # lobby
-        user_list = []
-        lobby_id = None
+        lobby_id = -1
 
         # buttons and texts
         can_texture = pygame.image.load(LobbyUI.cancel_texture)
@@ -157,7 +152,7 @@ class LobbyUI:
         quit_button = Button('Quit', (950, 22.5), (125, 125), can_texture, static=True)
 
         # default window in the lobby is a lobby window
-        self.activated_window = Window("Lobby")
+        self.activated_window = Window("Lobby", data=[self.client.lobby_id])
 
         # button list
         self.button_list = [quit_button] + self.activated_window.buttons
@@ -174,8 +169,13 @@ class LobbyUI:
                         # lobby list update
                         if data[0] == 'L':
                             data = data.split("|")
-                            lobby_id = data[0][1]
-                            user_list = data[1:]
+                            self.client.lobby_id = data[0][1]
+                            self.client.user_list = data[1:]
+
+                            # reset lobby window
+                            if self.activated_window.window_type == "Lobby":
+                                self.activated_window = Window("Lobby", data=[self.client.lobby_id])
+
                     except IndexError:
                         pass
 
@@ -202,7 +202,7 @@ class LobbyUI:
     def event_handler(self):
         def remove_window():
             if self.screen_name == "lobby":
-                self.activated_window = LobbyUI.Window("Lobby")
+                self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id])
 
                 # remove all window buttons except lobby window buttons
                 self.button_list = [b for b in self.button_list if b.static] + self.activated_window.buttons
@@ -287,9 +287,7 @@ class LobbyUI:
         for button in self.button_list:
             # requirements for a button to be hovered: 1.
             button.hovered = self.activated_window.window_type == button.button_type or button.get_rect().collidepoint(
-                mouse_x, mouse_y) and (
-                                         not button.static or self.activated_window.window_type == "None" or self.screen_name == "lobby")
-
+                mouse_x, mouse_y) and (not button.static or self.activated_window.window_type == "None" or self.screen_name == "lobby")
 
     class Button:
         def __init__(self, name, position, scale, texture, has_text=False, text_position=0, static=False):
@@ -346,7 +344,8 @@ class LobbyUI:
                  "Play": "[(self.text_font.render('Select Option:', False, (0, 0, 0)), (1185, 90))]",
                  "Account": "[(self.text_font.render('Coming Soon', False, (0, 0, 0)), (1185, 90))]",
                  "Quit": "[(self.text_font.render('Are you sure you want to quit?', False, (0, 0, 0)), (1185, 90))]",
-                 "Lobby": "[(self.text_font.render('Game Info', False, (0, 0, 0)), (1185, 90))]",
+                 "Lobby": "[(self.text_font.render('Game Info:', False, (0, 0, 0)), (1185, 90)), "
+                          "(self.text_font.render('Lobby ID                         ' + str(data[0]) + '#', False, (0, 0, 0)), (1185, 200))]",
                  }
 
         BUTTONS = {"None": "[]",
@@ -359,7 +358,7 @@ class LobbyUI:
                    "Lobby": "[]"
                    }
 
-        def __init__(self, button_type, offline=False):
+        def __init__(self, button_type, offline=False, data=None):
             window_texture = pygame.image.load(LobbyUI.window_texture)
             self.window_type = button_type
 

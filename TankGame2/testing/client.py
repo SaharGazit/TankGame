@@ -11,6 +11,10 @@ class Client:
         self.running = False
         self.offline_mode = False
 
+        self.name = "Guest"
+        self.name_list = []
+        self.lobby_id = -1
+
         # a queue that holds data from the server
         self.buffer = []
 
@@ -34,6 +38,7 @@ class Client:
         while self.running:
 
             data = self.server_socket.recv(1024)
+            print(data)
 
             # push data to the buffer
             self.buffer.append(data.decode())
