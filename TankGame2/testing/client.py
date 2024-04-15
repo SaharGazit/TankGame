@@ -34,7 +34,6 @@ class Client:
         while self.running:
 
             data = self.server_socket.recv(1024)
-            print(data.decode())
 
             # push data to the buffer
             self.buffer.append(data.decode())

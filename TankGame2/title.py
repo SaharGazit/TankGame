@@ -148,6 +148,10 @@ class LobbyUI:
         Button = LobbyUI.Button
         Window = LobbyUI.Window
 
+        # lobby
+        user_list = []
+        lobby_id = None
+
         # buttons and texts
         can_texture = pygame.image.load(LobbyUI.can_texture)
         title_font = pygame.font.Font(LobbyUI.button_font, 60)
@@ -163,6 +167,21 @@ class LobbyUI:
         # main program loop
         while self.exit_code == 0:
             self.event_handler()
+
+            # handle server data
+            datas = self.client.get_buffer_data()
+            for data in datas:
+                if len(data) > 3:
+                    try:
+                        # lobby list update
+                        if data[0] == 'L':
+                            data = data.split("|")
+                            lobby_id = data[0][1]
+                            user_list = data[1:]
+                    except IndexError:
+                        pass
+
+
 
             # background
             self.screen.fill(LobbyUI.background_color)
