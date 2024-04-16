@@ -345,6 +345,9 @@ class LobbyUI:
             rect.y = self.position[1]
             return rect
 
+    class NameTag(Button):
+        pass
+
     class Window:
         TEXTS = {"None": "[]",
                  "Play": "[(self.text_font.render('Select Option:', False, (0, 0, 0)), (1185, 90))]",
