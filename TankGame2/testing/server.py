@@ -83,9 +83,10 @@ class MainServer:
     def disconnect_user(self, sock):
         sock.close()
         for lobby in self.lobbies:
-            if sock in lobby.users:
-                print(f"{lobby.users[sock].name} disconnected")
-                del lobby.users[sock]
+            if sock in lobby.users.keys():
+                name = lobby.users[sock].name
+                lobby.remove_player(sock)
+                print(f"{name} disconnected")
                 break
 
 
@@ -103,8 +104,18 @@ class Lobby:
             # broadcast new lobby status
             self.broadcast_status()
 
+    def remove_player(self, sock):
+        name = self.users[sock].name
+        del self.users[sock]
+
+        if self.id != 0:
+            print(f"{name} left lobby {self.id}")
+            # broadcast new lobby status
+            self.broadcast_status()
+
+
     def broadcast_status(self):
-        self.broadcast(f"L{self.id}|{self.get_names_string()}")
+        self.broadcast(f"L{self.id}{self.get_names_string()}")
 
     def broadcast(self, data):
         for sock in self.users.keys():

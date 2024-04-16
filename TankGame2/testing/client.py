@@ -59,3 +59,9 @@ class Client:
         else:
             print("no server found")
 
+    # get the username of the owner of the current lobby
+    def get_owner(self):
+        for name in self.name_list:
+            if name[-1] == '#':
+                return name[:-1]
+
