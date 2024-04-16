@@ -60,7 +60,7 @@ class MainServer:
                         # client declared it is hosting a lobby
                         if data == "host":
                             # add a new lobby
-                            self.lobbies.append(Lobby(len(self.lobbies)))
+                            self.lobbies.append(Lobby(self.get_new_id()))
                             print(f"{user.name} has created lobby {self.lobbies[-1].id}")
 
                             # add user to the lobby
@@ -76,8 +76,24 @@ class MainServer:
                 except OSError:
                     self.disconnect_user(sock)
 
+            # delete empty lobbies
+            for lobby in self.lobbies[1:]:
+                if len(lobby.users) == 0:
+                    print(f"Lobby {lobby.id} has closed")
+                    self.lobbies.remove(lobby)
+
     def get_lobby_list(self):
         pass
+
+    def get_new_id(self):
+        possible_id = 1
+        while True:
+            if possible_id in [lobby.id for lobby in self.lobbies[1:]]:
+                possible_id += 1
+            else:
+                break
+        return possible_id
+
 
     @staticmethod
     def move_user(sock, from_, to):
