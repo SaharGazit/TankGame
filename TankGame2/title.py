@@ -36,8 +36,6 @@ class LobbyUI:
 
         # client
         self.client = Client()
-        # owner of current lobby
-        self.owner = ""
 
     def main(self):
         # connect to the server
@@ -143,12 +141,11 @@ class LobbyUI:
 
     def lobby(self):
         Button = LobbyUI.Button
-        Window = LobbyUI.Window
 
         # buttons and texts
+        owner_name = ""  # for the title
         can_texture = pygame.image.load(LobbyUI.cancel_texture)
         title_font = pygame.font.Font(LobbyUI.button_font, 60)
-        title_text = title_font.render(f"WizardTNT's Game", False, (0, 0, 0))
         quit_button = Button('Quit', (950, 22.5), (125, 125), can_texture, static=True)
 
         # default window in the lobby is a lobby window
@@ -171,18 +168,20 @@ class LobbyUI:
                             data = data.split("|")
                             self.client.lobby_id = data[0][1]
                             self.client.name_list = data[1:]
+                            owner_name = self.client.get_owner()
 
                             # reset lobby window
                             if self.activated_window.window_type == "Lobby":
                                 self.switch_to_lobby_window()
 
                     except IndexError:
-                        pass
+                        continue
 
             # background
             self.screen.fill(LobbyUI.background_color)
 
             # lobby's name, side window
+            title_text = title_font.render(f"{owner_name}'s Game", False, (0, 0, 0))
             self.screen.blit(title_text, (30, 55))
             self.activated_window.draw_window(self.screen)
 
@@ -352,9 +351,9 @@ class LobbyUI:
                  "Account": "[(self.text_font.render('Coming Soon', False, (0, 0, 0)), (1185, 90))]",
                  "Quit": "[(self.text_font.render('Are you sure you want to quit?', False, (0, 0, 0)), (1185, 90))]",
                  "Lobby": "[(self.text_font.render('Game Info:', False, (0, 0, 0)), (1185, 90)), "
-                          "(self.text_font.render('Lobby ID                                          ' + str(data[0]) + '#', False, (0, 0, 0)), (1185, 200)), "
-                          "(self.text_font.render('Player Count                           ' + str(data[1]), False, (0, 0, 0)), (1185, 260)), "
-                          "(self.text_font.render('Game Host                            ' + str(data[2]), False, (0, 0, 0)), (1185, 320))]",
+                          "(self.text_font.render('Lobby ID:   ' + str(data[0]) + '#', False, (0, 0, 0)), (1185, 200)), "
+                          "(self.text_font.render('Player Count:   ' + str(data[1]), False, (0, 0, 0)), (1185, 260)), "
+                          "(self.text_font.render('Host:   ' + str(data[2]), False, (0, 0, 0)), (1185, 320))]",
                  }
 
         BUTTONS = {"None": "[]",

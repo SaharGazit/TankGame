@@ -1,5 +1,4 @@
 import socket
-
 import select
 import wonderwords
 
@@ -25,7 +24,8 @@ class MainServer:
         r = wonderwords.RandomWord()
         while running:
             # use select to wait for incoming connections or data from existing connections
-            sockets, _, _ = select.select([self.server_socket] + [sock for lobby in self.lobbies for sock in lobby.users.keys()], [], [])
+            sockets, _, _ = select.select(
+                [self.server_socket] + [sock for lobby in self.lobbies for sock in lobby.users.keys()], [], [])
             for sock in sockets:
                 try:
                     # check if the new client is already connected or not
@@ -46,16 +46,18 @@ class MainServer:
                         conn.sendall(user.name.encode())
 
                     else:
-                        # identify user
+                        # identify user and lobby
                         user = None
-                        for lobby in self.lobbies:
-                            if sock in lobby.users:
-                                user = lobby.users[sock]
+                        lobby = None
+                        for lo in self.lobbies:
+                            if sock in lo.users:
+                                user = lo.users[sock]
+                                lobby = lo
                                 break
                         # get data
                         data = sock.recv(1024).decode()
 
-                        # client requested to host a lobby
+                        # client declared it is hosting a lobby
                         if data == "host":
                             # add a new lobby
                             self.lobbies.append(Lobby(len(self.lobbies)))
@@ -63,6 +65,10 @@ class MainServer:
 
                             # add user to the lobby
                             self.move_user(sock, self.main_lobby, self.lobbies[-1])
+                        # client declared it left its lobby
+                        if data == "main":
+                            # move user out of the lobby
+                            self.move_user(sock, lobby, self.main_lobby)
 
                 # disconnect users not responding
                 except ConnectionResetError:
@@ -70,14 +76,14 @@ class MainServer:
                 except OSError:
                     self.disconnect_user(sock)
 
-
     def get_lobby_list(self):
         pass
 
     @staticmethod
     def move_user(sock, from_, to):
-        to.add_player(from_.users[sock], sock)
-        del from_.users[sock]
+        user = from_.users[sock]
+        from_.remove_player(sock)
+        to.add_player(user, sock)
 
     # remove disconnected player
     def disconnect_user(self, sock):
@@ -112,7 +118,6 @@ class Lobby:
             print(f"{name} left lobby {self.id}")
             # broadcast new lobby status
             self.broadcast_status()
-
 
     def broadcast_status(self):
         self.broadcast(f"L{self.id}{self.get_names_string()}")
@@ -149,7 +154,6 @@ class User:
             self.owner = True
 
         # TODO: set team
-
 
 
 if __name__ == "__main__":
