@@ -62,5 +62,5 @@ class Client:
     def get_owner(self):
         for name in self.name_list:
             if name[-1] == '#':
-                return name[:-1]
+                return name[1:-1]
 

@@ -38,6 +38,7 @@ class MainServer:
                         # temp: the server manually logins the user - this will be done until I start working on the databases
                         random_name = r.word(include_parts_of_speech=["noun"], word_min_length=3, word_max_length=8)
                         user.login(random_name)
+
                         # accept client
                         self.main_lobby.add_player(user, conn)
                         print(f"Accepted Connection from {addr} as {random_name}")
@@ -118,15 +119,29 @@ class Lobby:
         self.users = {}
 
     def add_player(self, player, sock):
+        # add user to the lobby's users list
         self.users[sock] = player
-        player.join_lobby(self)
+        # if it is the first player in the lobby, give them owner
+        if len(self.users) == 1:
+            self.users[sock].owner = True
 
         if self.id != 0:
+            # give the user a team
+            team1_count = len([user for user in self.users.values() if user.team == 1])
+            if team1_count <= len(self.users) - 1 - team1_count:
+                player.team = 1
+            else:
+                player.team = 2
             print(f"{player.name} joined lobby {self.id}")
             # broadcast new lobby status
             self.broadcast_status()
 
     def remove_player(self, sock):
+        # reset user info
+        self.users[sock].team = 0
+        self.users[sock].owner = False
+
+        # save name and remove the user from the user list
         name = self.users[sock].name
         del self.users[sock]
 
@@ -145,7 +160,7 @@ class Lobby:
     def get_names_string(self):
         names_string = ""
         for user in self.users.values():
-            names_string += "|" + user.name
+            names_string += "|" + str(user.team) + user.name
             if user.owner:
                 names_string += "#"
         return names_string
@@ -156,20 +171,13 @@ class User:
         self.logged = False
         self.name = "guest"
 
-        self.lobby_id = 0  # lobby id 0 means no lobby
-        self.team = None
+        self.team = 0
         self.owner = False
 
     def login(self, username):
         self.name = username
         self.logged = True
 
-    def join_lobby(self, lobby):
-        self.lobby_id = lobby.id
-        if len(lobby.users) == 1:
-            self.owner = True
-
-        # TODO: set team
 
 
 if __name__ == "__main__":
