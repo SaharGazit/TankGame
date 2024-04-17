@@ -1,6 +1,6 @@
 import socket
 import threading
-from collections import deque
+import protocol
 
 
 class Client:

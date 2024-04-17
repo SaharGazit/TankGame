@@ -1,6 +1,6 @@
 import pygame
 import main
-from testing.client import Client
+from networking.client import Client
 
 
 class LobbyUI:
