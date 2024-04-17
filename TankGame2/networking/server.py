@@ -1,12 +1,13 @@
 import socket
 import select
 import wonderwords
+import protocol
 
 
 class MainServer:
     def __init__(self):
         self.host = '0.0.0.0'
-        self.port = 31410
+        self.port = protocol.main_port
         self.main_lobby = Lobby(0)  # players who haven't connected to a server yet (socket:User)
         self.lobbies = [self.main_lobby]
 
@@ -34,7 +35,7 @@ class MainServer:
                         conn, addr = self.server_socket.accept()
 
                         # create a user object
-                        user = User()
+                        user = protocol.User()
                         # temp: the server manually logins the user - this will be done until I start working on the databases
                         random_name = r.word(include_parts_of_speech=["noun"], word_min_length=3, word_max_length=8)
                         user.login(random_name)
@@ -165,18 +166,6 @@ class Lobby:
                 names_string += "#"
         return names_string
 
-
-class User:
-    def __init__(self):  # no socket, since it's already a part of a dictionary
-        self.logged = False
-        self.name = "guest"
-
-        self.team = 0
-        self.owner = False
-
-    def login(self, username):
-        self.name = username
-        self.logged = True
 
 
 
