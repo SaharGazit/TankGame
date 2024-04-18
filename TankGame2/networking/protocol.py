@@ -3,12 +3,17 @@ main_port = 31410
 
 
 class User:
-    def __init__(self):  # no socket, since it's already a part of a dictionary
-        self.logged = False
-        self.name = "guest"
+    def __init__(self, name="guest", team=0):  # no socket, since it's already a part of a dictionary
+        self.logged = name != "guest"
 
-        self.team = 0
-        self.owner = False
+        if name[-1] == "#":
+            name = name[:-1]
+            self.owner = True
+        else:
+            self.owner = False
+
+        self.name = name
+        self.team = team
 
     def login(self, username):
         self.name = username

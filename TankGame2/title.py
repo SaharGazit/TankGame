@@ -178,18 +178,12 @@ class LobbyUI:
                     try:
                         # lobby list update
                         if data[0] == 'L':
-                            data = data.split("|")
-                            self.client.lobby_id = data[0][1]
-                            self.client.name_list = data[1:]
+                            self.client.update_lobby(data)
 
-                            # update texts to show names
-                            empty_index = [0, 0]
-                            for name in self.client.name_list:
-                                # get team
-                                team = int(name[0]) - 1
-                                # change the right text to the username, remove any #'s
-                                player_tags[team][empty_index[team]].text = name[1:].replace('#', "")
-                                empty_index[team] += 1
+                            for li in range(2):
+                                for u in range(len(self.client.user_list[li])):
+                                    player_tags[li][u].text = self.client.user_list[li][u].name
+
 
                             # reset lobby window
                             if self.activated_window.window_type == "Lobby":
@@ -224,7 +218,7 @@ class LobbyUI:
             self.client.send_data("main")
 
     def switch_to_lobby_window(self):
-        self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id, len(self.client.name_list), self.client.get_owner()])
+        self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id, len(self.client.user_list[0] + self.client.user_list[1]), self.client.get_owner()])
 
     def lobby_browser(self):
         pass

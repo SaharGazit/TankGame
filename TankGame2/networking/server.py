@@ -47,6 +47,8 @@ class MainServer:
                         # send the player their details
                         conn.sendall(user.name.encode())
 
+                        if len(self.lobbies) == 2:
+                            self.move_user(conn, self.main_lobby, self.lobbies[-1])
                     else:
                         # identify user and lobby
                         user = None

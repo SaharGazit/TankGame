@@ -1,6 +1,6 @@
 import socket
 import threading
-import protocol
+from TankGame2.networking import protocol
 
 
 class Client:
@@ -12,7 +12,7 @@ class Client:
         self.offline_mode = False
 
         self.name = "Guest"
-        self.name_list = []
+        self.user_list = [[], []]
         self.lobby_id = -1
 
         # a queue that holds data from the server
@@ -60,7 +60,15 @@ class Client:
 
     # get the username of the owner of the current lobby
     def get_owner(self):
-        for name in self.name_list:
-            if name[-1] == '#':
-                return name[1:-1]
+        for user in self.user_list[0] + self.user_list[1]:
+            if user.owner:
+                return user.name
 
+    def update_lobby(self, data):
+        data = data.split("|")
+        self.lobby_id = data[0][1]
+
+        # update user lists
+        self.user_list = [[], []]
+        for string in data[1:]:
+            self.user_list[int(string[0]) - 1].append(protocol.User(string[1:], string[0]))
