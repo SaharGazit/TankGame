@@ -28,6 +28,7 @@ class LobbyUI:
         self.monitor_info = pygame.display.Info()
         self.screen = pygame.display.set_mode((int(self.monitor_info.current_w), int(self.monitor_info.current_h)))
         self.screen_name = "title"  # determines which screen to print and interact with
+        self.clock = pygame.time.Clock()
 
         # running process for current screen
         self.activated_window = LobbyUI.Window("None")
@@ -70,9 +71,9 @@ class LobbyUI:
             # code 2: move to lobby screen (after hosting or joining a server)
             elif self.exit_code == 2:
                 self.screen_name = "lobby"
-            # code 3: move to lobby list screen (before joining a server)
+            # code 3: move to lobby browser screen (before joining a server)
             elif self.exit_code == 3:
-                pass
+                self.screen_name = "lobby_browser"
             # code 4: move to game screen (after a lobby starts or after pressing practice)
             elif self.exit_code == 4:
                 self.screen_name = "game"
@@ -86,22 +87,24 @@ class LobbyUI:
     def title(self):
         Button = LobbyUI.Button
 
-        # buttons and texts
+        # title
         title_font = pygame.font.Font(LobbyUI.title_font, 80)
         title_text = title_font.render('TANK GAME', False, (0, 0, 0))
         title_alpha = 255
+
+        # main buttons
         button_texture = pygame.image.load(LobbyUI.button1_texture)
-        play_button = Button('Play', (100, 400), (400, 100), button_texture, True, 115, True)
         button_font = pygame.font.Font(LobbyUI.button_font, 20)
+        play_button = Button('Play', (100, 400), (400, 100), button_texture, True, 115, True)
         name_text = button_font.render(f'Logged as   "{self.client.name}"', False, (0, 0, 0))
         offline_text = button_font.render(f'(offline mode)', False, (155, 155, 155))
         account_button = Button('Account', (100, 600), (400, 100), button_texture, True, 60, True)
         quit_button = Button('Quit', (100, 800), (400, 100), button_texture, True, 125, True)
 
+        self.activated_window = LobbyUI.Window("None")
         # contains all visible buttons currently on the screen
         self.button_list = [play_button, account_button, quit_button]
 
-        self.activated_window = LobbyUI.Window("None")
         # main program loop
         while self.exit_code == 0:
             # handles pygame events
@@ -114,12 +117,7 @@ class LobbyUI:
             title_text.set_alpha(abs(title_alpha))
             self.screen.blit(title_text, (75, 75))
             if self.activated_window.window_type == "None":
-                # change title's transparency
-                title_alpha -= 1
-                # change transparency direction
-                if title_alpha <= -255:
-                    title_alpha = 255
-
+                title_alpha = self.get_new_alpha_value(title_alpha)
 
             # side-window
             else:
@@ -145,8 +143,9 @@ class LobbyUI:
         Button = LobbyUI.Button
 
         # title
-        title_font = pygame.font.Font(LobbyUI.button_font, 60)
+        title_font = pygame.font.Font(LobbyUI.title_font, 80)
         title_text = title_font.render(f"GET READY", False, (0, 0, 0))
+        title_alpha = 255
 
         # quit button
         can_texture = pygame.image.load(LobbyUI.cancel_texture)
@@ -169,6 +168,7 @@ class LobbyUI:
 
         # main program loop
         while self.exit_code == 0:
+            # handles pygame events
             self.event_handler()
 
             # handle server data
@@ -198,12 +198,14 @@ class LobbyUI:
             # background
             self.screen.fill(LobbyUI.background_color)
 
-            # lobby and team names
+            # title
+            title_text.set_alpha(abs(title_alpha))
             self.screen.blit(title_text, (50, 50))
+            title_alpha = self.get_new_alpha_value(title_alpha)
+
+            # teams
             self.screen.blit(blue_text, (60, 345))
             self.screen.blit(red_text, (550, 345))
-
-            # player list
             for player_tag in player_tags[0] + player_tags[1]:
                 if player_tag.text != '':
                     player_tag.draw_button(self.screen)
@@ -214,17 +216,40 @@ class LobbyUI:
             # draw buttons
             for button in self.button_list:
                 button.draw_button(self.screen)
+
             pygame.display.flip()
 
         # notify server about leaving the lobby
         if self.exit_code == 1:
             self.client.send_data("main")
 
+    def lobby_browser(self):
+        Button = LobbyUI.Button
+        Window = LobbyUI.Window
+
+        # title
+        title_font = pygame.font.Font(LobbyUI.title_font, 80)
+        title_text = title_font.render(f"SELECT GAME", False, (0, 0, 0))
+        title_alpha = 255
+
+        self.activated_window = Window("None")
+
+        while self.exit_code == 0:
+            self.event_handler()
+
+            # background
+            self.screen.fill(LobbyUI.background_color)
+
+            # title
+            title_text.set_alpha(abs(title_alpha))
+            self.screen.blit(title_text, (50, 50))
+            title_alpha = self.get_new_alpha_value(title_alpha)
+
+            pygame.display.flip()
+
+    # switches window to lobby window
     def switch_to_lobby_window(self):
         self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id, len(self.client.user_list[0] + self.client.user_list[1]), self.client.get_owner(), self.client.name])
-
-    def lobby_browser(self):
-        pass
 
     def game(self):
         game = main.Game(self.screen)
@@ -232,6 +257,9 @@ class LobbyUI:
 
     # handles UI events that are similar in all screens
     def event_handler(self):
+        # 60 dps
+        self.clock.tick(60)
+
         def remove_window():
             if self.screen_name == "lobby":
                 self.switch_to_lobby_window()
@@ -256,8 +284,12 @@ class LobbyUI:
             if event.type == pygame.KEYUP:
                 # actions for when the player presses Escape
                 if event.key == pygame.K_ESCAPE:
+                    # quit window immediately. if the current screen is the lobby browser
+                    if self.screen_name == "lobby_browser":
+                        self.exit_code = 1
+
                     # when there is no activated window, or the current window is the lobby window, open the quit confirmation window
-                    if self.activated_window.window_type == "None" or self.activated_window.window_type == "Lobby":
+                    elif self.activated_window.window_type == "None" or self.activated_window.window_type == "Lobby":
                         self.activated_window = LobbyUI.Window("Quit")
                         self.button_list += self.activated_window.buttons
                         # fake quit button hovering
@@ -284,7 +316,7 @@ class LobbyUI:
                                     self.exit_code = 2
                                 # join case: open the lobby searching screen
                                 if button.button_type == "Join":
-                                    pass
+                                    self.exit_code = 3
                                 # practice case: start the offline practice game
                                 if button.button_type == "Practice":
                                     self.exit_code = 4
@@ -320,6 +352,13 @@ class LobbyUI:
             # requirements for a button to be hovered: 1.
             button.hovered = self.activated_window.window_type == button.button_type or button.get_rect().collidepoint(
                 mouse_x, mouse_y) and (not button.static or self.activated_window.window_type == "None" or self.screen_name == "lobby")
+
+    @staticmethod
+    def get_new_alpha_value(a):
+        if a <= -255:
+            return 255
+        else:
+            return a - 4
 
     class Button:
         def __init__(self, name, position, scale, texture, has_text=False, text_position=0, static=False):
