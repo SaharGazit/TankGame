@@ -72,3 +72,4 @@ class Client:
         self.user_list = [[], []]
         for string in data[1:]:
             self.user_list[int(string[0]) - 1].append(protocol.User(string[1:], string[0]))
+

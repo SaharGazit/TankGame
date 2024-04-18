@@ -181,8 +181,11 @@ class LobbyUI:
                             self.client.update_lobby(data)
 
                             for li in range(2):
-                                for u in range(len(self.client.user_list[li])):
-                                    player_tags[li][u].text = self.client.user_list[li][u].name
+                                for u in range(4):
+                                    if u < len(self.client.user_list[li]):
+                                        player_tags[li][u].text = self.client.user_list[li][u].name
+                                    else:
+                                        player_tags[li][u].text = ""
 
 
                             # reset lobby window
@@ -218,7 +221,7 @@ class LobbyUI:
             self.client.send_data("main")
 
     def switch_to_lobby_window(self):
-        self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id, len(self.client.user_list[0] + self.client.user_list[1]), self.client.get_owner()])
+        self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id, len(self.client.user_list[0] + self.client.user_list[1]), self.client.get_owner(), self.client.name])
 
     def lobby_browser(self):
         pass
@@ -391,13 +394,15 @@ class LobbyUI:
                    "Account": "[]",
                    "Quit": "[LobbyUI.Button('ConfirmQuit', (1310.5, 170), (125, 125), pygame.image.load(LobbyUI.confirm_texture)), "
                            "LobbyUI.Button('CancelQuit', (1584.5, 170), (125, 125), pygame.image.load(LobbyUI.cancel_texture))]",
-                   "Lobby": "[]"
+                   "Lobby": "[LobbyUI.Button('Start', (1300, 900), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 95)]"
                    }
 
         def __init__(self, button_type, offline=False, data=None):
-            window_texture = pygame.image.load(LobbyUI.window_texture)
-            self.window_type = button_type
+            if data is None:
+                data = [None, None, None, None]
 
+            self.window_type = button_type
+            window_texture = pygame.image.load(LobbyUI.window_texture)
             self.png = pygame.transform.smoothscale(window_texture, (820, 1080))
             self.position = (1100, 0)
             self.text_font = pygame.font.Font(LobbyUI.button_font, 30)
@@ -407,10 +412,10 @@ class LobbyUI:
 
             self.buttons = []
             exec(f"self.buttons = {LobbyUI.Window.BUTTONS[self.window_type]}")
-            # disable Host and Join buttons if offline mode is activated
-            if offline:
+            # disable buttons in conditions
+            if button_type == "Play" or button_type == "Lobby":
                 for button in self.buttons:
-                    if button.button_type == "Host" or button.button_type == "Join":
+                    if (offline and (button.button_type == "Host" or button.button_type == "Join")) or (data[3] != data[2] and button.button_type == "Lobby"):
                         button.disabled = True
 
         # incase the button type is None, these functions wouldn't run in the first place. (view event_handler)
