@@ -316,6 +316,7 @@ class LobbyUI:
                                     self.exit_code = 2
                                 # join case: open the lobby searching screen
                                 if button.button_type == "Join":
+                                    self.client.send_data("list")
                                     self.exit_code = 3
                                 # practice case: start the offline practice game
                                 if button.button_type == "Practice":

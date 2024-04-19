@@ -70,9 +70,12 @@ class MainServer:
                             # add user to the lobby
                             self.move_user(sock, self.main_lobby, self.lobbies[-1])
                         # client declared it left its lobby
-                        if data == "main":
+                        elif data == "main":
                             # move user out of the lobby
                             self.move_user(sock, lobby, self.main_lobby)
+                        elif data == "list":
+                            # return the list of lobbies
+                            sock.sendall(self.get_lobby_list().encode())
 
                 # disconnect users not responding
                 except ConnectionResetError:
@@ -87,7 +90,13 @@ class MainServer:
                     self.lobbies.remove(lobby)
 
     def get_lobby_list(self):
-        pass
+        ll = ""
+        for lobby in self.lobbies[1:]:
+            ll += f"{lobby.id}|{lobby.get_owner_name()}|{len(lobby.users)}||"
+        if ll == "":
+            return "no-lobbies"
+        else:
+            return ll[-2]
 
     def get_new_id(self):
         possible_id = 1
@@ -167,6 +176,10 @@ class Lobby:
             if user.owner:
                 names_string += "#"
         return names_string
+
+    def get_owner_name(self):
+        return [user for user in self.users.values() if user.owner][0]
+
 
 
 
