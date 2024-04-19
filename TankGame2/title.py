@@ -101,8 +101,8 @@ class LobbyUI:
         account_button = Button('Account', (100, 600), (400, 100), button_texture, True, 60, True)
         quit_button = Button('Quit', (100, 800), (400, 100), button_texture, True, 125, True)
 
+        # default window is title screen is None
         self.activated_window = LobbyUI.Window("None")
-        # contains all visible buttons currently on the screen
         self.button_list = [play_button, account_button, quit_button]
 
         # main program loop
@@ -162,8 +162,6 @@ class LobbyUI:
 
         # default window in the lobby is a lobby window
         self.switch_to_lobby_window()
-
-        # button list
         self.button_list = [quit_button] + self.activated_window.buttons
 
         # main program loop
@@ -232,7 +230,14 @@ class LobbyUI:
         title_text = title_font.render(f"SELECT GAME", False, (0, 0, 0))
         title_alpha = 255
 
+        # this screen's buttons are technically static, but they function like a non-static button
+        # back (quit) button
+        can_texture = pygame.image.load(LobbyUI.cancel_texture)
+        back_button = Button('Back', (1770, 22.5), (125, 125), can_texture)
+
+        # no windows in lobby browser screen
         self.activated_window = Window("None")
+        self.button_list = [back_button]
 
         while self.exit_code == 0:
             self.event_handler()
@@ -244,6 +249,10 @@ class LobbyUI:
             title_text.set_alpha(abs(title_alpha))
             self.screen.blit(title_text, (50, 50))
             title_alpha = self.get_new_alpha_value(title_alpha)
+
+            # draw buttons
+            for button in self.button_list:
+                button.draw_button(self.screen)
 
             pygame.display.flip()
 
@@ -304,8 +313,8 @@ class LobbyUI:
             # left click events
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    # check if player pressed inside the new window
-                    if self.activated_window.get_rect().collidepoint(mouse_x, mouse_y):
+                    # check if player pressed inside the new window (non-static buttons) or a lobby browser button since they function the same way
+                    if self.activated_window.get_rect().collidepoint(mouse_x, mouse_y) or self.screen_name == "lobby_browser":
                         for button in [a for a in self.button_list if not a.static]:
                             # get which button the player is clicking on, and activate it
                             if button.get_rect().collidepoint(mouse_x, mouse_y):
@@ -321,9 +330,8 @@ class LobbyUI:
                                 # practice case: start the offline practice game
                                 if button.button_type == "Practice":
                                     self.exit_code = 4
-
                                 # confirm quit case: stop running the program
-                                if button.button_type == "ConfirmQuit":
+                                if button.button_type == "ConfirmQuit" or button.button_type == "Back":
                                     self.exit_code = 1
                                 # cancel quit case: remove the quit window
                                 elif button.button_type == "CancelQuit":
@@ -332,7 +340,7 @@ class LobbyUI:
                                 # can only press one button at once
                                 break
 
-                    # remove the window, and check for main button interactions
+                    # remove the window, and check for main button interactions (static buttons)
                     else:
                         prev_type = self.activated_window.window_type
                         remove_window()
@@ -350,7 +358,9 @@ class LobbyUI:
 
         # update button hovering
         for button in self.button_list:
-            # requirements for a button to be hovered: 1.
+            # requirements for a button to be hovered:
+            # 1. button's window is activated (forced hover)
+            # 2. Mouse colliders with button, if the window is not static, or if the window is None or Lobby
             button.hovered = self.activated_window.window_type == button.button_type or button.get_rect().collidepoint(
                 mouse_x, mouse_y) and (not button.static or self.activated_window.window_type == "None" or self.screen_name == "lobby")
 
@@ -415,7 +425,6 @@ class LobbyUI:
             rect.y = self.position[1]
             return rect
 
-
     class Window:
         TEXTS = {"None": "[]",
                  "Play": "[(self.text_font.render('Select Option:', False, (0, 0, 0)), (1185, 90))]",
@@ -471,6 +480,9 @@ class LobbyUI:
             rect.x = self.position[0]
             rect.y = self.position[1]
             return rect
+
+    class LobbyTag:
+        pass
 
 
 if __name__ == "__main__":

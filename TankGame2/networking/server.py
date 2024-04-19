@@ -47,8 +47,6 @@ class MainServer:
                         # send the player their details
                         conn.sendall(user.name.encode())
 
-                        if len(self.lobbies) == 2:
-                            self.move_user(conn, self.main_lobby, self.lobbies[-1])
                     else:
                         # identify user and lobby
                         user = None
@@ -96,7 +94,7 @@ class MainServer:
         if ll == "":
             return "no-lobbies"
         else:
-            return ll[-2]
+            return ll[:-2]
 
     def get_new_id(self):
         possible_id = 1
@@ -178,7 +176,7 @@ class Lobby:
         return names_string
 
     def get_owner_name(self):
-        return [user for user in self.users.values() if user.owner][0]
+        return [user.name for user in self.users.values() if user.owner][0]
 
 
 
