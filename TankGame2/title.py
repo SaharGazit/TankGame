@@ -16,6 +16,7 @@ class LobbyUI:
     cancel_texture = "resources/ui/cancel.png"
     nametag_texture1 = "resources/ui/settings1.png"
     nametag_texture2 = "resources/ui/settings2.png"
+    lobby_tag_texture = "resources/ui/lobby_tag.png"
 
     background_color = (230, 230, 230)
 
@@ -224,6 +225,7 @@ class LobbyUI:
     def lobby_browser(self):
         Button = LobbyUI.Button
         Window = LobbyUI.Window
+        LobbyTag = LobbyUI.LobbyTag
 
         # title
         title_font = pygame.font.Font(LobbyUI.title_font, 80)
@@ -235,12 +237,32 @@ class LobbyUI:
         can_texture = pygame.image.load(LobbyUI.cancel_texture)
         back_button = Button('Back', (1770, 22.5), (125, 125), can_texture)
 
+        # lobby tags
+        lobby_tags = [LobbyTag(7, "Test Lobby", 4)]
+        subtitle_font = pygame.font.Font(LobbyUI.button_font, 30)
+        no_lobby_text = subtitle_font.render("No Available Lobbies", False, (155, 155, 155))
+
         # no windows in lobby browser screen
         self.activated_window = Window("None")
         self.button_list = [back_button]
 
         while self.exit_code == 0:
             self.event_handler()
+
+            # handle server data
+            datas = self.client.get_buffer_data()
+            for data in datas:
+                try:
+                    # reset lobby tags
+                    lobby_tags = []
+                    for lobby_info in data.split("||"):
+                        lobby_info = lobby_info.split("|")
+                        if len(lobby_info) == 3:
+                            # update lobby tags
+                            lobby_tags.append(LobbyUI.LobbyTag(lobby_info[0], lobby_info[1], lobby_info[2]))
+
+                except IndexError:
+                    continue
 
             # background
             self.screen.fill(LobbyUI.background_color)
@@ -249,6 +271,15 @@ class LobbyUI:
             title_text.set_alpha(abs(title_alpha))
             self.screen.blit(title_text, (50, 50))
             title_alpha = self.get_new_alpha_value(title_alpha)
+
+            # lobby tags
+            if len(lobby_tags) == 0:
+                self.screen.blit(no_lobby_text, (70, 200))
+            else:
+                tag_pos = 170
+                for tag in lobby_tags:
+                    tag.draw_tag(self.screen, (20, tag_pos))
+                    tag_pos += 130
 
             # draw buttons
             for button in self.button_list:
@@ -461,7 +492,7 @@ class LobbyUI:
 
             self.buttons = []
             exec(f"self.buttons = {LobbyUI.Window.BUTTONS[self.window_type]}")
-            # disable buttons in conditions
+            # disable buttons with conditions
             if button_type == "Play" or button_type == "Lobby":
                 for button in self.buttons:
                     if (offline and (button.button_type == "Host" or button.button_type == "Join")) or (data[3] != data[2] and button.button_type == "Lobby"):
@@ -482,7 +513,21 @@ class LobbyUI:
             return rect
 
     class LobbyTag:
-        pass
+        def __init__(self, id_, owner_name, player_count):
+
+            tag_texture = pygame.image.load(LobbyUI.lobby_tag_texture)
+            self.png = pygame.transform.smoothscale(tag_texture, (1200, 240))
+            self.text_font = pygame.font.Font(LobbyUI.button_font, 45)
+
+            self.id = self.text_font.render(f"{id_}#", False, (0, 0, 0))
+            self.owner_name = self.text_font.render(f"{owner_name}'s Game", False, (0, 0, 0))
+            self.player_count = self.text_font.render(f"{player_count}/8", False, (0, 0, 0))
+
+        def draw_tag(self, screen_, position):
+            screen_.blit(self.png, position)
+            screen_.blit(self.id, (position[0] + 68, position[1] + 98))
+            screen_.blit(self.owner_name, (position[0] + 230, position[1] + 98))
+            screen_.blit(self.player_count, (position[0] + 1010, position[1] + 98))
 
 
 if __name__ == "__main__":
