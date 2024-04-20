@@ -17,6 +17,7 @@ class LobbyUI:
     nametag_texture1 = "resources/ui/settings1.png"
     nametag_texture2 = "resources/ui/settings2.png"
     lobby_tag_texture = "resources/ui/lobby_tag.png"
+    arrow_right_texture = "resources/ui/right_arrow.png"
 
     background_color = (230, 230, 230)
 
@@ -247,6 +248,7 @@ class LobbyUI:
         # no windows in lobby browser screen
         self.activated_window = Window("None")
         self.button_list = [back_button, refresh_button]
+        right_arrow_texture = pygame.image.load(LobbyUI.arrow_right_texture)
 
         while self.exit_code == 0:
             self.event_handler()
@@ -255,13 +257,17 @@ class LobbyUI:
             datas = self.client.get_buffer_data()
             for data in datas:
                 try:
-                    # reset lobby tags
+                    # reset lobby tags and buttons
                     lobby_tags = []
+                    self.button_list = [back_button, refresh_button]
+                    y = 225
                     for lobby_info in data.split("||"):
                         lobby_info = lobby_info.split("|")
                         if len(lobby_info) == 3:
                             # update lobby tags
                             lobby_tags.append(LobbyUI.LobbyTag(lobby_info[0], lobby_info[1], lobby_info[2]))
+                            self.button_list.append(Button(f"lobby{str(lobby_info[0])}", (1250, y), (125, 125), right_arrow_texture))
+                            y += 130
 
                 except IndexError:
                     continue
