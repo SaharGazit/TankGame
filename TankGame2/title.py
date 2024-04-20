@@ -236,15 +236,18 @@ class LobbyUI:
         # back (quit) button
         can_texture = pygame.image.load(LobbyUI.cancel_texture)
         back_button = Button('Back', (1770, 22.5), (125, 125), can_texture)
+        # refresh button
+        button_texture = pygame.image.load(LobbyUI.button2_texture)
+        refresh_button = Button("Refresh", (1350, 30), (400, 100), button_texture, True, 52)
 
         # lobby tags
-        lobby_tags = [LobbyTag(7, "Test Lobby", 4)]
+        lobby_tags = []
         subtitle_font = pygame.font.Font(LobbyUI.button_font, 30)
         no_lobby_text = subtitle_font.render("No Available Lobbies", False, (155, 155, 155))
 
         # no windows in lobby browser screen
         self.activated_window = Window("None")
-        self.button_list = [back_button]
+        self.button_list = [back_button, refresh_button]
 
         while self.exit_code == 0:
             self.event_handler()
@@ -354,14 +357,14 @@ class LobbyUI:
                                 if button.button_type == "Host":
                                     self.client.send_data("host")
                                     self.exit_code = 2
-                                # join case: open the lobby searching screen
-                                if button.button_type == "Join":
+                                # join/refresh case: open the lobby searching screen
+                                if button.button_type == "Join" or button.button_type == "Refresh":
                                     self.client.send_data("list")
                                     self.exit_code = 3
                                 # practice case: start the offline practice game
                                 if button.button_type == "Practice":
                                     self.exit_code = 4
-                                # confirm quit case: stop running the program
+                                # confirm quit/back case: exit the current window
                                 if button.button_type == "ConfirmQuit" or button.button_type == "Back":
                                     self.exit_code = 1
                                 # cancel quit case: remove the quit window
