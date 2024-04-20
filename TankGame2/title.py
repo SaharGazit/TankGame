@@ -266,7 +266,7 @@ class LobbyUI:
                         if len(lobby_info) == 3:
                             # update lobby tags
                             lobby_tags.append(LobbyUI.LobbyTag(lobby_info[0], lobby_info[1], lobby_info[2]))
-                            self.button_list.append(Button(f"lobby{str(lobby_info[0])}", (1250, y), (125, 125), right_arrow_texture))
+                            self.button_list.append(Button(f"Lobby{str(lobby_info[0])}", (1250, y), (125, 125), right_arrow_texture))
                             y += 130
 
                 except IndexError:
@@ -363,18 +363,22 @@ class LobbyUI:
                                     self.client.send_data("host")
                                     self.exit_code = 2
                                 # join/refresh case: open the lobby searching screen
-                                if button.button_type == "Join" or button.button_type == "Refresh":
+                                elif button.button_type == "Join" or button.button_type == "Refresh":
                                     self.client.send_data("list")
                                     self.exit_code = 3
                                 # practice case: start the offline practice game
-                                if button.button_type == "Practice":
+                                elif button.button_type == "Practice":
                                     self.exit_code = 4
                                 # confirm quit/back case: exit the current window
-                                if button.button_type == "ConfirmQuit" or button.button_type == "Back":
+                                elif button.button_type == "ConfirmQuit" or button.button_type == "Back":
                                     self.exit_code = 1
                                 # cancel quit case: remove the quit window
                                 elif button.button_type == "CancelQuit":
                                     remove_window()
+                                # lobby case: join a selected lobby
+                                elif button.button_type[:-1] == "Lobby":
+                                    self.client.send_data(f"join{button.button_type[-1]}")
+                                    self.exit_code = 2
 
                                 # can only press one button at once
                                 break

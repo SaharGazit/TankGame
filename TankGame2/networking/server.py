@@ -71,9 +71,14 @@ class MainServer:
                         elif data == "main":
                             # move user out of the lobby
                             self.move_user(sock, lobby, self.main_lobby)
+                        # client requested lobby list
                         elif data == "list":
                             # return the list of lobbies
                             sock.sendall(self.get_lobby_list().encode())
+                        # client declared it joins a lobby
+                        elif data[:-1] == "join":
+                            # add user to the lobby
+                            self.move_user(sock, self.main_lobby, self.get_lobby_by_id(int(data[-1])))
 
                 # disconnect users not responding
                 except ConnectionResetError:
@@ -121,6 +126,11 @@ class MainServer:
                 lobby.remove_player(sock)
                 print(f"{name} disconnected")
                 break
+
+    def get_lobby_by_id(self, id_):
+        for lobby in self.lobbies[1:]:
+            if lobby.id == id_:
+                return lobby
 
 
 class Lobby:
