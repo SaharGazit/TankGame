@@ -225,7 +225,6 @@ class LobbyUI:
     def lobby_browser(self):
         Button = LobbyUI.Button
         Window = LobbyUI.Window
-        LobbyTag = LobbyUI.LobbyTag
 
         # title
         title_font = pygame.font.Font(LobbyUI.title_font, 80)
