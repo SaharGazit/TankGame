@@ -154,6 +154,7 @@ class LobbyUI:
         quit_button = Button('Quit', (950, 22.5), (125, 125), can_texture, static=True)
 
         # player list
+        owner = False
         nam_texture1 = pygame.image.load(LobbyUI.nametag_texture1)
         nam_texture2 = pygame.image.load(LobbyUI.nametag_texture2)
         player_tags = [(Button("Nametag", (30, 400), (100, 100), nam_texture1, False, 105, True), Button("Nametag", (30, 550), (100, 100), nam_texture1, False, 105, True), Button("Nametag", (30, 700), (100, 100), nam_texture1, False, 105, True), Button("Nametag", (30, 850), (100, 100), nam_texture1, False, 105, True)),
@@ -186,11 +187,12 @@ class LobbyUI:
                                         player_tags[li][u].text = self.client.user_list[li][u].name
                                     else:
                                         player_tags[li][u].text = ""
-
+                            owner = self.client.name == self.client.get_owner()
 
                             # reset lobby window
                             if self.activated_window.window_type == "Lobby":
                                 self.switch_to_lobby_window()
+                                self.button_list = [b for b in self.button_list if b.static] + self.activated_window.buttons
 
                     except IndexError:
                         continue
@@ -297,7 +299,7 @@ class LobbyUI:
 
     # switches window to lobby window
     def switch_to_lobby_window(self):
-        self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id, len(self.client.user_list[0] + self.client.user_list[1]), self.client.get_owner(), self.client.name])
+        self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id, len(self.client.user_list[0] + self.client.user_list[1]), self.client.get_owner(), self.client.name == self.client.get_owner()])
 
     def game(self):
         game = main.Game(self.screen)
@@ -489,11 +491,11 @@ class LobbyUI:
                    "Lobby": "[LobbyUI.Button('Start', (1300, 900), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 95)]"
                    }
 
-        def __init__(self, button_type, offline=False, data=None):
+        def __init__(self, window_type, offline=False, data=None):
             if data is None:
                 data = [None, None, None, None]
 
-            self.window_type = button_type
+            self.window_type = window_type
             window_texture = pygame.image.load(LobbyUI.window_texture)
             self.png = pygame.transform.smoothscale(window_texture, (820, 1080))
             self.position = (1100, 0)
@@ -505,9 +507,13 @@ class LobbyUI:
             self.buttons = []
             exec(f"self.buttons = {LobbyUI.Window.BUTTONS[self.window_type]}")
             # disable buttons with conditions
-            if button_type == "Play" or button_type == "Lobby":
+            if window_type == "Play":
                 for button in self.buttons:
-                    if (offline and (button.button_type == "Host" or button.button_type == "Join")) or (data[3] != data[2] and button.button_type == "Start"):
+                    if offline and (button.button_type == "Host" or button.button_type == "Join"):
+                        button.disabled = True
+            if window_type == "Lobby":
+                for button in self.buttons:
+                    if not data[3] and button.button_type == "Start":
                         button.disabled = True
 
         # incase the button type is None, these functions wouldn't run in the first place. (view event_handler)
