@@ -507,7 +507,7 @@ class LobbyUI:
             # disable buttons with conditions
             if button_type == "Play" or button_type == "Lobby":
                 for button in self.buttons:
-                    if (offline and (button.button_type == "Host" or button.button_type == "Join")) or (data[3] != data[2] and button.button_type == "Lobby"):
+                    if (offline and (button.button_type == "Host" or button.button_type == "Join")) or (data[3] != data[2] and button.button_type == "Start"):
                         button.disabled = True
 
         # incase the button type is None, these functions wouldn't run in the first place. (view event_handler)
