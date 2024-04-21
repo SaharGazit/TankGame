@@ -310,12 +310,14 @@ class LobbyUI:
         # 60 dps
         self.clock.tick(60)
 
-        def remove_window():
+        def remove_window(fd=False):
             if self.screen_name == "lobby":
                 self.switch_to_lobby_window()
 
                 # remove all window buttons except lobby window buttons
-                self.button_list = [b for b in self.button_list if b.static] + self.activated_window.buttons
+                self.button_list = [b for b in self.button_list if b.static]
+                if not fd:
+                    self.button_list += self.activated_window.buttons
 
             # in the lobby screen, the side window can't be removed
             else:
@@ -388,7 +390,7 @@ class LobbyUI:
                     # remove the window, and check for main button interactions (static buttons)
                     else:
                         prev_type = self.activated_window.window_type
-                        remove_window()
+                        remove_window(True)
                         # pressed a main button
                         for button in [a for a in self.button_list if a.static]:
                             # find the interacted button
