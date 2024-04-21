@@ -157,9 +157,17 @@ class Lobby:
             self.broadcast_status()
 
     def remove_player(self, sock):
+        user = self.users[sock]
+
         # reset user info
-        self.users[sock].team = 0
-        self.users[sock].owner = False
+        user.team = 0
+        if user.owner:
+            user.owner = False
+            # nominate new user as owner
+            for user in self.users.values():
+                if not user.owner:
+                    user.owner = True
+                    break
 
         # save name and remove the user from the user list
         name = self.users[sock].name
