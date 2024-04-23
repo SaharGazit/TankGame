@@ -81,6 +81,7 @@ class MainServer:
                             self.move_user(sock, self.main_lobby, self.get_lobby_by_id(int(data[-1])))
                         # lobby's owner wants to start or cancel its game
                         elif data == "start":
+                            lobby.countdown = True
                             lobby.broadcast("start")
                         elif data == "cancel":
                             lobby.broadcast("cancel")
@@ -143,6 +144,8 @@ class Lobby:
         self.id = lobby_id
         self.users = {}
 
+        self.countdown = False
+
     def add_player(self, player, sock):
         # add user to the lobby's users list
         self.users[sock] = player
@@ -186,6 +189,11 @@ class Lobby:
             # broadcast new lobby status
             self.broadcast_status()
 
+        # cancel countdown
+        if self.countdown:
+            self.countdown = False
+            self.broadcast("cancel")
+
     def broadcast_status(self):
         self.broadcast(f"L{self.id}{self.get_names_string()}")
 
@@ -203,9 +211,6 @@ class Lobby:
 
     def get_owner_name(self):
         return [user.name for user in self.users.values() if user.owner][0]
-
-
-
 
 
 if __name__ == "__main__":

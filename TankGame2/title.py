@@ -144,6 +144,7 @@ class LobbyUI:
 
     def lobby(self):
         Button = LobbyUI.Button
+        Countdown = 5
 
         # title
         title_font = pygame.font.Font(LobbyUI.title_font, 80)
@@ -163,12 +164,14 @@ class LobbyUI:
         blue_text = subtitle_font.render("Blue Team", False, (0, 0, 0))
         red_text = subtitle_font.render("Red Team", False, (0, 0, 0))
 
+        # cancel button
+        cancel_button = LobbyUI.Button('Cancel', (1300, 900), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 80)
+
         # default window in the lobby is a lobby window
         self.switch_to_lobby_window()
         self.button_list = [quit_button] + self.activated_window.buttons
 
         # timer
-        seconds = None
         og_time = None
 
         # main program loop
@@ -180,10 +183,17 @@ class LobbyUI:
             datas = self.client.get_buffer_data()
             for data in datas:
                 if data == "start":
+                    # start timer
                     og_time = time.perf_counter()
                 elif data == "cancel":
+                    # reset timer
                     og_time = None
-                    seconds = None
+
+                    # reset window
+                    if self.activated_window.window_type == "Lobby":
+                        self.switch_to_lobby_window()
+                        self.button_list = [quit_button] + self.activated_window.buttons
+
                 else:
                     try:
                         # lobby list update
@@ -196,7 +206,6 @@ class LobbyUI:
                                         player_tags[li][u].text = self.client.user_list[li][u].name
                                     else:
                                         player_tags[li][u].text = ""
-                            owner = self.client.name == self.client.get_owner()
 
                             # reset lobby window
                             if self.activated_window.window_type == "Lobby":
@@ -205,10 +214,6 @@ class LobbyUI:
 
                     except IndexError:
                         continue
-
-            # update timer
-            if og_time is not None:
-                seconds = 5 - int((time.perf_counter() - og_time))
 
             # background
             self.screen.fill(LobbyUI.background_color)
@@ -228,14 +233,25 @@ class LobbyUI:
             # side window
             self.activated_window.draw_window(self.screen)
 
+            if og_time is not None:
+                # update and draw timer
+                seconds = Countdown - int((time.perf_counter() - og_time))
+                time_text = subtitle_font.render(f"Game Starts in {seconds}s", False, (0, 0, 0))
+                self.screen.blit(time_text, (1310, 850))
+
+                # replace start button with cancel button
+                for b in self.button_list:
+                    if b.button_type == "Start" and not b.disabled:
+                        self.button_list.remove(b)
+                        self.button_list.append(cancel_button)
+                        break
+
+
             # draw buttons
             for button in self.button_list:
                 button.draw_button(self.screen)
 
-            # draw timer
-            if seconds is not None:
-                time_text = subtitle_font.render(f"Game Starts in {seconds}s", False, (0, 0, 0))
-                self.screen.blit(time_text, (1310, 850))
+
 
             pygame.display.flip()
 
@@ -404,6 +420,7 @@ class LobbyUI:
                                 # start case: start a game
                                 elif button.button_type == "Start":
                                     self.client.send_data("start")
+                                # cancel case: cancel the game countdown
                                 elif button.button_type == "Cancel":
                                     self.client.send_data("cancel")
 
