@@ -164,18 +164,21 @@ class Lobby:
     def remove_player(self, sock):
         user = self.users[sock]
 
-        # reset user info
+        # reset user team
         user.team = 0
         if user.owner:
-            user.owner = False
+
             # nominate new user as owner
-            for user in self.users.values():
-                if not user.owner:
-                    user.owner = True
+            for user2 in self.users.values():
+                if not user2.owner:
+                    user2.owner = True
                     break
 
-        # save name and remove the user from the user list
+            # remove user's owner
+            user.owner = False
+
         name = self.users[sock].name
+        # remove user from the user list
         del self.users[sock]
 
         if self.id != 0:

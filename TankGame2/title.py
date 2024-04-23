@@ -155,7 +155,6 @@ class LobbyUI:
         quit_button = Button('Quit', (950, 22.5), (125, 125), can_texture, static=True)
 
         # player list
-        owner = False
         nam_texture1 = pygame.image.load(LobbyUI.nametag_texture1)
         nam_texture2 = pygame.image.load(LobbyUI.nametag_texture2)
         player_tags = [(Button("Nametag", (30, 400), (100, 100), nam_texture1, False, 105, True), Button("Nametag", (30, 550), (100, 100), nam_texture1, False, 105, True), Button("Nametag", (30, 700), (100, 100), nam_texture1, False, 105, True), Button("Nametag", (30, 850), (100, 100), nam_texture1, False, 105, True)),
@@ -406,7 +405,7 @@ class LobbyUI:
                                 elif button.button_type == "Start":
                                     self.client.send_data("start")
                                 elif button.button_type == "Cancel":
-                                    self.client.send_data("Cancel")
+                                    self.client.send_data("cancel")
 
                                 # can only press one button at once
                                 break
