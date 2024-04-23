@@ -73,3 +73,6 @@ class Client:
         for string in data[1:]:
             self.user_list[int(string[0]) - 1].append(protocol.User(string[1:], string[0]))
 
+    def can_start(self):
+        return self.get_owner() == self.name and len(self.user_list[0]) > 0 and len(self.user_list[1]) > 0
+

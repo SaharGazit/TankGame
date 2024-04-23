@@ -1,5 +1,6 @@
 import pygame
 import main
+import time
 from networking.client import Client
 
 
@@ -167,6 +168,10 @@ class LobbyUI:
         self.switch_to_lobby_window()
         self.button_list = [quit_button] + self.activated_window.buttons
 
+        # timer
+        seconds = None
+        og_time = None
+
         # main program loop
         while self.exit_code == 0:
             # handles pygame events
@@ -175,7 +180,12 @@ class LobbyUI:
             # handle server data
             datas = self.client.get_buffer_data()
             for data in datas:
-                if len(data) > 3:
+                if data == "start":
+                    og_time = time.perf_counter()
+                elif data == "cancel":
+                    og_time = None
+                    seconds = None
+                else:
                     try:
                         # lobby list update
                         if data[0] == 'L':
@@ -196,6 +206,10 @@ class LobbyUI:
 
                     except IndexError:
                         continue
+
+            # update timer
+            if og_time is not None:
+                seconds = 5 - int((time.perf_counter() - og_time))
 
             # background
             self.screen.fill(LobbyUI.background_color)
@@ -218,6 +232,11 @@ class LobbyUI:
             # draw buttons
             for button in self.button_list:
                 button.draw_button(self.screen)
+
+            # draw timer
+            if seconds is not None:
+                time_text = subtitle_font.render(f"Game Starts in {seconds}s", False, (0, 0, 0))
+                self.screen.blit(time_text, (1310, 850))
 
             pygame.display.flip()
 
@@ -299,7 +318,7 @@ class LobbyUI:
 
     # switches window to lobby window
     def switch_to_lobby_window(self):
-        self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id, len(self.client.user_list[0] + self.client.user_list[1]), self.client.get_owner(), self.client.name == self.client.get_owner()])
+        self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id, len(self.client.user_list[0] + self.client.user_list[1]), self.client.get_owner(), self.client.can_start()])
 
     def game(self):
         game = main.Game(self.screen)
@@ -383,6 +402,11 @@ class LobbyUI:
                                 elif button.button_type[:-1] == "Lobby":
                                     self.client.send_data(f"join{button.button_type[-1]}")
                                     self.exit_code = 2
+                                # start case: start a game
+                                elif button.button_type == "Start":
+                                    self.client.send_data("start")
+                                elif button.button_type == "Cancel":
+                                    self.client.send_data("Cancel")
 
                                 # can only press one button at once
                                 break

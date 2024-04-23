@@ -79,6 +79,11 @@ class MainServer:
                         elif data[:-1] == "join":
                             # add user to the lobby
                             self.move_user(sock, self.main_lobby, self.get_lobby_by_id(int(data[-1])))
+                        # lobby's owner wants to start or cancel its game
+                        elif data == "start":
+                            lobby.broadcast("start")
+                        elif data == "cancel":
+                            lobby.broadcast("cancel")
 
                 # disconnect users not responding
                 except ConnectionResetError:
