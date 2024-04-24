@@ -203,7 +203,11 @@ class LobbyUI:
                             for li in range(2):
                                 for u in range(4):
                                     if u < len(self.client.user_list[li]):
-                                        player_tags[li][u].text = self.client.user_list[li][u].name
+                                        name = self.client.user_list[li][u].name
+                                        if name == self.client.name:
+                                            name += " (You)"
+                                        player_tags[li][u].text = name
+
                                     else:
                                         player_tags[li][u].text = ""
 
