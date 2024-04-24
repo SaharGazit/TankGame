@@ -147,6 +147,11 @@ class Lobby:
         self.countdown = False
 
     def add_player(self, player, sock):
+        # cancel cooldown
+        if self.countdown:
+            self.countdown = False
+            self.broadcast("cancel")
+
         # add user to the lobby's users list
         self.users[sock] = player
         # if it is the first player in the lobby, give them owner

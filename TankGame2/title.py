@@ -165,7 +165,7 @@ class LobbyUI:
         red_text = subtitle_font.render("Red Team", False, (0, 0, 0))
 
         # cancel button
-        cancel_button = LobbyUI.Button('Cancel', (1300, 900), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 80)
+        cancel_button = LobbyUI.Button('Cancel', (1300, 900), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 78)
 
         # default window in the lobby is a lobby window
         self.switch_to_lobby_window()
@@ -302,7 +302,7 @@ class LobbyUI:
                         if len(lobby_info) == 3:
                             # update lobby tags
                             lobby_tags.append(LobbyUI.LobbyTag(lobby_info[0], lobby_info[1], lobby_info[2]))
-                            self.button_list.append(Button(f"Lobby{str(lobby_info[0])}", (1250, y), (125, 125), right_arrow_texture))
+                            self.button_list.append(Button(f"Lobby{str(lobby_info[0])}", (1215, y), (125, 125), right_arrow_texture))
                             y += 130
 
                 except IndexError:
