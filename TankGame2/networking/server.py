@@ -46,7 +46,7 @@ class MainServer:
                         print(f"Accepted Connection from {addr} as {random_name}")
 
                         # send the player their details
-                        conn.sendall(user.name.encode())
+                        conn.sendall(f"{user.name}|{user.address[1]}".encode())
 
                     else:
                         # identify user and lobby

@@ -45,11 +45,13 @@ class LobbyUI:
 
     def main(self):
         # connect to the server
-        self.client.connect()
+        self.client.connect_tcp()
 
         # get account data
         if not self.client.offline_mode:
-            self.client.name = self.client.get_buffer_data(False)[0]
+            data = self.client.get_buffer_data(False)[0].split("|")
+            self.client.name = data[0]
+            self.client.own_port = int(data[1])
 
         arguments = ""
         running = True
@@ -173,6 +175,7 @@ class LobbyUI:
 
         # timer
         og_time = None
+        connected = False
 
         # main program loop
         while self.exit_code == 0:
@@ -185,6 +188,7 @@ class LobbyUI:
                 if data == "start":
                     # start timer
                     og_time = time.perf_counter()
+
                 elif data == "cancel":
                     # reset timer
                     og_time = None
@@ -255,8 +259,6 @@ class LobbyUI:
             # draw buttons
             for button in self.button_list:
                 button.draw_button(self.screen)
-
-
 
             pygame.display.flip()
 
