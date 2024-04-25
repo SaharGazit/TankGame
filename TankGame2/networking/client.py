@@ -6,6 +6,7 @@ from TankGame2.networking import protocol
 class Client:
     def __init__(self):
         self.server_ip = '127.0.0.1'
+        self.server_port = 31410
         self.server_socket = None
 
         self.running = False
@@ -18,10 +19,10 @@ class Client:
         # a queue that holds data from the server
         self.buffer = []
 
-    def connect(self, port=31410):
+    def connect(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.server_socket.connect((self.server_ip, port))
+            self.server_socket.connect((self.server_ip, self.server_port))
         except ConnectionRefusedError:
             self.offline_mode = True
 
@@ -76,4 +77,3 @@ class Client:
 
     def can_start(self):
         return self.get_owner() == self.name and len(self.user_list[0]) > 0 and len(self.user_list[1]) > 0
-

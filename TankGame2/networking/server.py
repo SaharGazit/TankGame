@@ -2,6 +2,7 @@ import socket
 import select
 import wonderwords
 import protocol
+import threading
 
 
 class MainServer:
@@ -9,7 +10,7 @@ class MainServer:
         self.host = '0.0.0.0'
         self.port = protocol.main_port
         self.main_lobby = Lobby(0)  # players who haven't connected to a server yet (socket:User)
-        self.lobbies = [self.main_lobby]
+        self.lobbies = [self.main_lobby]  # all lobbies
 
         # tcp socket for handling the main stage
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -35,7 +36,7 @@ class MainServer:
                         conn, addr = self.server_socket.accept()
 
                         # create a user object
-                        user = protocol.User()
+                        user = protocol.User(addr=addr)
                         # temp: the server manually logins the user - this will be done until I start working on the databases
                         random_name = r.word(include_parts_of_speech=["noun"], word_min_length=3, word_max_length=8)
                         user.login(random_name)
@@ -81,10 +82,9 @@ class MainServer:
                             self.move_user(sock, self.main_lobby, self.get_lobby_by_id(int(data[-1])))
                         # lobby's owner wants to start or cancel its game
                         elif data == "start":
-                            lobby.countdown = True
-                            lobby.broadcast("start")
+                            lobby.start_cooldown()
                         elif data == "cancel":
-                            lobby.broadcast("cancel")
+                            lobby.cancel_cooldown()
 
                 # disconnect users not responding
                 except ConnectionResetError:
@@ -145,12 +145,12 @@ class Lobby:
         self.users = {}
 
         self.countdown = False
+        self.game_server = None
 
     def add_player(self, player, sock):
         # cancel cooldown
         if self.countdown:
-            self.countdown = False
-            self.broadcast("cancel")
+            self.cancel_cooldown()
 
         # add user to the lobby's users list
         self.users[sock] = player
@@ -167,7 +167,7 @@ class Lobby:
                 player.team = 2
             print(f"{player.name} joined lobby {self.id}")
             # broadcast new lobby status
-            self.broadcast_status()
+            self.broadcast_lobby()
 
     def remove_player(self, sock):
         user = self.users[sock]
@@ -192,14 +192,13 @@ class Lobby:
         if self.id != 0:
             print(f"{name} left lobby {self.id}")
             # broadcast new lobby status
-            self.broadcast_status()
+            self.broadcast_lobby()
 
         # cancel countdown
         if self.countdown:
-            self.countdown = False
-            self.broadcast("cancel")
+            self.cancel_cooldown()
 
-    def broadcast_status(self):
+    def broadcast_lobby(self):
         self.broadcast(f"L{self.id}{self.get_names_string()}")
 
     def broadcast(self, data):
@@ -216,6 +215,40 @@ class Lobby:
 
     def get_owner_name(self):
         return [user.name for user in self.users.values() if user.owner][0]
+
+    def start_cooldown(self):
+        self.countdown = True
+        self.broadcast("start")
+        self.game_server = UDPServer(self)
+
+    def cancel_cooldown(self):
+        self.countdown = False
+        self.broadcast("cancel")
+        self.game_server = None
+
+
+class UDPServer:
+    def __init__(self, lobby: Lobby):
+        self.host = "0.0.0.0"
+        self.port = protocol.main_port + lobby.id
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.server_socket.bind((self.host, self.port))
+
+        self.team1 = {}
+        self.team2 = {}
+        for user in lobby.users.values():
+            if user.team == 1:
+                self.team1[user.address] = False
+            if user.team == 2:
+                self.team1[user.address] = False
+
+        self.stage = 0
+
+        server_thread = threading.Thread(target=self.listen)
+        server_thread.start()
+
+    def listen(self):
+        pass
 
 
 if __name__ == "__main__":

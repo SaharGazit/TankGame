@@ -204,6 +204,7 @@ class LobbyUI:
                                 for u in range(4):
                                     if u < len(self.client.user_list[li]):
                                         name = self.client.user_list[li][u].name
+                                        # add "(You)" if this name matches client name
                                         if name == self.client.name:
                                             name += " (You)"
                                         player_tags[li][u].text = name
