@@ -5,8 +5,15 @@ from TankGame2.object import Object, Player, Powerup, Bullet, Block
 class Game:
     SCREEN_DIVIDER = 1
 
-    def __init__(self, screen):
+    def __init__(self, screen, client):
         self.screen = screen
+        self.client = client
+        if client is None:
+            self.practice = True
+        elif client.connected:
+            self.practice = False
+        else:
+            self.practice = True
 
         self.exit_code = 0
 
@@ -69,6 +76,10 @@ class Game:
             clock.tick(60)
             # clears out the screen every game loop
             self.screen.fill((159, 168, 191))
+
+            # loop for handling server data
+            for data in self.client.get_buffer_data():
+                print(data)
 
             # loop for handling every object
             for o in objects[1:] + [this_player]:  # the player is "pushed" to the end in order to draw it last

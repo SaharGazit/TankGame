@@ -175,7 +175,6 @@ class LobbyUI:
 
         # timer
         og_time = None
-        connected = False
 
         # main program loop
         while self.exit_code == 0:
@@ -247,8 +246,13 @@ class LobbyUI:
                 seconds = Countdown - int((time.perf_counter() - og_time))
                 time_text = subtitle_font.render(f"Game Starts in {seconds}s", False, (0, 0, 0))
                 self.screen.blit(time_text, (1310, 850))
+                # start game when timer reaches 0
+                if seconds == 0:
+                    self.client.connect_udp()
+                    self.exit_code = 4
 
                 # replace start button with cancel button
+                # TODO: button delay after pressing cancel
                 for b in self.button_list:
                     if b.button_type == "Start" and not b.disabled:
                         self.button_list.remove(b)
@@ -343,7 +347,7 @@ class LobbyUI:
         self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id, len(self.client.user_list[0] + self.client.user_list[1]), self.client.get_owner(), self.client.can_start()])
 
     def game(self):
-        game = main.Game(self.screen)
+        game = main.Game(self.screen, self.client)
         self.exit_code = game.main()
 
     # handles UI events that are similar in all screens

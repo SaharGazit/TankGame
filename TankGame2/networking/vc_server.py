@@ -19,7 +19,6 @@ class VoiceChatServer:
                 if len(self.clients) < self.MAX_CLIENTS:
                     self.clients.append(client_address)
                     print("Client {} connected".format(client_address))
-
                 else:
                     print("Connection refused. Maximum clients reached.")
             else:

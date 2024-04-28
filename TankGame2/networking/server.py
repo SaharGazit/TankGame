@@ -3,6 +3,7 @@ import select
 import wonderwords
 import protocol
 import threading
+import random
 
 
 class MainServer:
@@ -145,7 +146,7 @@ class Lobby:
         self.users = {}
 
         self.countdown = False
-        self.game_server = None
+        self.game_server = UDPServer(self.id)
 
     def add_player(self, player, sock):
         # cancel cooldown
@@ -219,36 +220,85 @@ class Lobby:
     def start_cooldown(self):
         self.countdown = True
         self.broadcast("start")
-        self.game_server = UDPServer(self)
+        self.game_server.start(self.users)
 
     def cancel_cooldown(self):
         self.countdown = False
         self.broadcast("cancel")
-        self.game_server = None
+        self.game_server.stop()
 
 
 class UDPServer:
-    def __init__(self, lobby: Lobby):
+    def __init__(self, id_):
         self.host = "0.0.0.0"
-        self.port = protocol.main_port + lobby.id
+        self.port = protocol.main_port + id_
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket.bind((self.host, self.port))
+        self.server_socket.settimeout(0.1)
 
         self.team1 = {}
         self.team2 = {}
-        for user in lobby.users.values():
+        self.teams = [self.team1, self.team2]
+        self.spawn_positions = [[(100, 100)], [(200, 200)]]
+
+        self.running = False
+
+    def start(self, users):
+        for user in users.values():
+            addr = (user.address[0], user.address[1] + 1)
             if user.team == 1:
-                self.team1[user.address] = False
+                self.team1[addr] = False
             if user.team == 2:
-                self.team1[user.address] = False
+                self.team2[addr] = False
 
-        self.stage = 0
+        self.running = True
 
-        server_thread = threading.Thread(target=self.listen)
-        server_thread.start()
+        listen_thread = threading.Thread(target=self.listen, daemon=True)
+        listen_thread.start()
+
+    def stop(self):
+        self.running = False
+        self.team1 = {}
+        self.team2 = {}
 
     def listen(self):
-        pass
+        a = True
+        while self.running:
+            try:
+                data, addr = self.server_socket.recvfrom(1024)
+            except socket.timeout:
+                continue
+
+            # identify client
+            if addr in self.team1.keys():
+                team = 0
+            elif addr in self.team2.keys():
+                team = 1
+
+            # ignore unwanted clients
+            else:
+                print(f"Rejected {addr}: They're not in the lobby")
+                continue
+
+            # check if it's the first contact of the client
+            if not self.teams[team][addr]:
+                self.teams[team][addr] = True
+
+                # assign random position
+                pos = self.spawn_positions[team][random.randrange(len(self.spawn_positions[team]))]
+                self.spawn_positions[team].remove(pos)
+
+                if a:
+                    print("aaa")
+                    self.broadcast(f"{pos[0]}|{pos[1]}")
+                    a = False
+
+
+    def broadcast(self, data, exc=None):
+        for team in range(2):
+            for player in self.teams[team].keys():
+                if self.teams[team][player] and player != exc:
+                    self.server_socket.sendto(data.encode(), player)
 
 
 if __name__ == "__main__":

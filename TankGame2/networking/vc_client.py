@@ -63,8 +63,6 @@ class VoiceChatClient:
             # send audio
             self.client_socket.sendto(data, (self.host, self.server_port))
 
-    def stream_thread(self, voice_id):
-        pass
 
 
 if __name__ == "__main__":
