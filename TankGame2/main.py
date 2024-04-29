@@ -89,9 +89,13 @@ class Game:
             # clears out the screen every game loop
             self.screen.fill((159, 168, 191))
 
-            # loop for handling server data
-            for data in self.client.get_buffer_data():
-                print(data)
+            if not self.client.offline_mode:
+                # loop for handling server data
+                for data in self.client.get_buffer_data():
+                    print(data)
+
+                # send personal data to server
+                self.client.send_player_status(f"{this_player.global_position[0]}, {this_player.global_position[1]}")
 
             # loop for handling every object
             for o in objects[1:] + [this_player]:  # the player is "pushed" to the end in order to draw it last

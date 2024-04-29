@@ -86,6 +86,10 @@ class Client:
         else:
             print("no server found")
 
+    def send_player_status(self, data):
+        if self.server_socket_udp is not None:
+            self.server_socket_udp.sendto(f"{self.name}|{data}".encode(), (self.server_ip, self.server_port_udp))
+
     # get the username of the owner of the current lobby
     def get_owner(self):
         for user in self.user_list[0] + self.user_list[1]:

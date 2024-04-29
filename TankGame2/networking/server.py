@@ -288,12 +288,15 @@ class UDPServer:
                 # broadcast new player position
                 self.broadcast(f"{self.teams[team][addr][0]}|{pos[0]}|{pos[1]}")
 
+            # handle client data
+            else:
+                self.broadcast(data.decode(), addr)
+
 
     def broadcast(self, data, exc=None):
         for team in range(2):
             for player in self.teams[team].keys():
                 if self.teams[team][player][1] and player != exc:
-                    print("aaa")
                     self.server_socket.sendto(data.encode(), player)
 
 
