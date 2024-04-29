@@ -239,7 +239,8 @@ class UDPServer:
         self.team1 = {}
         self.team2 = {}
         self.teams = [self.team1, self.team2]
-        self.spawn_positions = [[(100, 100)], [(200, 200)]]
+        self.spawn_positions = protocol.spawn_positions.copy()
+        print(self.spawn_positions)
 
         self.running = False
 
