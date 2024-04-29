@@ -23,12 +23,24 @@ class Game:
         Object.screen_size = screen_size
         Object.screen = self.screen
 
+        this_player_start_positions = [0, 0]
+        if not self.client.offline_mode:
+            # get starter positions
+            positions = self.client.get_buffer_data(False)
+
+            # get own position
+            for pos in positions:
+                pos = pos.split('|')
+                if pos[0] == self.client.name:
+                    this_player_start_positions = [int(pos[1]), int(pos[2])]
+
         # objects currently on the map
-        this_player = Player("PLAYER", [screen_size[0] / 2 - 22.5, screen_size[1] / 2 - 22.5], True)
+        this_player = Player("PLAYER", this_player_start_positions, True)
         objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1), Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3), Powerup((1000, 1000), 'speed')]
 
         # clock
         clock = pygame.time.Clock()
+
 
         # main game loop
         while self.exit_code == 0:

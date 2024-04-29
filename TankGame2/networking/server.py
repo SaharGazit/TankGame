@@ -246,10 +246,7 @@ class UDPServer:
     def start(self, users):
         for user in users.values():
             addr = (user.address[0], user.address[1] + 1)
-            if user.team == 1:
-                self.team1[addr] = False
-            if user.team == 2:
-                self.team2[addr] = False
+            self.teams[user.team - 1][addr] = [user.name, False]
 
         self.running = True
 
@@ -262,7 +259,6 @@ class UDPServer:
         self.team2 = {}
 
     def listen(self):
-        a = True
         while self.running:
             try:
                 data, addr = self.server_socket.recvfrom(1024)
@@ -281,23 +277,22 @@ class UDPServer:
                 continue
 
             # check if it's the first contact of the client
-            if not self.teams[team][addr]:
-                self.teams[team][addr] = True
+            if not self.teams[team][addr][1]:
+                self.teams[team][addr][1] = True
 
                 # assign random position
                 pos = self.spawn_positions[team][random.randrange(len(self.spawn_positions[team]))]
                 self.spawn_positions[team].remove(pos)
 
-                if a:
-                    print("aaa")
-                    self.broadcast(f"{pos[0]}|{pos[1]}")
-                    a = False
+                # broadcast new player position
+                self.broadcast(f"{self.teams[team][addr][0]}|{pos[0]}|{pos[1]}")
 
 
     def broadcast(self, data, exc=None):
         for team in range(2):
             for player in self.teams[team].keys():
-                if self.teams[team][player] and player != exc:
+                if self.teams[team][player][1] and player != exc:
+                    print("aaa")
                     self.server_socket.sendto(data.encode(), player)
 
 
