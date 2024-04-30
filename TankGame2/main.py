@@ -3,7 +3,6 @@ from TankGame2.object import Object, Player, Powerup, Bullet, Block
 
 
 class Game:
-    SCREEN_DIVIDER = 1
 
     def __init__(self, screen, client):
         self.screen = screen
@@ -35,7 +34,8 @@ class Game:
                     this_player_start_positions = [int(pos[1]), int(pos[2])]
 
         # objects currently on the map
-        this_player = Player("PLAYER", this_player_start_positions, True)
+        this_player = Player(self.client.name, this_player_start_positions)
+        other_players = []
         objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1), Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3), Powerup((1000, 1000), 'speed')]
 
         # clock
@@ -92,23 +92,37 @@ class Game:
             if not self.client.offline_mode:
                 # loop for handling server data
                 for data in self.client.get_buffer_data():
-                    print(data)
+                    data = data.split('|')
+                    # find right player
+                    found = False
+                    for player in other_players:
+                        if player.name == data[0]:
+                            found = True
+                            # update player position
+                            player.global_position = [float(data[1]), float(data[2])]
+                            break
+                    if not found:
+                        other_players.append(Player(data[0], [float(data[1]), float(data[2])]))
 
                 # send personal data to server
-                self.client.send_player_status(f"{this_player.global_position[0]}, {this_player.global_position[1]}")
+                self.client.send_player_status(f"{round(this_player.global_position[0], 2)}|{round(this_player.global_position[1], 2)}|")
 
             # loop for handling every object
-            for o in objects[1:] + [this_player]:  # the player is "pushed" to the end in order to draw it last
+            for o in objects[1:] + [this_player] + other_players:  # the players are "pushed" to the end in order to draw them last
 
-                # prevents the object from colliding with itself
-                potential_collisions = list(objects)  # TODO: move this into the object's class?
-                potential_collisions.remove(o)
-                # update object
-                o.update(potential_collisions)
+                if type(o) != Player or o == this_player:
+                    # prevents the object from colliding with itself
+                    potential_collisions = list(objects + other_players)  # TODO: move this into the object's class?
+                    potential_collisions.remove(o)
+                    # update object
+                    o.update(potential_collisions)
 
                 # destroy object if needed by removing it from the objects list
                 if o.to_destroy:
-                    objects.remove(o)
+                    if o in objects:
+                        objects.remove(o)
+                    elif o in other_players:
+                        objects.remove(o)
 
                 # draw object
                 if o.in_screen():

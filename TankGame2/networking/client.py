@@ -65,6 +65,7 @@ class Client:
     def listen_udp(self):
         while self.running:
             data, addr = self.server_socket_udp.recvfrom(1024)
+            # print(data.decode())
 
             if addr == (self.server_ip, self.server_port_udp):
                 # push data to the buffer

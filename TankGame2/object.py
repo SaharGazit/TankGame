@@ -64,13 +64,12 @@ class Player(Object):
     MAX_SPEED = 5.2
     ACCELERATION = 0.8
 
-    def __init__(self, name, starting_position, main_player=False):
+    def __init__(self, name, starting_position):
         # inherited from Object class
         super().__init__(starting_position, 0, (48, 48), pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_hull.png"), 1)
 
         # player data
         self.name = name  # player's name
-        self.main_player = main_player  # true if this Player object belongs to the user of this program.
 
         # gameplay variables
         self.acceleration = [0, 0]

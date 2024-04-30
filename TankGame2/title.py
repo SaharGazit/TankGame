@@ -21,6 +21,7 @@ class LobbyUI:
     arrow_right_texture = "resources/ui/right_arrow.png"
 
     background_color = (230, 230, 230)
+    screen_divider = 1
 
     def __init__(self):
         # initiate program
@@ -29,7 +30,7 @@ class LobbyUI:
 
         # screen
         self.monitor_info = pygame.display.Info()
-        self.screen = pygame.display.set_mode((int(self.monitor_info.current_w), int(self.monitor_info.current_h)))
+        self.screen = pygame.display.set_mode((int(self.monitor_info.current_w) / LobbyUI.screen_divider, int(self.monitor_info.current_h) / LobbyUI.screen_divider))
         self.screen_name = "title"  # determines which screen to print and interact with
         self.clock = pygame.time.Clock()
 
