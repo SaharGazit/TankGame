@@ -282,6 +282,7 @@ class UDPServer:
                 self.teams[team][addr][1] = True
 
                 # assign random position
+                print("a")
                 pos = self.spawn_positions[team][random.randrange(len(self.spawn_positions[team]))]
                 self.spawn_positions[team].remove(pos)
 

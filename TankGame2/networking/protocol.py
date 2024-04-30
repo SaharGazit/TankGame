@@ -1,6 +1,6 @@
 
 main_port = 31410
-spawn_positions = [[(1000, 1000)], [(200, 200)]]
+spawn_positions = [[(1000, 1000), (1200, 1000)], [(200, 200), (400, 200)]]
 
 
 class User:

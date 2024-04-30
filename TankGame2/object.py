@@ -81,6 +81,8 @@ class Player(Object):
         # technical
         self.movement_colliders = [pygame.Rect(self.global_position[0] + 9, self.global_position[1] + 2, 30, 3), pygame.Rect(self.global_position[0] + 43, self.global_position[1] + 9, 3, 30), pygame.Rect(self.global_position[0] + 9, self.global_position[1] + 42, 30, 3), pygame.Rect(self.global_position[0] + 2, self.global_position[1] + 9, 3, 30)]
         self.turret_texture = pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_turret.png")
+        name_font = pygame.font.Font("resources/fonts/font2.otf", 15)
+        self.name_text = name_font.render(self.name, False, (0, 0, 255))
 
     # this function runs every game loop and is responsible for different continuous actions such as moving and rotating.
     def update(self, everything):
@@ -197,13 +199,17 @@ class Player(Object):
 
         # rotate the turret
         turret_sprite = pygame.transform.rotate(self.turret_texture, -self.rotation - 90)
-        turret_rect = turret_sprite.get_rect(center=super().get_rect().center)
+        center = super().get_rect().center
+        turret_rect = turret_sprite.get_rect(center=center)
         # minor position fixes
         turret_rect.x -= 1
         turret_rect.y -= 1
 
         # draw turret
         Object.screen.blit(turret_sprite, turret_rect)
+
+        # draw name
+        Object.screen.blit(self.name_text, (center[0], center[1] + 30))
 
 
 class Block(Object):
