@@ -204,6 +204,7 @@ class LobbyUI:
                         if data[0] == 'L':
                             self.client.update_lobby(data)
 
+                            # set player tags
                             for li in range(2):
                                 for u in range(4):
                                     if u < len(self.client.user_list[li]):

@@ -45,7 +45,6 @@ class Client:
 
         listening_thread = threading.Thread(target=self.listen_udp, daemon=True)
         listening_thread.start()
-        print(self.name)
 
     def disconnect(self):
         self.running = False
@@ -58,6 +57,7 @@ class Client:
         while self.running:
 
             data = self.server_socket_tcp.recv(1024)
+            print(data.decode())
 
             # push data to the buffer
             self.buffer.append(data.decode())
@@ -92,19 +92,41 @@ class Client:
             self.server_socket_udp.sendto(f"{self.name}|{data}".encode(), (self.server_ip, self.server_port_udp))
 
     # get the username of the owner of the current lobby
-    def get_owner(self):
+    def get_owner(self, raw=False):
         for user in self.user_list[0] + self.user_list[1]:
             if user.owner:
+                if raw:
+                    return user
                 return user.name
+        return None
 
     def update_lobby(self, data):
         data = data.split("|")
         self.lobby_id = int(data[0][1])
 
-        # update user lists
-        self.user_list = [[], []]
-        for string in data[1:]:
-            self.user_list[int(string[0]) - 1].append(protocol.User(string[1:], string[0]))
+        # get list
+        if data[1] == "list":
+            # update user lists
+            self.user_list = [[], []]
+            for string in data[2:]:
+                self.user_list[int(string[0]) - 1].append(protocol.User(string[1:], int(string[0])))
+        # add a player
+        elif data[1] == "join":
+            # add new user
+            team = int(data[3]) - 1
+            self.user_list[team].append(protocol.User(data[2], team))
+        elif data[1] == "leave":
+            # remove user
+            for t in range(2):
+                for user in self.user_list[t]:
+                    if user.name == data[2]:
+                        self.user_list[t].remove(user)
+                        break
+        elif data[1] == "promote":
+            for user in self.user_list[0] + self.user_list[1]:
+                # promote new owner (also demote old one)
+                user.owner = user.name == data[2]
+
 
     def can_start(self):
         return self.get_owner() == self.name and len(self.user_list[0]) > 0 and len(self.user_list[1]) > 0

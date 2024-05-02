@@ -92,17 +92,26 @@ class Game:
             if not self.client.offline_mode:
                 # loop for handling server data
                 for data in self.client.get_buffer_data():
-                    data = data.split('|')
-                    # find right player
-                    found = False
-                    for player in other_players:
-                        if player.name == data[0]:
-                            found = True
-                            # update player position
-                            player.global_position = [float(data[1]), float(data[2])]
-                            break
-                    if not found:
-                        other_players.append(Player(data[0], [float(data[1]), float(data[2])]))
+
+                    # if the message starts with G, it is a player update
+                    if data[0] == "G":
+                        data = data.split('|')
+                        # find right player
+                        found = False
+                        for player in other_players:
+                            if player.name == data[1]:
+                                found = True
+                                # update player position
+                                player.global_position = [float(data[2]), float(data[3])]
+                                break
+                        if not found:
+                            other_players.append(Player(data[1], [float(data[2]), float(data[3])]))
+                    # if the message starts with L, it is a lobby update
+                    elif data[0][0] == "L":
+                        self.client.update_lobby(data)
+
+                    else:
+                        print(data)
 
                 # send personal data to server
                 self.client.send_player_status(f"{round(this_player.global_position[0], 2)}|{round(this_player.global_position[1], 2)}|")

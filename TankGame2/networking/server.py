@@ -160,15 +160,17 @@ class Lobby:
             self.users[sock].owner = True
 
         if self.id != 0:
-            # give the user a team
+            # assign the user a team
             team1_count = len([user for user in self.users.values() if user.team == 1])
             if team1_count <= len(self.users) - 1 - team1_count:
                 player.team = 1
             else:
                 player.team = 2
             print(f"{player.name} joined lobby {self.id}")
-            # broadcast new lobby status
-            self.broadcast_lobby()
+            # send lobby list to new player
+            self.send_lobby_list(sock)
+            # broadcast join
+            self.broadcast(f"L{self.id}|join|{player.name}|{player.team}", sock)
 
     def remove_player(self, sock):
         user = self.users[sock]
@@ -181,38 +183,39 @@ class Lobby:
             for user2 in self.users.values():
                 if not user2.owner:
                     user2.owner = True
+                    # broadcast new owner (promote
+                    self.broadcast(f"L{self.id}|promote|{user2.name}", sock)
                     break
 
             # remove user's owner
             user.owner = False
 
-        name = self.users[sock].name
         # remove user from the user list
         del self.users[sock]
 
         if self.id != 0:
-            print(f"{name} left lobby {self.id}")
-            # broadcast new lobby status
-            self.broadcast_lobby()
+            print(f"{user.name} left lobby {self.id}")
+            # broadcast leave
+            self.broadcast(f"L{self.id}|leave|{user.name}")
 
         # cancel countdown
         if self.countdown:
             self.cancel_cooldown()
 
-    def broadcast_lobby(self):
-        self.broadcast(f"L{self.id}{self.get_names_string()}")
-
-    def broadcast(self, data):
-        for sock in self.users.keys():
-            sock.sendall(data.encode())
-
-    def get_names_string(self):
+    def send_lobby_list(self, sock):
+        # get a string that contains all the names, teams and owner marks
         names_string = ""
         for user in self.users.values():
             names_string += "|" + str(user.team) + user.name
             if user.owner:
                 names_string += "#"
-        return names_string
+
+        sock.sendall(f"L{self.id}|list{names_string}".encode())
+
+    def broadcast(self, data, exc=None):
+        for sock in self.users.keys():
+            if sock != exc:
+                sock.sendall(data.encode())
 
     def get_owner_name(self):
         return [user.name for user in self.users.values() if user.owner][0]
@@ -291,7 +294,7 @@ class UDPServer:
 
             # handle client data
             else:
-                self.broadcast(data.decode(), addr)
+                self.broadcast("G|" + data.decode(), addr)
 
 
     def broadcast(self, data, exc=None):
