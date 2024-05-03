@@ -34,7 +34,7 @@ class Game:
                     this_player_start_positions = [int(pos[1]), int(pos[2])]
 
         # objects currently on the map
-        this_player = Player(self.client.name, this_player_start_positions)
+        this_player = Player(self.client, this_player_start_positions)
         other_players = []
         objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1), Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3), Powerup((1000, 1000), 'speed')]
 
@@ -99,16 +99,28 @@ class Game:
                         # find right player
                         found = False
                         for player in other_players:
-                            if player.name == data[1]:
+                            if player.user.name == data[1]:
                                 found = True
                                 # update player position
                                 player.global_position = [float(data[2]), float(data[3])]
                                 break
+                        # if player doesn't exist, check if they are a user in the lobby
                         if not found:
-                            other_players.append(Player(data[1], [float(data[2]), float(data[3])]))
+                            for i in range(2):
+                                for player in self.client.user_list[i]:
+                                    if player.name == data[1]:
+                                        other_players.append(Player(player, [float(data[2]), float(data[3])]))
+                                        break
+
                     # if the message starts with L, it is a lobby update
-                    elif data[0][0] == "L":
+                    elif data[0] == "L":
                         self.client.update_lobby(data)
+
+                        # remove players the no longer exist (they left)
+                        for player in other_players:
+                            if player.user not in self.client.user_list[0] + self.client.user_list[1]:
+                                other_players.remove(player)
+
 
                     else:
                         print(data)

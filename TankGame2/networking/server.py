@@ -198,8 +198,8 @@ class Lobby:
             # broadcast leave
             self.broadcast(f"L{self.id}|leave|{user.name}")
 
-        # cancel countdown
-        if self.countdown:
+        # cancel cooldown
+        if self.countdown and not self.game_server.game_started:
             self.cancel_cooldown()
 
     def send_lobby_list(self, sock):
@@ -245,6 +245,7 @@ class UDPServer:
         self.spawn_positions = protocol.spawn_positions.copy()
 
         self.running = False
+        self.game_started = False
 
     def start(self, users):
         for user in users.values():
@@ -272,8 +273,10 @@ class UDPServer:
             # identify client
             if addr in self.team1.keys():
                 team = 0
+                self.game_started = True
             elif addr in self.team2.keys():
                 team = 1
+                self.game_started = True
 
             # ignore unwanted clients
             else:

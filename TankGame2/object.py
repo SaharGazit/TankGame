@@ -64,12 +64,12 @@ class Player(Object):
     MAX_SPEED = 5.2
     ACCELERATION = 0.8
 
-    def __init__(self, name, starting_position):
+    def __init__(self, user, starting_position):
         # inherited from Object class
         super().__init__(starting_position, 0, (48, 48), pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_hull.png"), 1)
 
         # player data
-        self.name = name  # player's name
+        self.user = user  # player's name
 
         # gameplay variables
         self.acceleration = [0, 0]
@@ -82,7 +82,7 @@ class Player(Object):
         self.movement_colliders = [pygame.Rect(self.global_position[0] + 9, self.global_position[1] + 2, 30, 3), pygame.Rect(self.global_position[0] + 43, self.global_position[1] + 9, 3, 30), pygame.Rect(self.global_position[0] + 9, self.global_position[1] + 42, 30, 3), pygame.Rect(self.global_position[0] + 2, self.global_position[1] + 9, 3, 30)]
         self.turret_texture = pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_turret.png")
         name_font = pygame.font.Font("resources/fonts/font2.otf", 15)
-        self.name_text = name_font.render(self.name, False, (0, 0, 255))
+        self.name_text = name_font.render(self.user.name, False, (0, 0, 255))
 
     # this function runs every game loop and is responsible for different continuous actions such as moving and rotating.
     def update(self, everything):
