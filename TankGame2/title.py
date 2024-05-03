@@ -228,7 +228,6 @@ class LobbyUI:
             # background
             self.screen.fill(LobbyUI.background_color)
 
-            # title
             title_text.set_alpha(abs(title_alpha))
             self.screen.blit(title_text, (50, 50))
             title_alpha = self.get_new_alpha_value(title_alpha)

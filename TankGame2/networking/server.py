@@ -269,6 +269,8 @@ class UDPServer:
                 data, addr = self.server_socket.recvfrom(1024)
             except socket.timeout:
                 continue
+            except ConnectionResetError:
+                continue
 
             # identify client
             if addr in self.team1.keys():
