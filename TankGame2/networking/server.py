@@ -175,10 +175,7 @@ class Lobby:
     def remove_player(self, sock):
         user = self.users[sock]
 
-        # reset user team
-        user.team = 0
         if user.owner:
-
             # nominate new user as owner
             for user2 in self.users.values():
                 if not user2.owner:
@@ -193,7 +190,13 @@ class Lobby:
         # remove user from the user list
         del self.users[sock]
 
+        # remove user from the game user list
+        if self.game_server.game_started:
+            if (user.address[0], user.address[1] + 1) in self.game_server.teams[user.team].keys():
+                del self.game_server.teams[user.team][(user.address[0], user.address[1] + 1)]
+
         if self.id != 0:
+            print("cunt" + str(len(self.users)))
             print(f"{user.name} left lobby {self.id}")
             # broadcast leave
             self.broadcast(f"L{self.id}|leave|{user.name}")
@@ -290,7 +293,6 @@ class UDPServer:
                 self.teams[team][addr][1] = True
 
                 # assign random position
-                print("a")
                 pos = self.spawn_positions[team][random.randrange(len(self.spawn_positions[team]))]
                 self.spawn_positions[team].remove(pos)
 

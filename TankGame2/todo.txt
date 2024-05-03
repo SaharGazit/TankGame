@@ -1,13 +1,12 @@
-1. Visual Glitch: Player objects are printed in an odd way. This glitch has nothing to do with networking, since the glitch continues
+Visual Glitch: Player objects are printed in an odd way. This glitch has nothing to do with networking, since the glitch continues
 after the connection is lost (see to-do 2)
 
-2. Connection lose bug: when a player leaves in the middle of the game, nothing crashes, however players stop moving (from
-each-other's perspective) / Lobby updates are sent doubled.
+bug: Game crashes when starting a game after it was canceled once.
 
-3. bug: Game crashes when starting a game after it was canceled once.
+bug: players leaving the lobby during a game doesnt register on the outside
 
-4. Distribute spawn locations before main server begins to run.
+Distribute spawn locations before main server begins to run.
 
-5. Include Turret rotation in player update
+Include Turret rotation in player update
 
-6. Text anchoring
+Text anchoring

@@ -152,5 +152,9 @@ class Game:
             # update screen
             pygame.display.flip()
 
+        # notify server about leaving the game
+        if self.exit_code == 1 and not self.client.offline_mode:
+            self.client.send_data("main")
+
         # return exit code to the lobby when the main loop is over
         return self.exit_code
