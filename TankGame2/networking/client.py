@@ -12,9 +12,9 @@ class Client:
         self.server_socket_udp = None
         self.own_port = None
 
-        self.running = False
+        self.running_tcp = False
+        self.running_udp = False
         self.offline_mode = False
-        self.connected = False
 
         self.name = "Guest"
         self.user_list = [[], []]
@@ -31,12 +31,12 @@ class Client:
             self.offline_mode = True
 
         if not self.offline_mode:
-            self.running = True
+            self.running_tcp = True
             listening_thread = threading.Thread(target=self.listen_tcp, daemon=True)
             listening_thread.start()
 
     def connect_udp(self):
-        self.connected = True
+        self.running_udp = True
         self.server_socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket_udp.bind((self.server_ip, self.own_port + 1))
 
@@ -46,15 +46,13 @@ class Client:
         listening_thread = threading.Thread(target=self.listen_udp, daemon=True)
         listening_thread.start()
 
-    def disconnect(self):
-        self.running = False
-        self.server_socket_tcp.close()
-
+    def disconnect_udp(self):
+        self.running_udp = False
         if self.server_socket_udp is not None:
             self.server_socket_udp.close()
 
     def listen_tcp(self):
-        while self.running:
+        while self.running_tcp:
 
             data = self.server_socket_tcp.recv(1024)
             print(data.decode())
@@ -63,7 +61,7 @@ class Client:
             self.buffer.append(data.decode())
 
     def listen_udp(self):
-        while self.running:
+        while self.running_udp:
             data, addr = self.server_socket_udp.recvfrom(1024)
             # print(data.decode())
 

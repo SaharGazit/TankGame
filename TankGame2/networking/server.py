@@ -90,19 +90,22 @@ class MainServer:
                 # disconnect users not responding
                 except ConnectionResetError:
                     self.disconnect_user(sock)
-                except OSError:
-                    self.disconnect_user(sock)
 
             # delete empty lobbies
             for lobby in self.lobbies[1:]:
                 if len(lobby.users) == 0:
                     print(f"Lobby {lobby.id} has closed")
+                    lobby.game_server.running = False
                     self.lobbies.remove(lobby)
 
     def get_lobby_list(self):
+        # form lobby list string
         ll = ""
         for lobby in self.lobbies[1:]:
-            ll += f"{lobby.id}|{lobby.get_owner_name()}|{len(lobby.users)}||"
+            if not lobby.game_server.game_started:
+                ll += f"{lobby.id}|{lobby.get_owner_name()}|{len(lobby.users)}||"
+
+        # return no-lobbies if no available lobbies exist
         if ll == "":
             return "no-lobbies"
         else:
@@ -189,11 +192,12 @@ class Lobby:
 
         # remove user from the user list
         del self.users[sock]
-
         # remove user from the game user list
         if self.game_server.game_started:
             if (user.address[0], user.address[1] + 1) in self.game_server.teams[user.team - 1].keys():
                 del self.game_server.teams[user.team - 1][(user.address[0], user.address[1] + 1)]
+        # reset team
+        user.team = 0
 
         if self.id != 0:
             print(f"{user.name} left lobby {self.id}")
@@ -253,11 +257,6 @@ class UDPServer:
             self.teams[user.team - 1][addr] = [user.name, False]
         self.running = True
 
-        print("aaa")
-        for i in range(2):
-            for a in self.teams[i].keys():
-                print(a)
-
         listen_thread = threading.Thread(target=self.listen, daemon=True)
         listen_thread.start()
 
@@ -302,7 +301,6 @@ class UDPServer:
             # handle client data
             else:
                 self.broadcast("G|" + data.decode(), addr)
-
 
     def broadcast(self, data, exc=None):
         for team in range(2):

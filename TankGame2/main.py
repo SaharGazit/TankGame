@@ -9,7 +9,7 @@ class Game:
         self.client = client
         if client is None:
             self.practice = True
-        elif client.connected:
+        elif client.running_udp:
             self.practice = False
         else:
             self.practice = True
@@ -23,7 +23,7 @@ class Game:
         Object.screen = self.screen
 
         this_player_start_positions = [0, 0]
-        if not self.client.offline_mode:
+        if not self.practice:
             # get starter positions
             positions = self.client.get_buffer_data(False)
 
@@ -89,7 +89,7 @@ class Game:
             # clears out the screen every game loop
             self.screen.fill((159, 168, 191))
 
-            if not self.client.offline_mode:
+            if not self.practice:
                 # loop for handling server data
                 for data in self.client.get_buffer_data():
 
@@ -152,8 +152,10 @@ class Game:
             # update screen
             pygame.display.flip()
 
-        # notify server about leaving the game
-        if self.exit_code == 1 and not self.client.offline_mode:
+        if self.exit_code == 1 and not self.practice:
+            # disconnect from udp server, if it opened
+            self.client.disconnect_udp()
+            # notify server about leaving the game
             self.client.send_data("main")
 
         # return exit code to the lobby when the main loop is over

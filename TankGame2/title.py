@@ -267,8 +267,10 @@ class LobbyUI:
 
             pygame.display.flip()
 
-        # notify server about leaving the lobby
         if self.exit_code == 1:
+            # disconnect from udp server, if it opened
+            self.client.disconnect_udp()
+            # notify server about leaving the lobby
             self.client.send_data("main")
 
     def lobby_browser(self):
