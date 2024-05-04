@@ -1,10 +1,6 @@
 Visual Glitch: Player objects are printed in an odd way. This glitch has nothing to do with networking, since the glitch continues
 after the connection is lost (see to-do 2)
 
-bug: Game crashes when starting a game after it was canceled once.
-
-bug: players leaving the lobby during a game doesnt register on the outside
-
 Distribute spawn locations before main server begins to run.
 
 Include Turret rotation in player update

@@ -192,12 +192,10 @@ class Lobby:
 
         # remove user from the game user list
         if self.game_server.game_started:
-            print(user.address)
             if (user.address[0], user.address[1] + 1) in self.game_server.teams[user.team - 1].keys():
                 del self.game_server.teams[user.team - 1][(user.address[0], user.address[1] + 1)]
 
         if self.id != 0:
-            print("cunt" + str(len(self.users)))
             print(f"{user.name} left lobby {self.id}")
             # broadcast leave
             self.broadcast(f"L{self.id}|leave|{user.name}")
@@ -243,9 +241,7 @@ class UDPServer:
         self.server_socket.bind((self.host, self.port))
         self.server_socket.settimeout(0.1)
 
-        self.team1 = {}
-        self.team2 = {}
-        self.teams = [self.team1, self.team2]
+        self.teams = [{}, {}]
         self.spawn_positions = protocol.spawn_positions.copy()
 
         self.running = False
@@ -255,17 +251,21 @@ class UDPServer:
         for user in users.values():
             addr = (user.address[0], user.address[1] + 1)
             self.teams[user.team - 1][addr] = [user.name, False]
-
         self.running = True
+
+        print("aaa")
+        for i in range(2):
+            for a in self.teams[i].keys():
+                print(a)
 
         listen_thread = threading.Thread(target=self.listen, daemon=True)
         listen_thread.start()
 
     def stop(self):
         self.running = False
-        self.team1 = {}
-        self.team2 = {}
+        self.teams = [{}, {}]
         self.spawn_positions = protocol.spawn_positions.copy()
+        print("caowowo2")
 
     def listen(self):
         while self.running:
@@ -277,12 +277,11 @@ class UDPServer:
                 continue
 
             # identify client
-            if addr in self.team1.keys():
-                team = 0
-                self.game_started = True
-            elif addr in self.team2.keys():
-                team = 1
-                self.game_started = True
+            for i in range(2):
+                if addr in self.teams[i].keys():
+                    team = i
+                    self.game_started = True
+                    break
 
             # ignore unwanted clients
             else:
