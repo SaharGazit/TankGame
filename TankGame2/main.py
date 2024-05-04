@@ -101,13 +101,15 @@ class Game:
                         for player in other_players:
                             if player.name == data[1]:
                                 found = True
-                                # update player position
+                                # update player position and rotation
                                 player.global_position = [float(data[2]), float(data[3])]
+                                player.rotation = float(data[3])
                                 break
                         # if player doesn't exist, check if they are a user in the lobby
                         if not found:
                             for i in range(2):
                                 for player in self.client.user_list[i]:
+                                    # if they're a user in the lobby, add them to the play list
                                     if player.name == data[1]:
                                         other_players.append(Player(player.name, [float(data[2]), float(data[3])]))
                                         break
@@ -126,7 +128,7 @@ class Game:
                         print(data)
 
                 # send personal data to server
-                self.client.send_player_status(f"{round(this_player.global_position[0], 2)}|{round(this_player.global_position[1], 2)}|")
+                self.client.send_player_status(f"{round(this_player.global_position[0], 2)}|{round(this_player.global_position[1], 2)}|{round(this_player.rotation, 2)}|")
 
             # loop for handling every object
             for o in objects[1:] + other_players + [this_player]:  # the players are "pushed" to the end in order to draw them last
