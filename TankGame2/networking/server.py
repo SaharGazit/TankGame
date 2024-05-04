@@ -192,8 +192,9 @@ class Lobby:
 
         # remove user from the game user list
         if self.game_server.game_started:
-            if (user.address[0], user.address[1] + 1) in self.game_server.teams[user.team].keys():
-                del self.game_server.teams[user.team][(user.address[0], user.address[1] + 1)]
+            print(user.address)
+            if (user.address[0], user.address[1] + 1) in self.game_server.teams[user.team - 1].keys():
+                del self.game_server.teams[user.team - 1][(user.address[0], user.address[1] + 1)]
 
         if self.id != 0:
             print("cunt" + str(len(self.users)))
