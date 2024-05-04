@@ -34,7 +34,7 @@ class Game:
                     this_player_start_positions = [int(pos[1]), int(pos[2])]
 
         # objects currently on the map
-        this_player = Player(self.client, this_player_start_positions)
+        this_player = Player(self.client.name, this_player_start_positions)
         other_players = []
         objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1), Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3), Powerup((1000, 1000), 'speed')]
 
@@ -99,7 +99,7 @@ class Game:
                         # find right player
                         found = False
                         for player in other_players:
-                            if player.user.name == data[1]:
+                            if player.name == data[1]:
                                 found = True
                                 # update player position
                                 player.global_position = [float(data[2]), float(data[3])]
@@ -109,7 +109,7 @@ class Game:
                             for i in range(2):
                                 for player in self.client.user_list[i]:
                                     if player.name == data[1]:
-                                        other_players.append(Player(player, [float(data[2]), float(data[3])]))
+                                        other_players.append(Player(player.name, [float(data[2]), float(data[3])]))
                                         break
 
                     # if the message starts with L, it is a lobby update
@@ -118,7 +118,7 @@ class Game:
 
                         # remove players the no longer exist (they left)
                         for player in other_players:
-                            if player.user not in self.client.user_list[0] + self.client.user_list[1]:
+                            if player.name not in [a.name for a in self.client.user_list[0] + self.client.user_list[1]]:
                                 other_players.remove(player)
 
 
@@ -129,7 +129,7 @@ class Game:
                 self.client.send_player_status(f"{round(this_player.global_position[0], 2)}|{round(this_player.global_position[1], 2)}|")
 
             # loop for handling every object
-            for o in objects[1:] + [this_player] + other_players:  # the players are "pushed" to the end in order to draw them last
+            for o in objects[1:] + other_players + [this_player]:  # the players are "pushed" to the end in order to draw them last
 
                 if type(o) != Player or o == this_player:
                     # prevents the object from colliding with itself
@@ -143,7 +143,7 @@ class Game:
                     if o in objects:
                         objects.remove(o)
                     elif o in other_players:
-                        objects.remove(o)
+                        other_players.remove(o)
 
                 # draw object
                 if o.in_screen():
