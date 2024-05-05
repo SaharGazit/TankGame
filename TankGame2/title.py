@@ -21,7 +21,9 @@ class LobbyUI:
     arrow_right_texture = "resources/ui/right_arrow.png"
 
     background_color = (230, 230, 230)
-    screen_divider = 1
+    design_resolution = (1920, 1080)
+    scale_factor = (1, 1)
+    screen_divider = 2
 
     def __init__(self):
         # initiate program
@@ -30,7 +32,10 @@ class LobbyUI:
 
         # screen
         self.monitor_info = pygame.display.Info()
-        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        user_screen_size = (int(self.monitor_info.current_w) / LobbyUI.screen_divider, int(self.monitor_info.current_h) / LobbyUI.screen_divider)
+        self.screen = pygame.display.set_mode(user_screen_size)
+        LobbyUI.scale_factor = (user_screen_size[0] / LobbyUI.design_resolution[0], user_screen_size[1] / LobbyUI.design_resolution[1])
+
         self.screen_name = "title"  # determines which screen to print and interact with
         self.clock = pygame.time.Clock()
 
@@ -92,15 +97,16 @@ class LobbyUI:
 
     def title(self):
         Button = LobbyUI.Button
+        scale_factor = LobbyUI.scale_factor
 
         # title
-        title_font = pygame.font.Font(LobbyUI.title_font, 80)
+        title_font = pygame.font.Font(LobbyUI.title_font, int(80 * scale_factor[0]))
         title_text = title_font.render('TANK GAME', False, (0, 0, 0))
         title_alpha = 255
 
         # main buttons
         button_texture = pygame.image.load(LobbyUI.button1_texture)
-        button_font = pygame.font.Font(LobbyUI.button_font, 20)
+        button_font = pygame.font.Font(LobbyUI.button_font, int(20 * scale_factor[0]))
         play_button = Button('Play', (100, 400), (400, 100), button_texture, True, 115, True)
         name_text = button_font.render(f'Logged as   "{self.client.name}"', False, (0, 0, 0))
         offline_text = button_font.render(f'(offline mode)', False, (155, 155, 155))
@@ -121,7 +127,7 @@ class LobbyUI:
 
             # title (TANK GAME)
             title_text.set_alpha(abs(title_alpha))
-            self.screen.blit(title_text, (75, 75))
+            self.screen.blit(title_text, (75 * scale_factor[0], 75 * scale_factor[1]))
             if self.activated_window.window_type == "None":
                 title_alpha = self.get_new_alpha_value(title_alpha)
 
@@ -135,18 +141,19 @@ class LobbyUI:
 
             # player's name at the button, and an offline mode disclaimer
             if self.client.offline_mode:
-                self.screen.blit(offline_text, (195, 575))
+                self.screen.blit(offline_text, (195 * scale_factor[0], 575 * scale_factor[1]))
             else:
-                self.screen.blit(name_text, (155, 575))
+                self.screen.blit(name_text, (155 * scale_factor[0], 575 * scale_factor[1]))
 
             pygame.display.flip()
 
     def lobby(self):
         Button = LobbyUI.Button
+        scale_factor = LobbyUI.scale_factor
         Countdown = 5
 
         # title
-        title_font = pygame.font.Font(LobbyUI.title_font, 80)
+        title_font = pygame.font.Font(LobbyUI.title_font, int(80 * scale_factor[0]))
         title_text = title_font.render(f"GET READY", False, (0, 0, 0))
         title_alpha = 255
 
@@ -159,7 +166,7 @@ class LobbyUI:
         nam_texture2 = pygame.image.load(LobbyUI.nametag_texture2)
         player_tags = [(Button("Nametag", (30, 400), (100, 100), nam_texture1, False, 105, True), Button("Nametag", (30, 550), (100, 100), nam_texture1, False, 105, True), Button("Nametag", (30, 700), (100, 100), nam_texture1, False, 105, True), Button("Nametag", (30, 850), (100, 100), nam_texture1, False, 105, True)),
                        (Button("Nametag", (520, 400), (100, 100), nam_texture2, False, 105, True), Button("Nametag", (520, 550), (100, 100), nam_texture2, False, 105, True), Button("Nametag", (520, 700), (100, 100), nam_texture2, False, 105, True), Button("Nametag", (520, 850), (100, 100), nam_texture2, False, 105, True))]
-        subtitle_font = pygame.font.Font(LobbyUI.button_font, 30)
+        subtitle_font = pygame.font.Font(LobbyUI.button_font, int(30 * scale_factor[0]))
         blue_text = subtitle_font.render("Blue Team", False, (0, 0, 0))
         red_text = subtitle_font.render("Red Team", False, (0, 0, 0))
 
@@ -225,12 +232,12 @@ class LobbyUI:
             self.screen.fill(LobbyUI.background_color)
 
             title_text.set_alpha(abs(title_alpha))
-            self.screen.blit(title_text, (50, 50))
+            self.screen.blit(title_text, (50 * scale_factor[0], 50 * scale_factor[1]))
             title_alpha = self.get_new_alpha_value(title_alpha)
 
             # teams
-            self.screen.blit(blue_text, (60, 345))
-            self.screen.blit(red_text, (550, 345))
+            self.screen.blit(blue_text, (60 * scale_factor[0], 345 * scale_factor[1]))
+            self.screen.blit(red_text, (550 * scale_factor[0], 345 * scale_factor[1]))
             for player_tag in player_tags[0] + player_tags[1]:
                 if player_tag.text != '':
                     player_tag.draw_button(self.screen)
@@ -242,7 +249,7 @@ class LobbyUI:
                 # update and draw timer
                 seconds = Countdown - int((time.perf_counter() - og_time))
                 time_text = subtitle_font.render(f"Game Starts in {seconds}s", False, (0, 0, 0))
-                self.screen.blit(time_text, (1310, 850))
+                self.screen.blit(time_text, (1310 * scale_factor[0], 850 * scale_factor[1]))
                 # start game when timer reaches 0
                 if seconds == 0:
                     self.client.connect_udp()
@@ -272,9 +279,10 @@ class LobbyUI:
     def lobby_browser(self):
         Button = LobbyUI.Button
         Window = LobbyUI.Window
+        scale_factor = LobbyUI.scale_factor
 
         # title
-        title_font = pygame.font.Font(LobbyUI.title_font, 80)
+        title_font = pygame.font.Font(LobbyUI.title_font, int(80 * self.scale_factor[0]))
         title_text = title_font.render(f"SELECT GAME", False, (0, 0, 0))
         title_alpha = 255
 
@@ -288,7 +296,7 @@ class LobbyUI:
 
         # lobby tags
         lobby_tags = []
-        subtitle_font = pygame.font.Font(LobbyUI.button_font, 30)
+        subtitle_font = pygame.font.Font(LobbyUI.button_font, int(30 * scale_factor[0]))
         no_lobby_text = subtitle_font.render("No Available Lobbies", False, (155, 155, 155))
 
         # no windows in lobby browser screen
@@ -323,12 +331,12 @@ class LobbyUI:
 
             # title
             title_text.set_alpha(abs(title_alpha))
-            self.screen.blit(title_text, (50, 50))
+            self.screen.blit(title_text, (50 * scale_factor[0], 50 * scale_factor[1]))
             title_alpha = self.get_new_alpha_value(title_alpha)
 
             # lobby tags
             if len(lobby_tags) == 0:
-                self.screen.blit(no_lobby_text, (70, 200))
+                self.screen.blit(no_lobby_text, (70 * scale_factor[0], 200 * scale_factor[1]))
             else:
                 tag_pos = 170
                 for tag in lobby_tags:
@@ -471,8 +479,10 @@ class LobbyUI:
     class Button:
         def __init__(self, name, position, scale, texture, has_text=False, text_position=0, static=False):
             self.button_type = name
-            self.png = pygame.transform.smoothscale(texture, scale)
-            self.position = position
+            self.scale_factor = LobbyUI.scale_factor
+            self.png = pygame.transform.smoothscale(texture, (scale[0] * self.scale_factor[0], scale[1] * self.scale_factor[1]))
+            self.position = (position[0] * self.scale_factor[0], position[1] * self.scale_factor[1])
+
 
             # true if the player's mouse is on the button
             self.hovered = False
@@ -483,20 +493,20 @@ class LobbyUI:
 
             if has_text:
                 self.text = name
-                self.font = pygame.font.Font(LobbyUI.button_font, 50)
+                self.font = pygame.font.Font(LobbyUI.button_font, int(50 * self.scale_factor[0]))
                 y = 23
             else:
                 self.text = ""
-                self.font = pygame.font.Font(LobbyUI.button_font, 25)
+                self.font = pygame.font.Font(LobbyUI.button_font, int(25 * self.scale_factor[0]))
                 y = 38
 
             # TODO: replace this with text anchoring
-            self.text_position = [text_position, y]
+            self.text_position = [text_position * self.scale_factor[0], y * self.scale_factor[1]]
 
         def draw_button(self, screen_, ):
             # change button attributes depending on them being hovered or disabled
             text_color = (4, 0, 87)
-            position = (self.position[0], self.position[1])
+            position = self.position
 
             if self.disabled:
                 self.png.set_alpha(100)
@@ -504,7 +514,7 @@ class LobbyUI:
                 self.png.set_alpha(255)
             if self.hovered:
                 text_color = (148, 5, 0)
-                position = (self.position[0], self.position[1] + 5)
+                position = (position[0], (self.position[1] + 5 * self.scale_factor[1]))
 
             # draw the button and its text with fixed positions
             screen_.blit(self.png, position)
@@ -546,12 +556,13 @@ class LobbyUI:
         def __init__(self, window_type, offline=False, data=None):
             if data is None:
                 data = [None, None, None, None]
+            self.scale_factor = LobbyUI.scale_factor
 
             self.window_type = window_type
             window_texture = pygame.image.load(LobbyUI.window_texture)
-            self.png = pygame.transform.smoothscale(window_texture, (820, 1080))
-            self.position = (1100, 0)
-            self.text_font = pygame.font.Font(LobbyUI.button_font, 30)
+            self.png = pygame.transform.smoothscale(window_texture, (820 * self.scale_factor[0], 1080 * self.scale_factor[1]))
+            self.position = (1100 * self.scale_factor[0], 0)
+            self.text_font = pygame.font.Font(LobbyUI.button_font, int(30 * self.scale_factor[0]))
 
             self.texts = []
             exec(f"self.texts = {LobbyUI.Window.TEXTS[self.window_type]}")
@@ -573,7 +584,7 @@ class LobbyUI:
         def draw_window(self, screen_):
             screen_.blit(self.png, self.position)
             for text, pos in self.texts:
-                screen_.blit(text, pos)
+                screen_.blit(text, (pos[0] * self.scale_factor[0], pos[1] * self.scale_factor[1]))
 
         # returns the Rect of the window object
         def get_rect(self):
@@ -584,20 +595,21 @@ class LobbyUI:
 
     class LobbyTag:
         def __init__(self, id_, owner_name, player_count):
-
+            self.scale_factor = LobbyUI.scale_factor
             tag_texture = pygame.image.load(LobbyUI.lobby_tag_texture)
-            self.png = pygame.transform.smoothscale(tag_texture, (1200, 240))
-            self.text_font = pygame.font.Font(LobbyUI.button_font, 45)
+            self.png = pygame.transform.smoothscale(tag_texture, (1200 * self.scale_factor[0], 240 * self.scale_factor[1]))
+            self.text_font = pygame.font.Font(LobbyUI.button_font, int(45 * self.scale_factor[0]))
 
             self.id = self.text_font.render(f"{id_}#", False, (0, 0, 0))
             self.owner_name = self.text_font.render(f"{owner_name}'s Game", False, (0, 0, 0))
             self.player_count = self.text_font.render(f"{player_count}/8", False, (0, 0, 0))
 
         def draw_tag(self, screen_, position):
+            position = (position[0] * self.scale_factor[0], position[1] * self.scale_factor[1])
             screen_.blit(self.png, position)
-            screen_.blit(self.id, (position[0] + 68, position[1] + 98))
-            screen_.blit(self.owner_name, (position[0] + 230, position[1] + 98))
-            screen_.blit(self.player_count, (position[0] + 1010, position[1] + 98))
+            screen_.blit(self.id, (position[0] + 68 * self.scale_factor[0], position[1] + 98 * self.scale_factor[1]))
+            screen_.blit(self.owner_name, (position[0] + 230 * self.scale_factor[0], position[1] + 98 * self.scale_factor[1]))
+            screen_.blit(self.player_count, (position[0] + 1010 * self.scale_factor[0], position[1] + 98 * self.scale_factor[1]))
 
 
 if __name__ == "__main__":
