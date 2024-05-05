@@ -103,7 +103,7 @@ class Game:
                                 found = True
                                 # update player position and rotation
                                 player.global_position = [float(data[2]), float(data[3])]
-                                player.rotation = float(data[3])
+                                player.rotation = float(data[4])
                                 break
                         # if player doesn't exist, check if they are a user in the lobby
                         if not found:

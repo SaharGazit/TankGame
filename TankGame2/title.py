@@ -30,7 +30,7 @@ class LobbyUI:
 
         # screen
         self.monitor_info = pygame.display.Info()
-        self.screen = pygame.display.set_mode((int(self.monitor_info.current_w) / LobbyUI.screen_divider, int(self.monitor_info.current_h) / LobbyUI.screen_divider))
+        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen_name = "title"  # determines which screen to print and interact with
         self.clock = pygame.time.Clock()
 
@@ -128,10 +128,6 @@ class LobbyUI:
             # side-window
             else:
                 self.activated_window.draw_window(self.screen)
-
-            # temp square at the corner
-            sq = pygame.Rect((self.screen.get_width() - 10, self.screen.get_height() - 10), (10, 10))
-            pygame.draw.rect(self.screen, (255, 0, 0), sq)
 
             # draw buttons
             for button in self.button_list:
