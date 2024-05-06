@@ -151,6 +151,7 @@ class Lobby:
         self.countdown = False
         self.game_server = UDPServer(self.id)
 
+
     def add_player(self, player, sock):
         # cancel cooldown
         if self.countdown:
@@ -238,6 +239,7 @@ class Lobby:
 
 
 class UDPServer:
+
     def __init__(self, id_):
         self.host = "0.0.0.0"
         self.port = protocol.main_port + id_
@@ -246,7 +248,7 @@ class UDPServer:
         self.server_socket.settimeout(0.1)
 
         self.teams = [{}, {}]
-        self.spawn_positions = protocol.spawn_positions.copy()
+        self.spawn_positions = [[(1000, 1000), (1100, 1000), (1200, 1000), (1300, 1000)], [(200, 200), (300, 200), (400, 200), (500, 200)]]
 
         self.running = False
         self.game_started = False
@@ -263,8 +265,7 @@ class UDPServer:
     def stop(self):
         self.running = False
         self.teams = [{}, {}]
-        self.spawn_positions = protocol.spawn_positions.copy()
-        print("caowowo2")
+        self.spawn_positions = [[(1000, 1000), (1100, 1000)], [(200, 200), (300, 200), (400, 200), (500, 200)]]
 
     def listen(self):
         while self.running:
@@ -276,6 +277,7 @@ class UDPServer:
                 continue
 
             # identify client
+            team = -1
             for i in range(2):
                 if addr in self.teams[i].keys():
                     team = i
@@ -283,7 +285,7 @@ class UDPServer:
                     break
 
             # ignore unwanted clients
-            else:
+            if team == -1:
                 print(f"Rejected {addr}: They're not in the lobby")
                 continue
 
@@ -292,11 +294,13 @@ class UDPServer:
                 self.teams[team][addr][1] = True
 
                 # assign random position
+                if team == 0:
+                    print(len(self.spawn_positions[team]))
                 pos = self.spawn_positions[team][random.randrange(len(self.spawn_positions[team]))]
                 self.spawn_positions[team].remove(pos)
 
-                # broadcast new player position
-                self.broadcast(f"{self.teams[team][addr][0]}|{pos[0]}|{pos[1]}")
+                # send new player position
+                self.server_socket.sendto(f"{self.teams[team][addr][0]}|{pos[0]}|{pos[1]}".encode(), addr)
 
             # handle client data
             else:
