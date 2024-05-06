@@ -61,6 +61,10 @@ class Object:
         return math.sqrt(math.pow(obj2.global_position[1] - obj2.global_position[0], 2) + math.pow(obj1.global_position[1] - obj1.global_position[0], 2))
         # TODO: test this ^
 
+    @staticmethod
+    def local_to_global(local):
+        return [(local[0] + Object.camera_position[0]) / Object.scale_factor[0], (local[1] + Object.camera_position[1]) / Object.scale_factor[1]]
+
 
 class Player(Object):
     MAX_SPEED = 5.2
@@ -301,9 +305,10 @@ class Bullet(Object):
         self.y_speed = Bullet.SPEED * math.sin(math.radians(parent.rotation))
 
         # get bullet spawn position (which is between the base and the tip of the turret)
-        bullet_position = [parent.global_position[0] + (parent.scale[0] / 2 - Bullet.SCALE[0] / 2), parent.global_position[1] + (parent.scale[1] / 2 - Bullet.SCALE[1] / 2)]
-        bullet_position[0] += self.x_speed * Bullet.DISTANCE_FROM_CENTER
-        bullet_position[1] += self.y_speed * Bullet.DISTANCE_FROM_CENTER
+        bullet_position = [parent.global_position[0] + (parent.scale[0] / 2 - Bullet.SCALE[0] * Object.scale_factor[0] / 2), parent.global_position[1] + (parent.scale[1] / 2 - Bullet.SCALE[1] * Object.scale_factor[1] / 2)]
+        bullet_position[0] += self.x_speed * Bullet.DISTANCE_FROM_CENTER * Object.scale_factor[0]
+        bullet_position[1] += self.y_speed * Bullet.DISTANCE_FROM_CENTER * Object.scale_factor[1]
+
 
         super().__init__(bullet_position, parent.rotation, Bullet.SCALE, pygame.image.load(f"{Object.SPRITE_DIRECTORY}/bullet.png"), 0)
 

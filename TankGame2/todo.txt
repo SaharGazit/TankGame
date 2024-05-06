@@ -3,5 +3,3 @@ Distribute spawn locations before main server begins to run.
 Include Turret rotation in player update
 
 Text anchoring
-
-Resolution fix
