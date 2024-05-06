@@ -20,6 +20,7 @@ class Game:
         # object screen settings
         screen_size = self.screen.get_size()
         Object.screen_size = screen_size
+        Object.scale_factor = (screen_size[0] / 1920, screen_size[1] / 1080)
         Object.screen = self.screen
 
         this_player_start_positions = [0, 0]
@@ -122,7 +123,6 @@ class Game:
                         for player in other_players:
                             if player.name not in [a.name for a in self.client.user_list[0] + self.client.user_list[1]]:
                                 other_players.remove(player)
-
 
                     else:
                         print(data)

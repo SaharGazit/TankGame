@@ -9,16 +9,17 @@ class Object:
     camera_position = [0, 0]
     screen = None  # pygame screen used to draw the objects
     screen_size = None
+    scale_factor = None
 
     def __init__(self, starting_position, rotation, scale, texture, object_id):
         self.id = object_id
         self.global_position = starting_position  # global position in the world map
         self.rotation = rotation
-        self.scale = scale  # size of the object
+        self.scale = (scale[0] * Object.scale_factor[0], scale[1] * Object.scale_factor[1])  # size of the object
         self.to_destroy = False  # if true, the object is about to be removed from the objects list
 
         # PNG of the object
-        self.texture = pygame.transform.scale(texture, (self.scale[0], self.scale[1]))
+        self.texture = pygame.transform.scale(texture, self.scale)
 
         self.block_collision = [False, False, False, False]
 
@@ -32,7 +33,8 @@ class Object:
 
     # returns the local_position - the position of the object on the user's screen
     def local_position(self):
-        return self.global_position[0] - Object.camera_position[0], self.global_position[1] - Object.camera_position[1]
+        # return self.global_position[0] - Object.camera_position[0], self.global_position[1] - Object.camera_position[1]
+        return (self.global_position[0] - Object.camera_position[0]) * Object.scale_factor[0], (self.global_position[1] - Object.camera_position[1]) * Object.scale_factor[1]
 
     # returns the rect. takes already existing rect from the object's texture, and adds the rect position
     def get_rect(self):
@@ -78,10 +80,8 @@ class Player(Object):
         self.powerups = {}  # list of powerup effects currently on the player.
         self.rotation = 0
 
-        # technical
-        self.movement_colliders = [pygame.Rect(self.global_position[0] + 9, self.global_position[1] + 2, 30, 3), pygame.Rect(self.global_position[0] + 43, self.global_position[1] + 9, 3, 30), pygame.Rect(self.global_position[0] + 9, self.global_position[1] + 42, 30, 3), pygame.Rect(self.global_position[0] + 2, self.global_position[1] + 9, 3, 30)]
         self.turret_texture = pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_turret.png")
-        name_font = pygame.font.Font("resources/fonts/font2.otf", 15)
+        name_font = pygame.font.Font("resources/fonts/font2.otf", int(15 * Object.scale_factor[0]))
         self.name_text = name_font.render(self.name, False, (0, 0, 255))
 
     # this function runs every game loop and is responsible for different continuous actions such as moving and rotating.
@@ -141,7 +141,9 @@ class Player(Object):
             self.speed_y = 0
 
         # update camera
-        Object.camera_position = [22.5 + self.global_position[0] - Object.screen_size[0] / 2, 22.5 + self.global_position[1] - Object.screen_size[1] / 2]
+        campos_x = self.scale[0] / 2 + self.global_position[0] - Object.screen_size[0] / (2 * Object.scale_factor[0])
+        campos_y = self.scale[1] / 2 + self.global_position[1] - Object.screen_size[1] / (2 * Object.scale_factor[1])
+        Object.camera_position = [campos_x, campos_y]
 
         # reset all blockers
         for i in range(4):
@@ -154,8 +156,8 @@ class Player(Object):
 
         # calculate distance between mouse and player
         c = self.local_position()
-        y_distance = target[1] - (c[1] + 22.5)
-        x_distance = target[0] - (c[0] + 22.5)
+        x_distance = target[0] - (c[0] + 22.5 * Object.scale_factor[0])
+        y_distance = target[1] - (c[1] + 22.5 * Object.scale_factor[1])
 
         # calculate rotation angle using the arc-tangent function
         self.rotation = math.degrees(math.atan2(y_distance, x_distance))
@@ -197,18 +199,18 @@ class Player(Object):
         super().draw_object()
 
         # rotate the turret
-        turret_sprite = pygame.transform.rotate(self.turret_texture, -self.rotation - 90)
         center = super().get_rect().center
+        turret_sprite = pygame.transform.rotate(self.turret_texture, -self.rotation - 90)
         turret_rect = turret_sprite.get_rect(center=center)
-        # minor position fixes
-        turret_rect.x -= 1
-        turret_rect.y -= 1
+        # scale turret
+        turret_sprite = pygame.transform.scale(turret_sprite, (turret_rect.width * Object.scale_factor[0], turret_rect.height * Object.scale_factor[1]))
+        turret_rect = turret_sprite.get_rect(center=center)
 
         # draw turret
         Object.screen.blit(turret_sprite, turret_rect)
 
         # draw name
-        Object.screen.blit(self.name_text, (center[0], center[1] + 30))
+        Object.screen.blit(self.name_text, (center[0], center[1] + 30 * self.scale_factor[1]))
 
 
 class Block(Object):
@@ -250,13 +252,6 @@ class Block(Object):
         #             # prevent player from moving to the direction of the block
         #             collided.block_collision[side] = True
 
-    def get_all_colliding_objects(self, candidates):
-        colliding = []
-        for side in self.side_colliders:
-            indices = side.collidelistall([i.get_rect() for i in candidates])
-            colliding.append([candidates[i] for i in indices])
-        return colliding
-
     def draw_object(self, debug_colliders=False):
         if debug_colliders:
             # for collider in self.side_colliders:
@@ -268,11 +263,11 @@ class Block(Object):
     # returns at which side of the block another object is (top, right, bottom, left)
     def get_side(self, obj: Object):
         # get the top left and the bottom right corners of the block and the referenced object
-        block_corner = self.local_position()[0] + self.scale[0] - 3, self.local_position()[1] + self.scale[1] - 3
-        obj_corner = obj.local_position()[0] + obj.scale[0] - 3, obj.local_position()[1] + obj.scale[1] - 3
+        block_corner = self.local_position()[0] + self.scale[0] - 3 * Object.scale_factor[0], self.local_position()[1] + self.scale[1] - 3 * Object.scale_factor[1]
+        obj_corner = obj.local_position()[0] + obj.scale[0] - 3 * Object.scale_factor[0], obj.local_position()[1] + obj.scale[1] - 3 * Object.scale_factor[1]
 
         # on the top side
-        if self.local_position()[1] + 2 > obj_corner[1]:
+        if self.local_position()[1] + 2 * Object.scale_factor[1] > obj_corner[1]:
             return 0
         # on the right side
         if block_corner[0] < obj.local_position()[0]:
@@ -281,14 +276,14 @@ class Block(Object):
         if block_corner[1] < obj.local_position()[1]:
             return 2
         # on the left side
-        if self.local_position()[0] + 2 > obj_corner[0]:
+        if self.local_position()[0] + 2 * Object.scale_factor[0] > obj_corner[0]:
             return 3
 
     # blocks have a bigger collider than their sprite
     def get_rect(self):
-        rect = pygame.Rect(0, 0, self.scale[0] + 10, self.scale[1] + 10)
-        rect.x = self.local_position()[0] - 5
-        rect.y = self.local_position()[1] - 5
+        rect = pygame.Rect(0, 0, self.scale[0] + 10 * Object.scale_factor[0], self.scale[1] + 10 * Object.scale_factor[1])
+        rect.x = self.local_position()[0] - 5 * Object.scale_factor[0]
+        rect.y = self.local_position()[1] - 5 * Object.scale_factor[1]
 
         return rect
 
@@ -354,7 +349,7 @@ class Bullet(Object):
                 # requires the last wall in the bullet's wall list to be a different wall (or not wall)
                 elif coll.block_type == "wall" and coll.id != self.wall_list[-1]:
                     side = coll.get_side(self)
-                    if side is None: # if bullet is shot inside a block (destruction)
+                    if side is None:  # if bullet is shot inside a block (destruction)
                         self.to_destroy = True
                     else:
                         self.block_collision[coll.get_side(self)] = True  # "tell" the bullet to change direction accordingly

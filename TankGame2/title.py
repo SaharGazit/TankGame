@@ -20,10 +20,11 @@ class LobbyUI:
     lobby_tag_texture = "resources/ui/lobby_tag.png"
     arrow_right_texture = "resources/ui/right_arrow.png"
 
+
     background_color = (230, 230, 230)
     design_resolution = (1920, 1080)
     scale_factor = (1, 1)
-    screen_divider = 2
+    screen_divider = 1
 
     def __init__(self):
         # initiate program
