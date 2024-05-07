@@ -108,11 +108,11 @@ class LobbyUI:
         # main buttons
         button_texture = pygame.image.load(LobbyUI.button1_texture)
         button_font = pygame.font.Font(LobbyUI.button_font, int(20 * scale_factor[0]))
-        play_button = Button('Play', (100, 400), (400, 100), button_texture, True, 115, True)
+        play_button = Button('Play', (100, 400), (400, 100), button_texture, True, True)
         name_text = button_font.render(f'Logged as   "{self.client.name}"', False, (0, 0, 0))
         offline_text = button_font.render(f'(offline mode)', False, (155, 155, 155))
-        account_button = Button('Account', (100, 600), (400, 100), button_texture, True, 60, True)
-        quit_button = Button('Quit', (100, 800), (400, 100), button_texture, True, 125, True)
+        account_button = Button('Account', (100, 600), (400, 100), button_texture, True, True)
+        quit_button = Button('Quit', (100, 800), (400, 100), button_texture, True, True)
 
         # default window is title screen is None
         self.activated_window = LobbyUI.Window("None")
@@ -160,19 +160,19 @@ class LobbyUI:
 
         # quit button
         can_texture = pygame.image.load(LobbyUI.cancel_texture)
-        quit_button = Button('Quit', (950, 22.5), (125, 125), can_texture, static=True)
+        quit_button = Button('Quit', (950, 22.5), (125, 125), can_texture, False, True)
 
         # player list
         nam_texture1 = pygame.image.load(LobbyUI.nametag_texture1)
         nam_texture2 = pygame.image.load(LobbyUI.nametag_texture2)
-        player_tags = [(Button("Nametag", (30, 400), (100, 100), nam_texture1, False, 105, True), Button("Nametag", (30, 550), (100, 100), nam_texture1, False, 105, True), Button("Nametag", (30, 700), (100, 100), nam_texture1, False, 105, True), Button("Nametag", (30, 850), (100, 100), nam_texture1, False, 105, True)),
-                       (Button("Nametag", (520, 400), (100, 100), nam_texture2, False, 105, True), Button("Nametag", (520, 550), (100, 100), nam_texture2, False, 105, True), Button("Nametag", (520, 700), (100, 100), nam_texture2, False, 105, True), Button("Nametag", (520, 850), (100, 100), nam_texture2, False, 105, True))]
+        player_tags = [(Button("Nametag", (30, 400), (100, 100), nam_texture1, False, True), Button("Nametag", (30, 550), (100, 100), nam_texture1, False, True), Button("Nametag", (30, 700), (100, 100), nam_texture1, False, True), Button("Nametag", (30, 850), (100, 100), nam_texture1, False, True)),
+                       (Button("Nametag", (520, 400), (100, 100), nam_texture2, False, True), Button("Nametag", (520, 550), (100, 100), nam_texture2, False, True), Button("Nametag", (520, 700), (100, 100), nam_texture2, False, True), Button("Nametag", (520, 850), (100, 100), nam_texture2, False, True))]
         subtitle_font = pygame.font.Font(LobbyUI.button_font, int(30 * scale_factor[0]))
         blue_text = subtitle_font.render("Blue Team", False, (0, 0, 0))
         red_text = subtitle_font.render("Red Team", False, (0, 0, 0))
 
         # cancel button
-        cancel_button = LobbyUI.Button('Cancel', (1300, 900), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 78)
+        cancel_button = LobbyUI.Button('Cancel', (1300, 900), (400, 100), pygame.image.load(LobbyUI.button2_texture), True)
 
         # default window in the lobby is a lobby window
         self.switch_to_lobby_window()
@@ -293,7 +293,7 @@ class LobbyUI:
         back_button = Button('Back', (1770, 22.5), (125, 125), can_texture)
         # refresh button
         button_texture = pygame.image.load(LobbyUI.button2_texture)
-        refresh_button = Button("Refresh", (1350, 30), (400, 100), button_texture, True, 52)
+        refresh_button = Button("Refresh", (1350, 30), (400, 100), button_texture, True)
 
         # lobby tags
         lobby_tags = []
@@ -478,10 +478,11 @@ class LobbyUI:
             return a - 4
 
     class Button:
-        def __init__(self, name, position, scale, texture, has_text=False, text_position=0, static=False):
+        def __init__(self, name, position, scale, texture, has_text=False, static=False):
             self.button_type = name
             self.scale_factor = LobbyUI.scale_factor
-            self.png = pygame.transform.smoothscale(texture, (scale[0] * self.scale_factor[0], scale[1] * self.scale_factor[1]))
+            self.scale = (scale[0] * self.scale_factor[0], scale[1] * self.scale_factor[1])
+            self.png = pygame.transform.smoothscale(texture, self.scale)
             self.position = (position[0] * self.scale_factor[0], position[1] * self.scale_factor[1])
 
 
@@ -492,17 +493,15 @@ class LobbyUI:
             # gray and can't be interacted with when true
             self.disabled = False
 
+            self.centered = True
             if has_text:
                 self.text = name
                 self.font = pygame.font.Font(LobbyUI.button_font, int(50 * self.scale_factor[0]))
-                y = 23
             else:
                 self.text = ""
                 self.font = pygame.font.Font(LobbyUI.button_font, int(25 * self.scale_factor[0]))
-                y = 38
+                self.centered = False
 
-            # TODO: replace this with text anchoring
-            self.text_position = [text_position * self.scale_factor[0], y * self.scale_factor[1]]
 
         def draw_button(self, screen_, ):
             # change button attributes depending on them being hovered or disabled
@@ -517,11 +516,21 @@ class LobbyUI:
                 text_color = (148, 5, 0)
                 position = (position[0], (self.position[1] + 5 * self.scale_factor[1]))
 
-            # draw the button and its text with fixed positions
+            # draw the button
             screen_.blit(self.png, position)
+
+            # get text position related to the button
+            x, y = self.font.size(self.text)  # txt being whatever str you're rendering
+            if self.centered:
+                x = (self.scale[0] - x) / 2
+            else:
+                x = 105 * self.scale_factor[0]
+            y = (self.scale[1] - y) / 2
+
+            # set text
             text_obj = self.font.render(self.text, False, text_color)
             text_obj.set_alpha(self.png.get_alpha())
-            screen_.blit(text_obj, (position[0] + self.text_position[0], position[1] + self.text_position[1]))
+            screen_.blit(text_obj, (position[0] + x, position[1] + y))
 
         # get the button's rect
         def get_rect(self):
@@ -545,13 +554,13 @@ class LobbyUI:
                  }
 
         BUTTONS = {"None": "[]",
-                   "Play": "[LobbyUI.Button('Host', (1150, 170), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 115), "
-                           "LobbyUI.Button('Join', (1150, 280), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 125), "
-                           "LobbyUI.Button('Practice', (1150, 390), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 48)]",
+                   "Play": "[LobbyUI.Button('Host', (1150, 170), (400, 100), pygame.image.load(LobbyUI.button2_texture), True), "
+                           "LobbyUI.Button('Join', (1150, 280), (400, 100), pygame.image.load(LobbyUI.button2_texture), True), "
+                           "LobbyUI.Button('Practice', (1150, 390), (400, 100), pygame.image.load(LobbyUI.button2_texture), True)]",
                    "Account": "[]",
                    "Quit": "[LobbyUI.Button('ConfirmQuit', (1310.5, 170), (125, 125), pygame.image.load(LobbyUI.confirm_texture)), "
                            "LobbyUI.Button('CancelQuit', (1584.5, 170), (125, 125), pygame.image.load(LobbyUI.cancel_texture))]",
-                   "Lobby": "[LobbyUI.Button('Start', (1300, 900), (400, 100), pygame.image.load(LobbyUI.button2_texture), True, 95)]"
+                   "Lobby": "[LobbyUI.Button('Start', (1300, 900), (400, 100), pygame.image.load(LobbyUI.button2_texture), True)]"
                    }
 
         def __init__(self, window_type, offline=False, data=None):

@@ -74,8 +74,11 @@ class Player(Object):
         # inherited from Object class
         super().__init__(starting_position, 0, (48, 48), pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_hull.png"), 1)
 
-        # player data
+        # player name
         self.name = name  # player's name
+        name_font = pygame.font.Font("resources/fonts/font2.otf", int(15 * Object.scale_factor[0]))
+        self.name_text = name_font.render(name, False, (0, 0, 255))
+        self.name_size = name_font.size(name)
 
         # gameplay variables
         self.acceleration = [0, 0]
@@ -85,8 +88,6 @@ class Player(Object):
         self.rotation = 0
 
         self.turret_texture = pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_turret.png")
-        name_font = pygame.font.Font("resources/fonts/font2.otf", int(15 * Object.scale_factor[0]))
-        self.name_text = name_font.render(self.name, False, (0, 0, 255))
 
     # this function runs every game loop and is responsible for different continuous actions such as moving and rotating.
     def update(self, everything):
@@ -210,11 +211,11 @@ class Player(Object):
         turret_sprite = pygame.transform.scale(turret_sprite, (turret_rect.width * Object.scale_factor[0], turret_rect.height * Object.scale_factor[1]))
         turret_rect = turret_sprite.get_rect(center=center)
 
+        # draw name
+        Object.screen.blit(self.name_text, (center[0] - self.name_size[0] / 2, center[1] + 30 * self.scale_factor[1]))
+
         # draw turret
         Object.screen.blit(turret_sprite, turret_rect)
-
-        # draw name
-        Object.screen.blit(self.name_text, (center[0], center[1] + 30 * self.scale_factor[1]))
 
 
 class Block(Object):
