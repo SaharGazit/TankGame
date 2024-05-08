@@ -55,7 +55,7 @@ class Client:
         while self.running_tcp:
 
             data = self.server_socket_tcp.recv(1024)
-            print(data.decode())
+            # print(data.decode())
 
             # push data to the buffer
             self.buffer.append(data.decode())

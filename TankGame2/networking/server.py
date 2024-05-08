@@ -88,7 +88,7 @@ class MainServer:
                             lobby.cancel_cooldown()
                         # handle game events
                         elif data[0] == "E":
-                            pass
+                            lobby.broadcast(data + "|" + user.name, sock)
 
                 # disconnect users not responding
                 except ConnectionResetError:

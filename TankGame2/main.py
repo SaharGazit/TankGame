@@ -125,6 +125,15 @@ class Game:
                             if player.name not in [a.name for a in self.client.user_list[0] + self.client.user_list[1]]:
                                 other_players.remove(player)
 
+                    # handle events
+                    elif data[0] == 'E':
+                        data = data.split("|")
+                        # shooting
+                        if data[1] == 's':
+                            for p in other_players:
+                                if p.name == data[2]:
+                                    objects.append(Bullet(p))
+                                    break
                     else:
                         print(data)
 

@@ -24,7 +24,7 @@ class LobbyUI:
     background_color = (230, 230, 230)
     design_resolution = (1920, 1080)
     scale_factor = (1, 1)
-    screen_divider = 1
+    screen_divider = 1.5
 
     def __init__(self):
         # initiate program
