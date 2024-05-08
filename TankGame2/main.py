@@ -82,8 +82,9 @@ class Game:
                 # pressing left mouse buttons shoots a bullet
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:  # (1 = left mouse click)
-                        # creates a bullet with the position and rotation of the player
-                        objects.append(Bullet(this_player))
+                        # creates a bullet with the position and rotation of the player, and creates a bullet shoot event
+                        self.trigger_event("shoot", Bullet(this_player), objects)
+
 
             # game remains at 60 FPS
             clock.tick(60)
@@ -162,3 +163,11 @@ class Game:
 
         # return exit code to the lobby when the main loop is over
         return self.exit_code
+
+    def trigger_event(self, action, obj, obj_list):
+        command = f"E|{action[0]}"
+        if action == "shoot":
+            obj_list.append(obj)
+        if not self.practice:
+            self.client.send_data(command)
+
