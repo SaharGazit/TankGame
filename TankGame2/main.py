@@ -42,7 +42,6 @@ class Game:
         # clock
         clock = pygame.time.Clock()
 
-
         # main game loop
         while self.exit_code == 0:
             for event in pygame.event.get():
@@ -155,6 +154,9 @@ class Game:
                         objects.remove(o)
                     elif o in other_players:
                         other_players.remove(o)
+
+                    # trigger destroy event
+
 
                 # draw object
                 if o.in_screen():
