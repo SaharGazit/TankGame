@@ -37,7 +37,7 @@ class Game:
         # objects currently on the map
         this_player = Player(self.client.name, this_player_start_positions)
         other_players = []
-        objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1), Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3), Powerup((1000, 1000), 'speed')]
+        objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1), Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3), Powerup((1000, 1000), 'speed', 0)]
 
         # clock
         clock = pygame.time.Clock()
@@ -82,7 +82,9 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:  # (1 = left mouse click)
                         # creates a bullet with the position and rotation of the player, and creates a bullet shoot event
-                        self.trigger_event("shoot", Bullet(this_player), objects)
+                        objects.append(Bullet(this_player))
+                        if not self.practice:
+                            self.trigger_event("shoot")
 
             # game remains at 60 FPS
             clock.tick(60)
@@ -132,6 +134,12 @@ class Game:
                                 if p.name == data[2]:
                                     objects.append(Bullet(p))
                                     break
+                        # picking up (powerups)
+                        elif data[1] == "p":
+                            for o in objects:
+                                if type(o) == Powerup and o.id == int(data[2]):
+                                    o.to_destroy = True
+
                     else:
                         print(data)
 
@@ -155,8 +163,10 @@ class Game:
                     elif o in other_players:
                         other_players.remove(o)
 
-                    # trigger destroy event
-
+                    if not self.practice:
+                        # trigger destroy event
+                        if type(o) == Powerup:
+                            self.trigger_event("pickup", o)
 
                 # draw object
                 if o.in_screen():
@@ -174,10 +184,10 @@ class Game:
         # return exit code to the lobby when the main loop is over
         return self.exit_code
 
-    def trigger_event(self, action, obj, obj_list):
+    def trigger_event(self, action, obj=None):
         command = f"E|{action[0]}"
-        if action == "shoot":
-            obj_list.append(obj)
-        if not self.practice:
-            self.client.send_data(command)
+        if action == "pickup":
+            command += f"|{obj.id}"
+        self.client.send_data(command)
+
 
