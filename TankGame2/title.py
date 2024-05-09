@@ -201,6 +201,9 @@ class LobbyUI:
                         self.switch_to_lobby_window()
                         self.button_list = [quit_button] + self.activated_window.buttons
 
+                elif data == "full":
+                    self.exit_code = 1
+
                 else:
                     try:
                         # lobby list update
