@@ -85,7 +85,6 @@ class Game:
                         # creates a bullet with the position and rotation of the player, and creates a bullet shoot event
                         self.trigger_event("shoot", Bullet(this_player), objects)
 
-
             # game remains at 60 FPS
             clock.tick(60)
             # clears out the screen every game loop

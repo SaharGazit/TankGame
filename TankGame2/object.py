@@ -15,7 +15,7 @@ class Object:
         self.id = object_id
         self.global_position = starting_position  # global position in the world map
         self.rotation = rotation
-        self.scale = (scale[0] * Object.scale_factor[0], scale[1] * Object.scale_factor[1])  # size of the object
+        self.scale = (int(scale[0] * Object.scale_factor[0]), int(scale[1] * Object.scale_factor[1]))  # size of the object
         self.to_destroy = False  # if true, the object is about to be removed from the objects list
 
         # PNG of the object
@@ -208,7 +208,7 @@ class Player(Object):
         turret_sprite = pygame.transform.rotate(self.turret_texture, -self.rotation - 90)
         turret_rect = turret_sprite.get_rect(center=center)
         # scale turret
-        turret_sprite = pygame.transform.scale(turret_sprite, (turret_rect.width * Object.scale_factor[0], turret_rect.height * Object.scale_factor[1]))
+        turret_sprite = pygame.transform.scale(turret_sprite, (int(turret_rect.width * Object.scale_factor[0]), int(turret_rect.height * Object.scale_factor[1])))
         turret_rect = turret_sprite.get_rect(center=center)
 
         # draw name

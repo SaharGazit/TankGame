@@ -20,7 +20,6 @@ class LobbyUI:
     lobby_tag_texture = "resources/ui/lobby_tag.png"
     arrow_right_texture = "resources/ui/right_arrow.png"
 
-
     background_color = (230, 230, 230)
     design_resolution = (1920, 1080)
     scale_factor = (1, 1)
@@ -33,7 +32,7 @@ class LobbyUI:
 
         # screen
         self.monitor_info = pygame.display.Info()
-        user_screen_size = (int(self.monitor_info.current_w) / LobbyUI.screen_divider, int(self.monitor_info.current_h) / LobbyUI.screen_divider)
+        user_screen_size = (int(self.monitor_info.current_w / LobbyUI.screen_divider), int(self.monitor_info.current_h / LobbyUI.screen_divider))
         self.screen = pygame.display.set_mode(user_screen_size)
         LobbyUI.scale_factor = (user_screen_size[0] / LobbyUI.design_resolution[0], user_screen_size[1] / LobbyUI.design_resolution[1])
 
@@ -481,7 +480,7 @@ class LobbyUI:
         def __init__(self, name, position, scale, texture, has_text=False, static=False):
             self.button_type = name
             self.scale_factor = LobbyUI.scale_factor
-            self.scale = (scale[0] * self.scale_factor[0], scale[1] * self.scale_factor[1])
+            self.scale = (int(scale[0] * self.scale_factor[0]), int(scale[1] * self.scale_factor[1]))
             self.png = pygame.transform.smoothscale(texture, self.scale)
             self.position = (position[0] * self.scale_factor[0], position[1] * self.scale_factor[1])
 
@@ -570,7 +569,7 @@ class LobbyUI:
 
             self.window_type = window_type
             window_texture = pygame.image.load(LobbyUI.window_texture)
-            self.png = pygame.transform.smoothscale(window_texture, (820 * self.scale_factor[0], 1080 * self.scale_factor[1]))
+            self.png = pygame.transform.smoothscale(window_texture, (int(820 * self.scale_factor[0]), int(1080 * self.scale_factor[1])))
             self.position = (1100 * self.scale_factor[0], 0)
             self.text_font = pygame.font.Font(LobbyUI.button_font, int(30 * self.scale_factor[0]))
 
@@ -607,7 +606,7 @@ class LobbyUI:
         def __init__(self, id_, owner_name, player_count):
             self.scale_factor = LobbyUI.scale_factor
             tag_texture = pygame.image.load(LobbyUI.lobby_tag_texture)
-            self.png = pygame.transform.smoothscale(tag_texture, (1200 * self.scale_factor[0], 240 * self.scale_factor[1]))
+            self.png = pygame.transform.smoothscale(tag_texture, (int(1200 * self.scale_factor[0]), int(240 * self.scale_factor[1])))
             self.text_font = pygame.font.Font(LobbyUI.button_font, int(45 * self.scale_factor[0]))
 
             self.id = self.text_font.render(f"{id_}#", False, (0, 0, 0))
