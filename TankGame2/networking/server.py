@@ -80,12 +80,16 @@ class MainServer:
                         # client declared it joins a lobby
                         elif data[:-1] == "join":
                             target_lobby = self.get_lobby_by_id(int(data[-1]))
-                            print(len(target_lobby.users))
-                            if len(target_lobby.users) != protocol.MAX_PLAYERS_IN_LOBBY:
-                                # add user to the lobby
-                                self.move_user(sock, self.main_lobby, target_lobby)
+                            if target_lobby is not None:
+                                if len(target_lobby.users) != protocol.MAX_PLAYERS_IN_LOBBY:
+                                    # add user to the lobby
+                                    self.move_user(sock, self.main_lobby, target_lobby)
+                                # bring player back to the title screen, if the server is full or if it doesn't exist
+                                else:
+                                    sock.sendall("kick".encode())
                             else:
-                                sock.sendall("full".encode())
+                                print("aaa")
+                                sock.sendall("kick".encode())
                         # lobby's owner wants to start or cancel its game
                         elif data == "start":
                             lobby.start_cooldown()

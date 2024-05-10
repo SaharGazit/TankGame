@@ -188,6 +188,7 @@ class LobbyUI:
             # handle server data
             datas = self.client.get_buffer_data()
             for data in datas:
+                print(data)
                 if data == "start":
                     # start timer
                     og_time = time.perf_counter()
@@ -201,7 +202,7 @@ class LobbyUI:
                         self.switch_to_lobby_window()
                         self.button_list = [quit_button] + self.activated_window.buttons
 
-                elif data == "full":
+                elif data == "kick":
                     print("aaa")
                     self.exit_code = 1
 
