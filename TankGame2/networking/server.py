@@ -80,11 +80,12 @@ class MainServer:
                         # client declared it joins a lobby
                         elif data[:-1] == "join":
                             target_lobby = self.get_lobby_by_id(int(data[-1]))
-                            if len(target_lobby.users) <= 8:
+                            print(len(target_lobby.users))
+                            if len(target_lobby.users) != protocol.MAX_PLAYERS_IN_LOBBY:
                                 # add user to the lobby
                                 self.move_user(sock, self.main_lobby, target_lobby)
                             else:
-                                sock.sendall("full")
+                                sock.sendall("full".encode())
                         # lobby's owner wants to start or cancel its game
                         elif data == "start":
                             lobby.start_cooldown()
@@ -109,7 +110,7 @@ class MainServer:
         # form lobby list string
         ll = ""
         for lobby in self.lobbies[1:]:
-            if not lobby.game_server.game_started and len(lobby.users) != 8:
+            if not lobby.game_server.game_started and len(lobby.users) < protocol.MAX_PLAYERS_IN_LOBBY:
                 ll += f"{lobby.id}|{lobby.get_owner_name()}|{len(lobby.users)}||"
 
         # return no-lobbies if no available lobbies exist

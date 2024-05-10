@@ -202,6 +202,7 @@ class LobbyUI:
                         self.button_list = [quit_button] + self.activated_window.buttons
 
                 elif data == "full":
+                    print("aaa")
                     self.exit_code = 1
 
                 else:

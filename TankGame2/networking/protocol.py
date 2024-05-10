@@ -1,6 +1,6 @@
 
 main_port = 31410
-
+MAX_PLAYERS_IN_LOBBY = 2
 
 class User:
     def __init__(self, name="guest", team=0, addr=None):  # no socket, since it's already a part of a dictionary
