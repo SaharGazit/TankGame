@@ -1,5 +1,5 @@
 import pygame
-from TankGame2.object import Object, Player, Powerup, Bullet, Block
+from object import Object, Player, Powerup, Bullet, Block
 
 
 class Game:
@@ -146,7 +146,7 @@ class Game:
                 # send personal data to server
                 self.client.send_player_status(f"{round(this_player.global_position[0], 2)}|{round(this_player.global_position[1], 2)}|{round(this_player.rotation, 2)}|")
 
-            # loop for handling every object
+            # handling objects
             for o in objects[1:] + other_players + [this_player]:  # the players are "pushed" to the end in order to draw them last
 
                 if type(o) != Player or o == this_player:

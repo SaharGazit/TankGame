@@ -20,7 +20,6 @@ class Object:
 
         # PNG of the object
         self.texture = pygame.transform.scale(texture, self.scale)
-
         self.block_collision = [False, False, False, False]
 
     def draw_object(self):
@@ -59,7 +58,6 @@ class Object:
     @staticmethod
     def distance(obj1, obj2):
         return math.sqrt(math.pow(obj2.global_position[1] - obj2.global_position[0], 2) + math.pow(obj1.global_position[1] - obj1.global_position[0], 2))
-        # TODO: test this ^
 
     @staticmethod
     def local_to_global(local):
@@ -69,10 +67,12 @@ class Object:
 class Player(Object):
     MAX_SPEED = 5.2
     ACCELERATION = 0.8
+    next_player_id = 1
 
     def __init__(self, name, starting_position):
         # inherited from Object class
-        super().__init__(starting_position, 0, (48, 48), pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_hull.png"), 1)
+        super().__init__(starting_position, 0, (48, 48), pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_hull.png"), Player.next_player_id)
+        Player.next_player_id += 1
 
         # player name
         self.name = name  # player's name
@@ -80,12 +80,14 @@ class Player(Object):
         self.name_text = name_font.render(name, False, (0, 0, 255))
         self.name_size = name_font.size(name)
 
-        # gameplay variables
+        # movement
         self.acceleration = [0, 0]
         self.speed_x = 0
         self.speed_y = 0
+
+        # player info
+        self.hp = 3
         self.powerups = {}  # list of powerup effects currently on the player.
-        self.rotation = 0
 
         self.turret_texture = pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_turret.png")
 
@@ -94,6 +96,7 @@ class Player(Object):
         self.move_player()
         self.rotate_by_mouse()
         self.handle_powerups()
+        self.draw_player_ui()
 
         for coll in self.get_all_colliding_objects(everything):
             if type(coll) == Powerup:
@@ -108,10 +111,14 @@ class Player(Object):
                 # destroy powerup
                 coll.to_destroy = True
 
+            # bullet hit decreases hp
             if type(coll) == Bullet:
+                print(coll.parent.id)
+                print(self.id)
+                # checks if the bullet belongs to a different player, or if the bullet hit another wall
+                # this is to prevent the bullet from colliding with the shooter
                 if len(coll.wall_list) > 1 or coll.parent.id != self.id:
-                    print("Hit by a bullet")
-                    # TODO: bullet effects
+                    self.hp -= 1
                     coll.to_destroy = True
 
             if type(coll) == Block:
@@ -216,6 +223,12 @@ class Player(Object):
 
         # draw turret
         Object.screen.blit(turret_sprite, turret_rect)
+
+    # draw in-game ui (for example, hp hearts)
+    def draw_player_ui(self):
+        for i in range(self.hp):
+            a = pygame.Rect((30 + 100 * i) * self.scale_factor[0], 40 * self.scale_factor[1], 50 * self.scale_factor[0], 50 * self.scale_factor[1])
+            pygame.draw.rect(Object.screen, (255, 0, 0), a)
 
 
 class Block(Object):

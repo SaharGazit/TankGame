@@ -12,6 +12,7 @@ class MainServer:
         self.port = protocol.main_port
         self.main_lobby = Lobby(0)  # players who haven't connected to a server yet (socket:User)
         self.lobbies = [self.main_lobby]  # all lobbies
+        self.next_lobby_id = 1
 
         # tcp socket for handling the main stage
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -64,8 +65,9 @@ class MainServer:
                         # client declared it is hosting a lobby
                         if data == "host":
                             # add a new lobby
-                            self.lobbies.append(Lobby(self.get_new_id()))
+                            self.lobbies.append(Lobby(self.next_lobby_id))
                             print(f"{user.name} has created lobby {self.lobbies[-1].id}")
+                            self.next_lobby_id += 1
 
                             # add user to the lobby
                             self.move_user(sock, self.main_lobby, self.lobbies[-1])
@@ -122,16 +124,6 @@ class MainServer:
             return "no-lobbies"
         else:
             return ll[:-2]
-
-    def get_new_id(self):
-        possible_id = 1
-        while True:
-            if possible_id in [lobby.id for lobby in self.lobbies[1:]]:
-                possible_id += 1
-            else:
-                break
-        return possible_id
-
 
     @staticmethod
     def move_user(sock, from_, to):
