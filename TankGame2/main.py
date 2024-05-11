@@ -133,12 +133,6 @@ class Game:
                             for p in other_players:
                                 if p.name == data[2]:
                                     objects.append(Bullet(p))
-                                    break
-                        # picking up (powerups)
-                        elif data[1] == "p":
-                            for o in objects:
-                                if type(o) == Powerup and o.id == int(data[2]):
-                                    o.to_destroy = True
 
                     else:
                         print(data)
@@ -149,11 +143,14 @@ class Game:
             # handling objects
             for o in objects[1:] + other_players + [this_player]:  # the players are "pushed" to the end in order to draw them last
 
-                if type(o) != Player or o == this_player:
-                    # prevents the object from colliding with itself
-                    potential_collisions = list(objects + other_players)  # TODO: move this into the object's class?
-                    potential_collisions.remove(o)
-                    # update object
+                # prevents the object from colliding with itself
+                potential_collisions = list(objects + other_players)
+                potential_collisions.remove(o)
+
+                # update object
+                if o in other_players:
+                    o.update(potential_collisions, False)
+                else:
                     o.update(potential_collisions)
 
                 # destroy object if needed by removing it from the objects list
@@ -162,11 +159,6 @@ class Game:
                         objects.remove(o)
                     elif o in other_players:
                         other_players.remove(o)
-
-                    if not self.practice:
-                        # trigger destroy event
-                        if type(o) == Powerup:
-                            self.trigger_event("pickup", o)
 
                 # draw object
                 if o.in_screen():
@@ -184,10 +176,7 @@ class Game:
         # return exit code to the lobby when the main loop is over
         return self.exit_code
 
-    def trigger_event(self, action, obj=None):
-        command = f"E|{action[0]}"
-        if action == "pickup":
-            command += f"|{obj.id}"
-        self.client.send_data(command)
+    def trigger_event(self, action):
+        self.client.send_data(f"E|{action[0]}")
 
 

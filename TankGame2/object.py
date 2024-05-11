@@ -92,11 +92,12 @@ class Player(Object):
         self.turret_texture = pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_turret.png")
 
     # this function runs every game loop and is responsible for different continuous actions such as moving and rotating.
-    def update(self, everything):
-        self.move_player()
-        self.rotate_by_mouse()
-        self.handle_powerups()
-        self.draw_player_ui()
+    def update(self, everything, main=True):
+        if main:
+            self.move_player()
+            self.rotate_by_mouse()
+            self.handle_powerups()
+            self.draw_player_ui()
 
         for coll in self.get_all_colliding_objects(everything):
             if type(coll) == Powerup:
@@ -113,8 +114,6 @@ class Player(Object):
 
             # bullet hit decreases hp
             if type(coll) == Bullet:
-                print(coll.parent.id)
-                print(self.id)
                 # checks if the bullet belongs to a different player, or if the bullet hit another wall
                 # this is to prevent the bullet from colliding with the shooter
                 if len(coll.wall_list) > 1 or coll.parent.id != self.id:
