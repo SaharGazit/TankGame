@@ -69,7 +69,7 @@ class Player(Object):
     ACCELERATION = 0.8
     next_player_id = 1
 
-    def __init__(self, name, starting_position):
+    def __init__(self, name, starting_position, main=True):
         # inherited from Object class
         super().__init__(starting_position, 0, (48, 48), pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_hull.png"), Player.next_player_id)
         Player.next_player_id += 1
@@ -86,14 +86,15 @@ class Player(Object):
         self.speed_y = 0
 
         # player info
+        self.main = main
         self.hp = 3
         self.powerups = {}  # list of powerup effects currently on the player.
 
         self.turret_texture = pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_turret.png")
 
     # this function runs every game loop and is responsible for different continuous actions such as moving and rotating.
-    def update(self, everything, main=True):
-        if main:
+    def update(self, everything):
+        if self.main:
             self.move_player()
             self.rotate_by_mouse()
             self.handle_powerups()

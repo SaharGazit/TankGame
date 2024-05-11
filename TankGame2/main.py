@@ -113,7 +113,7 @@ class Game:
                                 for player in self.client.user_list[i]:
                                     # if they're a user in the lobby, add them to the play list
                                     if player.name == data[1]:
-                                        other_players.append(Player(player.name, [float(data[2]), float(data[3])]))
+                                        other_players.append(Player(player.name, [float(data[2]), float(data[3])], False))
                                         break
 
                     # if the message starts with L, it is a lobby update
@@ -147,11 +147,7 @@ class Game:
                 potential_collisions = list(objects + other_players)
                 potential_collisions.remove(o)
 
-                # update object
-                if o in other_players:
-                    o.update(potential_collisions, False)
-                else:
-                    o.update(potential_collisions)
+                o.update(potential_collisions)
 
                 # destroy object if needed by removing it from the objects list
                 if o.to_destroy:
