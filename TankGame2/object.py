@@ -5,6 +5,7 @@ import time
 
 class Object:
     SPRITE_DIRECTORY = "resources/objects"
+    UI_DIRECTORY = "resources/ui"
 
     camera_position = [0, 0]
     screen = None  # pygame screen used to draw the objects
@@ -50,10 +51,6 @@ class Object:
 
     def update(self, everything):
         pass
-
-    # marks the object to be destroyed
-    def destroy(self):
-        self.to_destroy = True
 
     @staticmethod
     def distance(obj1, obj2):
@@ -226,9 +223,10 @@ class Player(Object):
 
     # draw in-game ui (for example, hp hearts)
     def draw_player_ui(self):
+        hp_texture = pygame.image.load(f"{Object.UI_DIRECTORY}/hp.png")
+        hp_sprite = pygame.transform.scale(hp_texture, (100 * Object.scale_factor[0], 100 * Object.scale_factor[1]))
         for i in range(self.hp):
-            a = pygame.Rect((30 + 100 * i) * self.scale_factor[0], 40 * self.scale_factor[1], 50 * self.scale_factor[0], 50 * self.scale_factor[1])
-            pygame.draw.rect(Object.screen, (255, 0, 0), a)
+            Object.screen.blit(hp_sprite, ((25 + 130 * i) * self.scale_factor[0], 25 * self.scale_factor[1]))
 
 
 class Block(Object):
@@ -341,7 +339,7 @@ class Bullet(Object):
 
         # destroy bullet if it burned out
         if self.time_of_creation + self.lifetime <= time.perf_counter():
-            self.destroy()
+            self.to_destroy = True
         # reverse the bullets speed when it hits a wall
         if self.block_collision[0] or self.block_collision[2]:
             self.y_speed *= -1
