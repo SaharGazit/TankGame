@@ -1,5 +1,5 @@
 
-main_port = 31410
+main_port = 30000
 MAX_PLAYERS_IN_LOBBY = 2
 
 

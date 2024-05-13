@@ -1,12 +1,12 @@
 import socket
 import threading
-from TankGame2.networking import protocol
+import protocol
 
 
 class Client:
     def __init__(self):
         self.server_ip = '127.0.0.1'
-        self.server_port_tcp = 31410
+        self.server_port_tcp = protocol.main_port
         self.server_port_udp = None
         self.server_socket_tcp = None
         self.server_socket_udp = None
@@ -55,7 +55,7 @@ class Client:
         while self.running_tcp:
 
             data = self.server_socket_tcp.recv(1024)
-            # print(data.decode())
+            print(data.decode())
 
             # push data to the buffer
             self.buffer.append(data.decode())

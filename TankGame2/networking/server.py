@@ -254,6 +254,8 @@ class UDPServer:
         self.teams = [{}, {}]
         self.spawn_positions = [[(1000, 1000), (1100, 1000), (1200, 1000), (1300, 1000)], [(200, 200), (300, 200), (400, 200), (500, 200)]]
 
+        self.vcserver = VoiceChatServer(id_)
+
         self.running = False
         self.game_started = False
 
@@ -261,15 +263,21 @@ class UDPServer:
         for user in users.values():
             addr = (user.address[0], user.address[1] + 1)
             self.teams[user.team - 1][addr] = [user.name, False]
-        self.running = True
+            vc_addr = (user.address[0], user.address[1] + 2)
+            self.vcserver.clients.append(vc_addr)
 
+        self.running = True
         listen_thread = threading.Thread(target=self.listen, daemon=True)
         listen_thread.start()
+
+        self.vcserver.start()
 
     def stop(self):
         self.running = False
         self.teams = [{}, {}]
         self.spawn_positions = [[(1000, 1000), (1100, 1000)], [(200, 200), (300, 200), (400, 200), (500, 200)]]
+
+        self.vcserver.stop()
 
     def listen(self):
         while self.running:
@@ -313,6 +321,46 @@ class UDPServer:
             for player in self.teams[team].keys():
                 if self.teams[team][player][1] and player != exc:
                     self.server_socket.sendto(data.encode(), player)
+
+
+class VoiceChatServer:
+    def __init__(self, id_):
+        self.host = '0.0.0.0'  # Server IP
+        self.port = protocol.main_port + 10000 + id_  # Server port
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.server_socket.bind((self.host, self.port))
+        self.server_socket.settimeout(0.1)
+
+        self.clients = []
+        self.running = False
+
+    def start(self):
+        self.running = True
+        listen_thread = threading.Thread(target=self.listen, daemon=True)
+        listen_thread.start()
+
+    def stop(self):
+        self.clients = []
+        self.running = False
+
+    def listen(self):
+        while self.running:
+            try:
+                data, client_address = self.server_socket.recvfrom(4096)
+                if client_address in self.clients:
+                    # add client index to the message
+                    data = f"{self.clients.index(client_address)}".encode() + data
+
+                    self.broadcast(data, client_address)
+            except socket.timeout:
+                continue
+
+
+    def broadcast(self, data, sender_address):
+        for client_address in self.clients:
+            if client_address != sender_address:
+                self.server_socket.sendto(data, client_address)
+
 
 
 if __name__ == "__main__":

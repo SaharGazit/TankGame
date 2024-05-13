@@ -100,8 +100,6 @@ class Player(Object):
         else:
             # first object is always main player
             main = everything[0]
-            # get distance between main player to this player
-            print(self.distance(main, self))
 
         for coll in self.get_all_colliding_objects(everything):
             if type(coll) == Powerup:
