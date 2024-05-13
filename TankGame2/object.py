@@ -52,9 +52,10 @@ class Object:
     def update(self, everything):
         pass
 
+    # get distance between two objects using the Pythagorean theorem
     @staticmethod
     def distance(obj1, obj2):
-        return math.sqrt(math.pow(obj2.global_position[1] - obj2.global_position[0], 2) + math.pow(obj1.global_position[1] - obj1.global_position[0], 2))
+        return math.sqrt(math.pow(obj2.global_position[0] - obj1.global_position[0], 2) + math.pow(obj2.global_position[1] - obj1.global_position[1], 2))
 
     @staticmethod
     def local_to_global(local):
@@ -96,6 +97,11 @@ class Player(Object):
             self.rotate_by_mouse()
             self.handle_powerups()
             self.draw_player_ui()
+        else:
+            # first object is always main player
+            main = everything[0]
+            # get distance between main player to this player
+            print(self.distance(main, self))
 
         for coll in self.get_all_colliding_objects(everything):
             if type(coll) == Powerup:

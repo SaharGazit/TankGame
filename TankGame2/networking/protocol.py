@@ -17,6 +17,8 @@ class User:
         self.name = name
         self.team = team
 
+        self.distance_to_main = 0
+
     def login(self, username):
         self.name = username
         self.logged = True
