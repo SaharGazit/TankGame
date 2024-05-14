@@ -1,12 +1,13 @@
 import socket
 import threading
-import protocol
+from . import protocol, vc_client
+
 
 
 class Client:
     def __init__(self):
         self.server_ip = '127.0.0.1'
-        self.server_port_tcp = protocol.main_port
+        self.server_port_tcp = protocol.server_port
         self.server_port_udp = None
         self.server_socket_tcp = None
         self.server_socket_udp = None
@@ -19,6 +20,8 @@ class Client:
         self.name = "Guest"
         self.user_list = [[], []]
         self.lobby_id = -1
+
+        self.vcclient = None
 
         # a queue that holds data from the server
         self.buffer = []
@@ -38,6 +41,7 @@ class Client:
     def connect_udp(self):
         self.running_udp = True
         self.server_socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        print(self.own_port + 1)
         self.server_socket_udp.bind(("0.0.0.0", self.own_port + 1))
 
         self.server_port_udp = self.server_port_tcp + self.lobby_id
@@ -131,3 +135,14 @@ class Client:
 
     def can_start(self):
         return self.get_owner() == self.name and len(self.user_list[0]) > 0 and len(self.user_list[1]) > 0
+
+
+    def start_voice_client(self):
+        print("yup")
+        self.vcclient = vc_client.VoiceChatClient(self.lobby_id, self.own_port)
+        self.vcclient.start()
+
+    def stop_voice_client(self):
+        self.vcclient.running = False
+        self.vcclient.client_socket.close()
+

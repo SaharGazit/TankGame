@@ -9,7 +9,7 @@ import random
 class MainServer:
     def __init__(self):
         self.host = '0.0.0.0'
-        self.port = protocol.main_port
+        self.port = protocol.server_port
         self.main_lobby = Lobby(0)  # players who haven't connected to a server yet (socket:User)
         self.lobbies = [self.main_lobby]  # all lobbies
         self.next_lobby_id = 1
@@ -246,7 +246,7 @@ class UDPServer:
 
     def __init__(self, id_):
         self.host = "0.0.0.0"
-        self.port = protocol.main_port + id_
+        self.port = protocol.server_port + id_
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket.bind((self.host, self.port))
         self.server_socket.settimeout(0.1)
@@ -326,7 +326,7 @@ class UDPServer:
 class VoiceChatServer:
     def __init__(self, id_):
         self.host = '0.0.0.0'  # Server IP
-        self.port = protocol.main_port + 10000 + id_  # Server port
+        self.port = protocol.vcserver_port + id_  # Server port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket.bind((self.host, self.port))
         self.server_socket.settimeout(0.1)
@@ -353,6 +353,8 @@ class VoiceChatServer:
 
                     self.broadcast(data, client_address)
             except socket.timeout:
+                continue
+            except ConnectionResetError:
                 continue
 
 

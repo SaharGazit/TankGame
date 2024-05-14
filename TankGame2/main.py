@@ -41,6 +41,8 @@ class Game:
 
         # clock
         clock = pygame.time.Clock()
+        # start voice listener
+        self.client.start_voice_client()
 
         # main game loop
         while self.exit_code == 0:
@@ -166,6 +168,7 @@ class Game:
         if self.exit_code == 1 and not self.practice:
             # disconnect from udp server, if it opened
             self.client.disconnect_udp()
+            self.client.stop_voice_client()
             # notify server about leaving the game
             self.client.send_data("main")
 
