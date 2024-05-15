@@ -2,6 +2,7 @@ import socket
 import pyaudio
 import threading
 from . import protocol
+import array
 
 
 class VoiceChatClient:
@@ -25,10 +26,13 @@ class VoiceChatClient:
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.client_socket.bind(("0.0.0.0", port + 2))
         self.client_socket.settimeout(1)
-        self.running = False
 
+        self.running = False
         self.read_stream = None
         self.write_streams = {}
+
+        # temp
+        self.volume_factor = 2
 
     def start(self):
         self.running = True
@@ -55,7 +59,10 @@ class VoiceChatClient:
             data = self.read_stream.read(VoiceChatClient.CHUNK)
 
             # send audio
-            self.client_socket.sendto(data, (self.host, self.server_port))
+            try:
+                self.client_socket.sendto(data, (self.host, self.server_port))
+            except OSError:
+                continue
 
     # get stream - gets audio recording from the server and plays it
     def get_stream(self):
@@ -65,12 +72,19 @@ class VoiceChatClient:
                 data, addr = self.client_socket.recvfrom(4096)
             except socket.timeout:
                 continue
+            except OSError:
+                continue
 
             # get data index
             addr_id = data[0] - 48
             if addr_id in self.write_streams.keys():
-                data = data[1:]
-                self.write_streams[addr_id].write(data)
+                data = data[1:]  # remove address from data
+                # change volume by multiplying each sample of the audio data by a volume factor
+                data = array.array('h', data)
+                for i in range(len(data)):
+                    data[i] = int(data[i] * self.volume_factor)
+
+                self.write_streams[addr_id].write(data.tobytes())
             else:
                 # create a new stream
                 self.write_streams[addr_id] = self.audio.open(format=VoiceChatClient.FORMAT,

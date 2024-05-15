@@ -1,3 +1,1 @@
-hp system
-
-screen resize
+lobbies only work for 2 players
