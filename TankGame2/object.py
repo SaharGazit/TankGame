@@ -111,6 +111,10 @@ class Player(Object):
                 if coll.effect == 'speed':
                     self.acceleration = [self.acceleration[0] * 5, self.acceleration[1] * 5]
 
+                # heal powerup
+                if coll.effect == "heal":
+                    self.hp += 1
+
                 # destroy powerup
                 coll.to_destroy = True
 
@@ -378,11 +382,12 @@ class Bullet(Object):
 
 
 class Powerup(Object):
-    effects_duration = {'speed': 5}
+    effects_duration = {'speed': 5, "heal": 0}
 
-    def __init__(self, starting_position, effect, id_):
+
+    def __init__(self, starting_position, effect):
         # inherited from Object class
-        super().__init__(starting_position, 0, (32, 32), pygame.image.load(f"{Object.SPRITE_DIRECTORY}/speed.png"), id_)
+        super().__init__(starting_position, 0, (32, 32), pygame.image.load(f"{Object.SPRITE_DIRECTORY}/{effect}.png"), 0)
 
         self.effect = effect  # the effect the player would receive as they take the powerup.
         self.duration = Powerup.effects_duration[effect]  # the duration the effect would stay on the player

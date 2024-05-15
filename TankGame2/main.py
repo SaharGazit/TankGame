@@ -34,15 +34,16 @@ class Game:
                 if pos[0] == self.client.name:
                     this_player_start_positions = [int(pos[1]), int(pos[2])]
 
+            # start voice listener
+            self.client.start_voice_client()
+
         # objects currently on the map
         this_player = Player(self.client.name, this_player_start_positions)
         other_players = []
-        objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1), Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3), Powerup((1000, 1000), 'speed', 0)]
+        objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1), Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3), Powerup((1000, 1000), 'heal')]
 
         # clock
         clock = pygame.time.Clock()
-        # start voice listener
-        self.client.start_voice_client()
 
         # main game loop
         while self.exit_code == 0:
