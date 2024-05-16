@@ -264,7 +264,7 @@ class UDPServer:
             addr = (user.address[0], user.address[1] + 1)
             self.teams[user.team - 1][addr] = [user.name, False]
             vc_addr = (user.address[0], user.address[1] + 2)
-            self.vcserver.clients.append(vc_addr)
+            self.vcserver.clients[vc_addr] = user.name
 
         self.running = True
         listen_thread = threading.Thread(target=self.listen, daemon=True)
@@ -331,7 +331,7 @@ class VoiceChatServer:
         self.server_socket.bind((self.host, self.port))
         self.server_socket.settimeout(0.1)
 
-        self.clients = []
+        self.clients = {}
         self.running = False
 
     def start(self):
@@ -340,16 +340,16 @@ class VoiceChatServer:
         listen_thread.start()
 
     def stop(self):
-        self.clients = []
+        self.clients = {}
         self.running = False
 
     def listen(self):
         while self.running:
             try:
                 data, client_address = self.server_socket.recvfrom(4096)
-                if client_address in self.clients:
+                if client_address in self.clients.keys():
                     # add client index to the message
-                    data = f"{self.clients.index(client_address)}".encode() + data
+                    data = f"{self.clients[client_address]}||".encode() + data
 
                     self.broadcast(data, client_address)
             except socket.timeout:
@@ -359,7 +359,7 @@ class VoiceChatServer:
 
 
     def broadcast(self, data, sender_address):
-        for client_address in self.clients:
+        for client_address in self.clients.keys():
             if client_address != sender_address:
                 self.server_socket.sendto(data, client_address)
 

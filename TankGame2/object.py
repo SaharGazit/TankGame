@@ -98,11 +98,6 @@ class Player(Object):
             self.rotate_by_mouse()
             self.handle_powerups()
             self.draw_player_ui()
-        else:
-            # first object is always main player
-            main = everything[0]
-            # get distance to main player, in order to calculate vc volume
-            self.user.distance_to_main = self.distance(main, self)
 
         for coll in self.get_all_colliding_objects(everything):
             if type(coll) == Powerup:
