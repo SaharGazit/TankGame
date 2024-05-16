@@ -37,9 +37,10 @@ class Game:
             # start voice listener
             self.client.start_voice_client()
 
-        # objects currently on the map
-        this_player = Player(self.client.name, this_player_start_positions)
+        # get main player
+        this_player = Player(self.client.get_this(), this_player_start_positions)
         other_players = []
+        # objects currently on the map
         objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1), Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3), Powerup((1000, 1000), 'heal')]
 
         # clock
@@ -104,7 +105,7 @@ class Game:
                         # find right player
                         found = False
                         for player in other_players:
-                            if player.name == data[1]:
+                            if player.user.name == data[1]:
                                 found = True
                                 # update player position and rotation
                                 player.global_position = [float(data[2]), float(data[3])]
@@ -116,7 +117,7 @@ class Game:
                                 for player in self.client.user_list[i]:
                                     # if they're a user in the lobby, add them to the play list
                                     if player.name == data[1]:
-                                        other_players.append(Player(player.name, [float(data[2]), float(data[3])], False))
+                                        other_players.append(Player(player, [float(data[2]), float(data[3])], False))
                                         break
 
                     # if the message starts with L, it is a lobby update
@@ -125,7 +126,7 @@ class Game:
 
                         # remove players the no longer exist (they left)
                         for player in other_players:
-                            if player.name not in [a.name for a in self.client.user_list[0] + self.client.user_list[1]]:
+                            if player.user not in self.client.user_list[0] + self.client.user_list[1]:
                                 other_players.remove(player)
 
                     # handle events
@@ -134,7 +135,7 @@ class Game:
                         # shooting
                         if data[1] == 's':
                             for p in other_players:
-                                if p.name == data[2]:
+                                if p.user.name == data[2]:
                                     objects.append(Bullet(p))
 
                     else:

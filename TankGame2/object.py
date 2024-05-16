@@ -67,16 +67,17 @@ class Player(Object):
     ACCELERATION = 0.8
     next_player_id = 1
 
-    def __init__(self, name, starting_position, main=True):
+    def __init__(self, user, starting_position, main=True):
         # inherited from Object class
         super().__init__(starting_position, 0, (48, 48), pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_hull.png"), Player.next_player_id)
         Player.next_player_id += 1
 
-        # player name
-        self.name = name  # player's name
+        # player's user
+        self.user = user
+        # name
         name_font = pygame.font.Font("resources/fonts/font2.otf", int(15 * Object.scale_factor[0]))
-        self.name_text = name_font.render(name, False, (0, 0, 255))
-        self.name_size = name_font.size(name)
+        self.name_text = name_font.render(user.name, False, (0, 0, 255))
+        self.name_size = name_font.size(user.name)
 
         # movement
         self.acceleration = [0, 0]
@@ -100,6 +101,8 @@ class Player(Object):
         else:
             # first object is always main player
             main = everything[0]
+            # get distance to main player, in order to calculate vc volume
+            self.user.distance_to_main = self.distance(main, self)
 
         for coll in self.get_all_colliding_objects(everything):
             if type(coll) == Powerup:
@@ -113,7 +116,11 @@ class Player(Object):
 
                 # heal powerup
                 if coll.effect == "heal":
-                    self.hp += 1
+                    # add 1 ho unless hp is at max value
+                    if self.hp < 3:
+                        self.hp += 1
+                    else:
+                        continue
 
                 # destroy powerup
                 coll.to_destroy = True

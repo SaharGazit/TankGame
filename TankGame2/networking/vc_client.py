@@ -2,7 +2,7 @@ import socket
 import pyaudio
 import threading
 from . import protocol
-import array
+import numpy
 
 
 class VoiceChatClient:
@@ -80,9 +80,8 @@ class VoiceChatClient:
             if addr_id in self.write_streams.keys():
                 data = data[1:]  # remove address from data
                 # change volume by multiplying each sample of the audio data by a volume factor
-                data = array.array('h', data)
-                for i in range(len(data)):
-                    data[i] = int(data[i] * self.volume_factor)
+                data = numpy.frombuffer(data, dtype=numpy.int16) * self.volume_factor
+                data = data.astype(numpy.int16)
 
                 self.write_streams[addr_id].write(data.tobytes())
             else:

@@ -105,6 +105,14 @@ class Client:
                 return user.name
         return None
 
+    def get_this(self):
+        for user in self.user_list[0] + self.user_list[1]:
+            if user.name == self.name:
+                return user
+        # handle practice mode
+        if len(self.user_list[0] + self.user_list[1]) == 0:
+            return protocol.User(self.name, 1)
+
     def update_lobby(self, data):
         data = data.split("|")
         self.lobby_id = int(data[0][1])
@@ -138,7 +146,6 @@ class Client:
 
 
     def start_voice_client(self):
-        print("yup")
         self.vcclient = vc_client.VoiceChatClient(self.lobby_id, self.own_port)
         self.vcclient.start()
 

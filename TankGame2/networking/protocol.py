@@ -1,7 +1,7 @@
 server_ip = "127.0.0.1"
 server_port = 30000
 vcserver_port = 40000
-MAX_PLAYERS_IN_LOBBY = 2
+MAX_PLAYERS_IN_LOBBY = 8
 
 
 class User:
