@@ -34,7 +34,7 @@ class VoiceChatClient:
         # temp
         self.volume_factor = 2
 
-    def start(self):
+    def start(self, users):
         self.running = True
         # open audio stream
         self.read_stream = self.audio.open(format=VoiceChatClient.FORMAT, channels=VoiceChatClient.CHANNELS,
@@ -47,6 +47,11 @@ class VoiceChatClient:
 
         # reset streams
         self.write_streams = {}
+        for user in users:
+            self.write_streams[user] = self.audio.open(format=VoiceChatClient.FORMAT,
+                                                       channels=VoiceChatClient.CHANNELS,
+                                                       rate=VoiceChatClient.RATE, output=True,
+                                                       frames_per_buffer=VoiceChatClient.CHUNK)
 
         # open read thread
         read_thread = threading.Thread(target=self.get_stream, daemon=True)
@@ -77,15 +82,11 @@ class VoiceChatClient:
 
             # get data index
             name, data = data.split(b'||')
-            if name.decode() in self.write_streams.keys():
-                # change volume by multiplying each sample of the audio data by a volume factor
-                data = numpy.frombuffer(data, dtype=numpy.int16) * self.volume_factor
-                data = data.astype(numpy.int16)
+            for user in self.write_streams.keys():
+                if user.name == name.decode():
+                    # change volume by multiplying each sample of the audio data by a volume factor
+                    data = numpy.frombuffer(data, dtype=numpy.int16) * self.volume_factor
+                    data = data.astype(numpy.int16)
 
-                self.write_streams[name.decode()].write(data.tobytes())
-            else:
-                # create a new stream
-                self.write_streams[name.decode()] = self.audio.open(format=VoiceChatClient.FORMAT,
-                                                                    channels=VoiceChatClient.CHANNELS,
-                                                                    rate=VoiceChatClient.RATE, output=True,
-                                                                    frames_per_buffer=VoiceChatClient.CHUNK)
+                    # play sound
+                    self.write_streams[user].write(data.tobytes())

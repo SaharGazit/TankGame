@@ -147,7 +147,7 @@ class Client:
 
     def start_voice_client(self):
         self.vcclient = vc_client.VoiceChatClient(self.lobby_id, self.own_port)
-        self.vcclient.start()
+        self.vcclient.start(self.user_list[0] + self.user_list[1])
 
     def stop_voice_client(self):
         self.vcclient.running = False
