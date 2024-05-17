@@ -18,8 +18,19 @@ class User:
         self.name = name
         self.team = team
 
-        self.distance_to_main = 0
+        self.volume_factor = 0
 
     def login(self, username):
         self.name = username
         self.logged = True
+
+    hundred_radius = 200
+    zero_radius = 600
+
+    def set_volume_factor(self, distance_to_main):
+        if distance_to_main < 200:
+            self.volume_factor = 1
+        elif distance_to_main <= 600:
+            self.volume_factor = (600 - distance_to_main) / 400
+        else:
+            self.volume_factor = 0

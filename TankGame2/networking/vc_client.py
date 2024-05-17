@@ -31,9 +31,6 @@ class VoiceChatClient:
         self.read_stream = None
         self.write_streams = {}
 
-        # temp
-        self.volume_factor = 1
-
     def start(self, users):
         self.running = True
         # open audio stream
@@ -86,7 +83,8 @@ class VoiceChatClient:
             for user in self.write_streams.keys():
                 if user.name == name.decode():
                     # change volume by multiplying each sample of the audio data by a volume factor
-                    data = numpy.frombuffer(data, dtype=numpy.int16) * self.volume_factor
+                    print(user.volume_factor)
+                    data = numpy.frombuffer(data, dtype=numpy.int16) * user.volume_factor
                     data = data.astype(numpy.int16)
 
                     # play sound

@@ -99,9 +99,9 @@ class Player(Object):
             self.handle_powerups()
             self.draw_player_ui()
         else:
-            # update distance to main (to calculate volume)
+            # update volume factor
             main = everything[0]
-            self.user.distance_to_main = self.distance(main, self)
+            self.user.set_volume_factor(self.distance(main, self))
 
         for coll in self.get_all_colliding_objects(everything):
             if type(coll) == Powerup:
