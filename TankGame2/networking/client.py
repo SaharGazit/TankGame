@@ -41,7 +41,6 @@ class Client:
     def connect_udp(self):
         self.running_udp = True
         self.server_socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        print(self.own_port + 1)
         self.server_socket_udp.bind(("0.0.0.0", self.own_port + 1))
 
         self.server_port_udp = self.server_port_tcp + self.lobby_id

@@ -24,7 +24,7 @@ class VoiceChatClient:
 
         # create a UDP socket
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.client_socket.bind(("0.0.0.0", port + 2))
+        self.client_socket.bind(('0.0.0.0', port + 2))
         self.client_socket.settimeout(1)
 
         self.running = False
@@ -32,7 +32,7 @@ class VoiceChatClient:
         self.write_streams = {}
 
         # temp
-        self.volume_factor = 2
+        self.volume_factor = 1
 
     def start(self, users):
         self.running = True
@@ -48,6 +48,7 @@ class VoiceChatClient:
         # reset streams
         self.write_streams = {}
         for user in users:
+            print(user.name)
             self.write_streams[user] = self.audio.open(format=VoiceChatClient.FORMAT,
                                                        channels=VoiceChatClient.CHANNELS,
                                                        rate=VoiceChatClient.RATE, output=True,
@@ -90,3 +91,4 @@ class VoiceChatClient:
 
                     # play sound
                     self.write_streams[user].write(data.tobytes())
+                    break
