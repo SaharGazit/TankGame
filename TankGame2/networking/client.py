@@ -6,7 +6,7 @@ from . import protocol, vc_client
 
 class Client:
     def __init__(self):
-        self.server_ip = '127.0.0.1'
+        self.server_ip = protocol.server_ip
         self.server_port_tcp = protocol.server_port
         self.server_port_udp = None
         self.server_socket_tcp = None
