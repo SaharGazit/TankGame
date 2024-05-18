@@ -110,7 +110,7 @@ class Client:
                 return user
         # handle practice mode
         if len(self.user_list[0] + self.user_list[1]) == 0:
-            return protocol.User(self.name, 1)
+            return protocol.User(self.name, 0)
 
     def update_lobby(self, data):
         data = data.split("|")
@@ -125,8 +125,8 @@ class Client:
         # add a player
         elif data[1] == "join":
             # add new user
-            team = int(data[3]) - 1
-            self.user_list[team].append(protocol.User(data[2], team))
+            team = int(data[3])
+            self.user_list[team - 1].append(protocol.User(data[2], team))
         elif data[1] == "leave":
             # remove user
             for t in range(2):

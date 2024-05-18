@@ -45,7 +45,6 @@ class VoiceChatClient:
         # reset streams
         self.write_streams = {}
         for user in users:
-            print(user.name)
             self.write_streams[user] = self.audio.open(format=VoiceChatClient.FORMAT,
                                                        channels=VoiceChatClient.CHANNELS,
                                                        rate=VoiceChatClient.RATE, output=True,
@@ -83,7 +82,6 @@ class VoiceChatClient:
             for user in self.write_streams.keys():
                 if user.name == name.decode():
                     # change volume by multiplying each sample of the audio data by a volume factor
-                    print(user.volume_factor)
                     data = numpy.frombuffer(data, dtype=numpy.int16) * user.volume_factor
                     data = data.astype(numpy.int16)
 

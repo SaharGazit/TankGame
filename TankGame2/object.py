@@ -65,7 +65,10 @@ class Object:
 class Player(Object):
     MAX_SPEED = 5.2
     ACCELERATION = 0.8
+    DEFAULT_HP = 3
     next_player_id = 1
+
+    name_colors = [(50, 50, 50), (0, 0, 255), (177, 0, 0)]
 
     def __init__(self, user, starting_position, main=True):
         # inherited from Object class
@@ -76,7 +79,7 @@ class Player(Object):
         self.user = user
         # name
         name_font = pygame.font.Font("resources/fonts/font2.otf", int(15 * Object.scale_factor[0]))
-        self.name_text = name_font.render(user.name, False, (0, 0, 255))
+        self.name_text = name_font.render(user.name, False, Player.name_colors[user.team])
         self.name_size = name_font.size(user.name)
 
         # movement
@@ -86,7 +89,8 @@ class Player(Object):
 
         # player info
         self.main = main
-        self.hp = 3
+        self.max_hp = Player.DEFAULT_HP
+        self.hp = self.max_hp
         self.powerups = {}  # list of powerup effects currently on the player.
 
         self.turret_texture = pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_turret.png")
@@ -109,17 +113,23 @@ class Player(Object):
                 # add the powerup effect to the player
                 self.powerups[coll.effect] = time.perf_counter()
 
-                # speed effect fix
+                # speed powerup (increases acceleration and max speed)
                 if coll.effect == 'speed':
                     self.acceleration = [self.acceleration[0] * 5, self.acceleration[1] * 5]
 
-                # heal powerup
-                if coll.effect == "heal":
-                    # add 1 ho unless hp is at max value
-                    if self.hp < 3:
-                        self.hp += 1
+                # heal powerup (refills hp)
+                elif coll.effect == "heal":
+                    # refills hp unless it is already at max value
+                    if self.hp < self.max_hp:
+                        self.hp = self.max_hp
                     else:
+                        # skip destroy object
                         continue
+
+                # 1up powerup (adds 1 to max hp)
+                elif coll.effect == "1up":
+                    self.max_hp += 1
+                    self.hp += 1
 
                 # destroy powerup
                 coll.to_destroy = True
@@ -128,7 +138,7 @@ class Player(Object):
             if type(coll) == Bullet:
                 # checks if the bullet belongs to a different player, or if the bullet hit another wall
                 # this is to prevent the bullet from colliding with the shooter
-                if len(coll.wall_list) > 1 or coll.parent.id != self.id:
+                if len(coll.wall_list) > 1 or coll.parent.user.team != self.user.team:
                     self.hp -= 1
                     coll.to_destroy = True
 
@@ -237,10 +247,16 @@ class Player(Object):
 
     # draw in-game ui (for example, hp hearts)
     def draw_player_ui(self):
-        hp_texture = pygame.image.load(f"{Object.UI_DIRECTORY}/hp.png")
-        hp_sprite = pygame.transform.scale(hp_texture, (100 * Object.scale_factor[0], 100 * Object.scale_factor[1]))
+        hp_texture = pygame.image.load(f"{Object.UI_DIRECTORY}/hitpoint.png")
+        ehp_texture = pygame.image.load(f"{Object.UI_DIRECTORY}/empty_hitpoint.png")
+        hp_sprite = pygame.transform.scale(hp_texture, (70 * Object.scale_factor[0], 70 * Object.scale_factor[1]))
+        ehp_sprite = pygame.transform.scale(ehp_texture, (70 * Object.scale_factor[0], 70 * Object.scale_factor[1]))
+        # draw full hit points
         for i in range(self.hp):
-            Object.screen.blit(hp_sprite, ((25 + 130 * i) * self.scale_factor[0], 25 * self.scale_factor[1]))
+            Object.screen.blit(hp_sprite, ((100 * i + 30) * self.scale_factor[0], 25 * self.scale_factor[1]))
+        # draw empty hit points
+        for i in range(self.max_hp - self.hp):
+            Object.screen.blit(ehp_sprite, ((100 * (self.hp + i) + 30) * self.scale_factor[0], 25 * self.scale_factor[1]))
 
 
 class Block(Object):
@@ -388,7 +404,7 @@ class Bullet(Object):
 
 
 class Powerup(Object):
-    effects_duration = {'speed': 5, "heal": 0}
+    effects_duration = {'speed': 5, "heal": 0, "1up": 0}
 
 
     def __init__(self, starting_position, effect):
