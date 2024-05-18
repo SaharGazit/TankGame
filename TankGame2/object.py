@@ -91,8 +91,10 @@ class Player(Object):
         self.main = main
         self.max_hp = Player.DEFAULT_HP
         self.hp = self.max_hp
+        self.alive = True
         self.powerups = {}  # list of powerup effects currently on the player.
 
+        # turret texture
         self.turret_texture = pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_turret.png")
 
     # this function runs every game loop and is responsible for different continuous actions such as moving and rotating.
@@ -107,44 +109,49 @@ class Player(Object):
             main = everything[0]
             self.user.set_volume_factor(self.distance(main, self))
 
-        for coll in self.get_all_colliding_objects(everything):
-            if type(coll) == Powerup:
+        if self.alive:
+            for coll in self.get_all_colliding_objects(everything):
+                if type(coll) == Powerup:
 
-                # add the powerup effect to the player
-                self.powerups[coll.effect] = time.perf_counter()
+                    # add the powerup effect to the player
+                    self.powerups[coll.effect] = time.perf_counter()
 
-                # speed powerup (increases acceleration and max speed)
-                if coll.effect == 'speed':
-                    self.acceleration = [self.acceleration[0] * 5, self.acceleration[1] * 5]
+                    # speed powerup (increases acceleration and max speed)
+                    if coll.effect == 'speed':
+                        self.acceleration = [self.acceleration[0] * 5, self.acceleration[1] * 5]
 
-                # heal powerup (refills hp)
-                elif coll.effect == "heal":
-                    # refills hp unless it is already at max value
-                    if self.hp < self.max_hp:
-                        self.hp = self.max_hp
-                    else:
-                        # skip destroy object
-                        continue
+                    # heal powerup (refills hp)
+                    elif coll.effect == "heal":
+                        # refills hp unless it is already at max value
+                        if self.hp < self.max_hp:
+                            self.hp = self.max_hp
+                        else:
+                            # skip destroy object
+                            continue
 
-                # 1up powerup (adds 1 to max hp)
-                elif coll.effect == "1up":
-                    self.max_hp += 1
-                    self.hp += 1
+                    # 1up powerup (adds 1 to max hp)
+                    elif coll.effect == "1up":
+                        self.max_hp += 1
+                        self.hp += 1
 
-                # destroy powerup
-                coll.to_destroy = True
-
-            # bullet hit decreases hp
-            if type(coll) == Bullet:
-                # checks if the bullet belongs to a different player, or if the bullet hit another wall
-                # this is to prevent the bullet from colliding with the shooter
-                if len(coll.wall_list) > 1 or coll.parent.user.team != self.user.team:
-                    self.hp -= 1
+                    # destroy powerup
                     coll.to_destroy = True
 
-            if type(coll) == Block:
-                side = coll.get_side(self)
-                self.block_collision[side] = True  # prevent moving in this direction
+                # bullet hit decreases hp
+                if type(coll) == Bullet:
+                    # checks if the bullet belongs to a different player, or if the bullet hit another wall
+                    # this is to prevent the bullet from colliding with the shooter
+                    if len(coll.wall_list) > 1 or coll.parent.user.team != self.user.team:
+                        # decrease hp by 1. if hp drops to 0, player is dead
+                        self.hp -= 1
+                        if self.hp == 0:
+                            self.kill()
+                        # destroy bullet
+                        coll.to_destroy = True
+
+                if type(coll) == Block:
+                    side = coll.get_side(self)
+                    self.block_collision[side] = True  # prevent moving in this direction
 
     def move_player(self):
         # increase maximum speed if player is under "speed" effect
@@ -257,6 +264,18 @@ class Player(Object):
         # draw empty hit points
         for i in range(self.max_hp - self.hp):
             Object.screen.blit(ehp_sprite, ((100 * (self.hp + i) + 30) * self.scale_factor[0], 25 * self.scale_factor[1]))
+
+    def kill(self):
+        # in case the player was killed while having more than 0 hp
+        if self.hp != 0:
+            self.hp = 0
+
+        self.alive = False
+
+        # make player components transparent
+        self.texture.set_alpha(100)
+        self.turret_texture.set_alpha(100)
+        self.name_text.set_alpha(100)
 
 
 class Block(Object):

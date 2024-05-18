@@ -86,7 +86,7 @@ class Game:
 
                 # pressing left mouse buttons shoots a bullet
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1:  # (1 = left mouse click)
+                    if event.button == 1 and this_player.alive:  # (1 = left mouse click)
                         # creates a bullet with the position and rotation of the player, and creates a bullet shoot event
                         objects.append(Bullet(this_player))
                         if not self.practice:
@@ -162,9 +162,14 @@ class Game:
                     elif o in other_players:
                         other_players.remove(o)
 
-                # draw object
+                # draw object if it's inside the screen
                 if o.in_screen():
-                    o.draw_object()
+                    if type(o) == Player:
+                        # avoid drawing a player if they are a ghost (and this player isn't one)
+                        if o.alive or not this_player.alive:
+                            o.draw_object()
+                    else:
+                        o.draw_object()
 
             # update screen
             pygame.display.flip()
