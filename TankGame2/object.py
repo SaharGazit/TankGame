@@ -105,9 +105,13 @@ class Player(Object):
             self.handle_powerups()
             self.draw_player_ui()
         else:
-            # update volume factor
             main = everything[0]
-            self.user.set_volume_factor(self.distance(main, self))
+            if self.alive or not main.alive:
+                # update volume factor according to distance
+                self.user.set_volume_factor(self.distance(main, self))
+            else:
+                # mute voice if the player is a ghost, and main player isn't one
+                self.user.set_volume_factor(1000)
 
         if self.alive:
             for coll in self.get_all_colliding_objects(everything):
