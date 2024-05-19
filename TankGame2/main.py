@@ -43,7 +43,7 @@ class Game:
         # objects currently on the map
         objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1),
                    Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3),
-                   Powerup((800, 800), 'speed'), Powerup((1000, 800), 'heal'), Powerup((1200, 800), '1up')]
+                   Powerup((800, 800), 'speed'), Powerup((1000, 800), 'heal'), Powerup((1200, 800), '1up'), Powerup((1400, 800), 'strength')]
 
         # clock
         clock = pygame.time.Clock()

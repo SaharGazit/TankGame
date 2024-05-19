@@ -147,8 +147,8 @@ class Player(Object):
                     # this is to prevent the bullet from colliding with the shooter
                     if len(coll.wall_list) > 1 or coll.parent.user.team != self.user.team:
                         # decrease hp by 1. if hp drops to 0, player is dead
-                        self.hp -= 1
-                        if self.hp == 0:
+                        self.hp -= 1 + coll.fire
+                        if self.hp <= 0:
                             self.kill()
                         # destroy bullet
                         coll.to_destroy = True
@@ -374,10 +374,13 @@ class Bullet(Object):
         bullet_position[0] += self.x_speed * Bullet.DISTANCE_FROM_CENTER * Object.scale_factor[0]
         bullet_position[1] += self.y_speed * Bullet.DISTANCE_FROM_CENTER * Object.scale_factor[1]
 
-
         super().__init__(bullet_position, parent.rotation, Bullet.SCALE, pygame.image.load(f"{Object.SPRITE_DIRECTORY}/bullet.png"), 0)
+        # fire bullet
+        self.fire = "strength" in parent.powerups.keys()
+        self.fire_texture = pygame.image.load(f"{Object.SPRITE_DIRECTORY}/fire_bullet.png")
+        self.fire_texture = pygame.transform.scale(self.fire_texture, self.scale)
 
-        # The play who shot the bullet
+        # The player who shot the bullet
         self.parent = parent
         self.wall_list = [-1]  # list of wall blocks ids collided with (contains dupes)
 
@@ -425,9 +428,16 @@ class Bullet(Object):
                         self.block_collision[coll.get_side(self)] = True  # "tell" the bullet to change direction accordingly
                         self.wall_list.append(coll.id)  # add this wall to the bullet's wall list
 
+    def draw_object(self):
+        if self.fire:
+            self.screen.blit(self.fire_texture, self.local_position())
+        else:
+            super().draw_object()
+
+
 
 class Powerup(Object):
-    effects_duration = {'speed': 5, "heal": 0, "1up": 0}
+    effects_duration = {'speed': 5, "heal": 0, "1up": 0, 'strength': 5}
 
 
     def __init__(self, starting_position, effect):
