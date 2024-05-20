@@ -357,13 +357,10 @@ class VoiceChatServer:
             except ConnectionResetError:
                 continue
 
-
     def broadcast(self, data, sender_address):
         for client_address in self.clients.keys():
             if client_address != sender_address:
                 self.server_socket.sendto(data, client_address)
-
-
 
 if __name__ == "__main__":
     main_server = MainServer()

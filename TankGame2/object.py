@@ -155,7 +155,12 @@ class Player(Object):
 
                 if type(coll) == Block:
                     side = coll.get_side(self)
-                    self.block_collision[side] = True  # prevent moving in this direction
+                    if side is None:
+                        # crash into wall
+                        self.kill()
+                    else:
+                        # prevent moving in this direction
+                        self.block_collision[side] = True
 
     def move_player(self):
         # increase maximum speed if player is under "speed" effect

@@ -61,12 +61,17 @@ class LobbyUI:
 
         arguments = ""
         running = True
+        reconnect = False
         while running:
             # executes the current screen function
             exec(f"self.{self.screen_name}({arguments})")
 
+            # code -2: restart program
+            if self.exit_code == -2:
+                running = False
+                reconnect = True
             # code -1: shut down program immediately
-            if self.exit_code == -1:
+            elif self.exit_code == -1:
                 running = False
             # code 0: program running. not supposed to reach this point with code 0
             elif self.exit_code == 0:
@@ -95,6 +100,7 @@ class LobbyUI:
 
         print("Tank Game closed")
         pygame.quit()
+        return reconnect
 
     def title(self):
         Button = LobbyUI.Button
@@ -111,12 +117,15 @@ class LobbyUI:
         play_button = Button('Play', (100, 400), (400, 100), button_texture, True, True)
         name_text = button_font.render(f'Logged as   "{self.client.name}"', False, (0, 0, 0))
         offline_text = button_font.render(f'(offline mode)', False, (155, 155, 155))
+        reconnect_button = Button('Reconnect', (700, 500), (100, 100), button_texture, False, True)
         account_button = Button('Account', (100, 600), (400, 100), button_texture, True, True)
         quit_button = Button('Quit', (100, 800), (400, 100), button_texture, True, True)
 
         # default window is title screen is None
         self.activated_window = LobbyUI.Window("None")
         self.button_list = [play_button, account_button, quit_button]
+        if self.client.offline_mode:
+            self.button_list.append(reconnect_button)
 
         # main program loop
         while self.exit_code == 0:
@@ -431,7 +440,7 @@ class LobbyUI:
                                     self.exit_code = 4
                                 # confirm quit/back case: exit the current window
                                 elif button.button_type == "ConfirmQuit" or button.button_type == "Back":
-                                    self.exit_code = 1
+                                    self.exit_code = -1
                                 # cancel quit case: remove the quit window
                                 elif button.button_type == "CancelQuit":
                                     remove_window()
@@ -445,7 +454,6 @@ class LobbyUI:
                                 # cancel case: cancel the game countdown
                                 elif button.button_type == "Cancel":
                                     self.client.send_data("cancel")
-
                                 # can only press one button at once
                                 break
 
@@ -460,6 +468,9 @@ class LobbyUI:
                                 # close the window, if the player pressed on its button twice
                                 if button.button_type == prev_type:
                                     remove_window()
+                                # restart game on pressing reconnect
+                                elif button.button_type == "Reconnect":
+                                    self.exit_code = -2
                                 # activate the window that belongs to the button
                                 else:
                                     self.activated_window = LobbyUI.Window(button.button_type, self.client.offline_mode)
@@ -488,7 +499,6 @@ class LobbyUI:
             self.png = pygame.transform.smoothscale(texture, self.scale)
             self.position = (position[0] * self.scale_factor[0], position[1] * self.scale_factor[1])
 
-
             # true if the player's mouse is on the button
             self.hovered = False
             # true if the button doesn't depend on the window
@@ -504,7 +514,6 @@ class LobbyUI:
                 self.text = ""
                 self.font = pygame.font.Font(LobbyUI.button_font, int(25 * self.scale_factor[0]))
                 self.centered = False
-
 
         def draw_button(self, screen_, ):
             # change button attributes depending on them being hovered or disabled
@@ -626,5 +635,7 @@ class LobbyUI:
 
 
 if __name__ == "__main__":
-    lobby_ui = LobbyUI()
-    lobby_ui.main()
+    restart = True
+    while restart:
+        lobby_ui = LobbyUI()
+        restart = lobby_ui.main()
