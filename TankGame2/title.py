@@ -19,6 +19,7 @@ class LobbyUI:
     nametag_texture2 = "resources/ui/settings2.png"
     lobby_tag_texture = "resources/ui/lobby_tag.png"
     arrow_right_texture = "resources/ui/right_arrow.png"
+    reconnect_texture = "resources/ui/reconnect.png"
 
     background_color = (230, 230, 230)
     design_resolution = (1920, 1080)
@@ -116,16 +117,18 @@ class LobbyUI:
         button_font = pygame.font.Font(LobbyUI.button_font, int(20 * scale_factor[0]))
         play_button = Button('Play', (100, 400), (400, 100), button_texture, True, True)
         name_text = button_font.render(f'Logged as   "{self.client.name}"', False, (0, 0, 0))
-        offline_text = button_font.render(f'(offline mode)', False, (155, 155, 155))
-        reconnect_button = Button('Reconnect', (700, 500), (100, 100), button_texture, False, True)
         account_button = Button('Account', (100, 600), (400, 100), button_texture, True, True)
         quit_button = Button('Quit', (100, 800), (400, 100), button_texture, True, True)
+        offline_text = button_font.render(f'(offline mode)', False, (155, 155, 155))
+        reconnect_texture = pygame.image.load(LobbyUI.reconnect_texture)
+        reconnect_button = Button('Reconnect', (390, 565), (30, 30), reconnect_texture, False, True)
 
         # default window is title screen is None
         self.activated_window = LobbyUI.Window("None")
         self.button_list = [play_button, account_button, quit_button]
         if self.client.offline_mode:
             self.button_list.append(reconnect_button)
+            self.button_list[1].disabled = True
 
         # main program loop
         while self.exit_code == 0:
@@ -151,7 +154,7 @@ class LobbyUI:
 
             # player's name at the button, and an offline mode disclaimer
             if self.client.offline_mode:
-                self.screen.blit(offline_text, (195 * scale_factor[0], 575 * scale_factor[1]))
+                self.screen.blit(offline_text, (170 * scale_factor[0], 575 * scale_factor[1]))
             else:
                 self.screen.blit(name_text, (155 * scale_factor[0], 575 * scale_factor[1]))
 
