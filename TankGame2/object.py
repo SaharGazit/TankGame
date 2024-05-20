@@ -102,7 +102,6 @@ class Player(Object):
         if self.main:
             self.move_player()
             self.rotate_by_mouse()
-            self.handle_powerups()
             self.draw_player_ui()
         else:
             main = everything[0]
@@ -112,6 +111,7 @@ class Player(Object):
             else:
                 # mute voice if the player is a ghost, and main player isn't one
                 self.user.set_volume_factor(1000)
+        self.handle_powerups()
 
         if self.alive:
             for coll in self.get_all_colliding_objects(everything):
