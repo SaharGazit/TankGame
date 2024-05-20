@@ -1,7 +1,7 @@
 import pygame
 import main
 import time
-from networking import Client
+from client import Client
 
 
 class LobbyUI:
@@ -636,9 +636,3 @@ class LobbyUI:
             screen_.blit(self.owner_name, (position[0] + 230 * self.scale_factor[0], position[1] + 98 * self.scale_factor[1]))
             screen_.blit(self.player_count, (position[0] + 1010 * self.scale_factor[0], position[1] + 98 * self.scale_factor[1]))
 
-
-if __name__ == "__main__":
-    restart = True
-    while restart:
-        lobby_ui = LobbyUI()
-        restart = lobby_ui.main()

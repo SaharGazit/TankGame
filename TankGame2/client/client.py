@@ -1,7 +1,6 @@
 import socket
 import threading
-from . import protocol, vc_client
-
+from . import VoiceChatClient, protocol
 
 
 class Client:
@@ -58,7 +57,7 @@ class Client:
         while self.running_tcp:
 
             data = self.server_socket_tcp.recv(1024)
-            print(data.decode())
+            # print(data.decode())
 
             # push data to the buffer
             self.buffer.append(data.decode())
@@ -145,7 +144,7 @@ class Client:
 
 
     def start_voice_client(self):
-        self.vcclient = vc_client.VoiceChatClient(self.lobby_id, self.own_port)
+        self.vcclient = VoiceChatClient(self.lobby_id, self.own_port)
         self.vcclient.start(self.user_list[0] + self.user_list[1])
 
     def stop_voice_client(self):
