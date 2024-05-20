@@ -23,17 +23,18 @@ class GameServer:
         self.game_started = False
 
     def start(self, users):
+        vcs = {}
         for user in users.values():
             addr = (user.address[0], user.address[1] + 1)
             self.teams[user.team - 1][addr] = [user.name, False]
             vc_addr = (user.address[0], user.address[1] + 2)
-            self.vcserver.clients[vc_addr] = user.name
+            vcs[vc_addr] = user.name
 
         self.running = True
         listen_thread = threading.Thread(target=self.listen, daemon=True)
         listen_thread.start()
 
-        self.vcserver.start()
+        self.vcserver.start(vcs)
 
     def stop(self):
         self.running = False
