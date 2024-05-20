@@ -78,6 +78,7 @@ class LobbyUI:
                     running = False
                 else:
                     # go back to title screen
+                    self.client.get_this().team = 0
                     self.screen_name = "title"
             # code 2: move to lobby screen (after hosting or joining a server)
             elif self.exit_code == 2:
