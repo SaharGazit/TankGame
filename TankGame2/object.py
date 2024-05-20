@@ -260,8 +260,8 @@ class Player(Object):
     def draw_player_ui(self):
         hp_texture = pygame.image.load(f"{Object.UI_DIRECTORY}/hitpoint.png")
         ehp_texture = pygame.image.load(f"{Object.UI_DIRECTORY}/empty_hitpoint.png")
-        hp_sprite = pygame.transform.scale(hp_texture, (70 * Object.scale_factor[0], 70 * Object.scale_factor[1]))
-        ehp_sprite = pygame.transform.scale(ehp_texture, (70 * Object.scale_factor[0], 70 * Object.scale_factor[1]))
+        hp_sprite = pygame.transform.scale(hp_texture, (int(70 * Object.scale_factor[0]), int(70 * Object.scale_factor[1])))
+        ehp_sprite = pygame.transform.scale(ehp_texture, (int(70 * Object.scale_factor[0]), int(70 * Object.scale_factor[1])))
         # draw full hit points
         for i in range(self.hp):
             Object.screen.blit(hp_sprite, ((100 * i + 30) * self.scale_factor[0], 25 * self.scale_factor[1]))
