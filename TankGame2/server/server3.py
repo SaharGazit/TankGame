@@ -25,7 +25,10 @@ class VoiceChatServer:
     # starts listening for audio from the clients
     # users - dictionary that consists of socket addresses and their username
     def start(self, users):
-        self.clients = users
+        # add 2 to each port, so it won't interfere with the original one.
+        for addr in users.keys():
+            self.clients[(addr[0], addr[1] + 2)] = users[addr]
+
         self.running = True
         # starts listening thread
         listen_thread = threading.Thread(target=self.listen, daemon=True)

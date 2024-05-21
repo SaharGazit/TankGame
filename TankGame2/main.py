@@ -1,3 +1,5 @@
+import time
+
 import pygame
 from object import Object, Player, Powerup, Bullet, Block
 
@@ -23,23 +25,32 @@ class Game:
         Object.scale_factor = (screen_size[0] / 1920, screen_size[1] / 1080)
         Object.screen = self.screen
 
-        this_player_start_positions = [0, 0]
+        this_player = None
+        other_players = []
         if not self.practice:
-            # get starter positions
+            # get starter position from server
             positions = self.client.get_buffer_data(False)
-
-            # get own position
+            start_position = [0, 0]
             for pos in positions:
                 pos = pos.split('|')
                 if pos[0] == self.client.name:
-                    this_player_start_positions = [int(pos[1]), int(pos[2])]
+                    start_position = [int(pos[1]), int(pos[2])]
+
+            # create player for each user
+            for user in self.client.user_list[0] + self.client.user_list[1]:
+                # create main player
+                if user.name == self.client.name:
+                    this_player = Player(user, start_position)
+                # create other players
+                else:
+                    other_players.append(Player(user, [0, 0], False))
 
             # start voice listener
             self.client.start_voice_client()
+        else:
+            # in practice mode, use a dummy user to represent this player
+            this_player = Player(self.client.get_dummy_user(), [0, 0])
 
-        # get main player
-        this_player = Player(self.client.get_this(), this_player_start_positions)
-        other_players = []
         # objects currently on the map
         objects = [this_player, Block((500, 500), (100, 100), "wall", 0), Block((700, 500), (100, 100), "wall", 1),
                    Block((1100, 500), (100, 100), "box", 2), Block((1300, 500), (100, 100), "box", 3),
@@ -47,6 +58,10 @@ class Game:
 
         # clock
         clock = pygame.time.Clock()
+
+        # victory screen
+        win_conditions = [False, False]
+        v_time = None
 
         # main game loop
         while self.exit_code == 0:
@@ -98,29 +113,19 @@ class Game:
             self.screen.fill((159, 168, 191))
 
             if not self.practice:
-                # loop for handling server data
+                # server data handling
                 for data in self.client.get_buffer_data():
 
                     # if the message starts with G, it is a player update
                     if data[0] == "G":
                         data = data.split('|')
                         # find right player
-                        found = False
                         for player in other_players:
                             if player.user.name == data[1]:
-                                found = True
                                 # update player position and rotation
                                 player.global_position = [float(data[2]), float(data[3])]
                                 player.rotation = float(data[4])
                                 break
-                        # if player doesn't exist, check if they are a user in the lobby
-                        if not found:
-                            for i in range(2):
-                                for player in self.client.user_list[i]:
-                                    # if they're a user in the lobby, add them to the play list
-                                    if player.name == data[1]:
-                                        other_players.append(Player(player, [float(data[2]), float(data[3])], False))
-                                        break
 
                     # if the message starts with L, it is a lobby update
                     elif data[0] == "L":
@@ -146,7 +151,24 @@ class Game:
                 # send personal data to server
                 self.client.send_player_status(f"{round(this_player.global_position[0], 2)}|{round(this_player.global_position[1], 2)}|{round(this_player.rotation, 2)}|")
 
+                # trigger victory
+                if this_player.winner is None:
+                    # trigger victory screen if win condition is met
+                    if win_conditions[0]:
+                        this_player.winner = "red"
+                        v_time = time.perf_counter()
+                    elif win_conditions[1]:
+                        this_player.winner = "blue"
+                        v_time = time.perf_counter()
+
+                # victory screen timer
+                else:
+                    # leave the game 7 seconds after message is displayed
+                    if time.perf_counter() > v_time + 7:
+                        self.exit_code = 1
+
             # handling objects
+            win_conditions = [True, True]
             for o in objects[1:] + other_players + [this_player]:  # the players are "pushed" to the end in order to draw them last
 
                 # prevents the object from colliding with itself
@@ -170,6 +192,11 @@ class Game:
                             o.draw_object()
                     else:
                         o.draw_object()
+
+                # check win condition
+                if type(o) == Player and not self.practice:
+                    if o.alive:
+                        win_conditions[o.user.team - 1] = False
 
             # update screen
             pygame.display.flip()

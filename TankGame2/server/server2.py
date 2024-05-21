@@ -27,7 +27,7 @@ class GameServer:
         for user in users.values():
             addr = (user.address[0], user.address[1] + 1)
             self.teams[user.team - 1][addr] = [user.name, False]
-            vc_addr = (user.address[0], user.address[1] + 2)
+            vc_addr = (user.address[0], user.address[1])
             vcs[vc_addr] = user.name
 
         self.running = True

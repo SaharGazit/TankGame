@@ -16,7 +16,7 @@ class Object:
         self.id = object_id
         self.global_position = starting_position  # global position in the world map
         self.rotation = rotation
-        self.scale = (int(scale[0] * Object.scale_factor[0]), int(scale[1] * Object.scale_factor[1]))  # size of the object
+        self.scale = (int(scale[0] * self.scale_factor[0]), int(scale[1] * self.scale_factor[1]))  # size of the object
         self.to_destroy = False  # if true, the object is about to be removed from the objects list
 
         # PNG of the object
@@ -34,7 +34,7 @@ class Object:
     # returns the local_position - the position of the object on the user's screen
     def local_position(self):
         # return self.global_position[0] - Object.camera_position[0], self.global_position[1] - Object.camera_position[1]
-        return (self.global_position[0] - Object.camera_position[0]) * Object.scale_factor[0], (self.global_position[1] - Object.camera_position[1]) * Object.scale_factor[1]
+        return (self.global_position[0] - Object.camera_position[0]) * self.scale_factor[0], (self.global_position[1] - Object.camera_position[1]) * self.scale_factor[1]
 
     # returns the rect. takes already existing rect from the object's texture, and adds the rect position
     def get_rect(self):
@@ -75,10 +75,11 @@ class Player(Object):
         super().__init__(starting_position, 0, (48, 48), pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_hull.png"), Player.next_player_id)
         Player.next_player_id += 1
 
-        # player's user
+        # player's name
         self.user = user
         # name
-        name_font = pygame.font.Font("resources/fonts/font2.otf", int(15 * Object.scale_factor[0]))
+        name_font = pygame.font.Font("resources/fonts/font2.otf", int(15 * self.scale_factor[0]))
+        self.v_font = pygame.font.Font("resources/fonts/font2.otf", int(80 * self.scale_factor[0]))
         self.name_text = name_font.render(user.name, False, Player.name_colors[user.team])
         self.name_size = name_font.size(user.name)
 
@@ -93,6 +94,8 @@ class Player(Object):
         self.hp = self.max_hp
         self.alive = True
         self.powerups = {}  # list of powerup effects currently on the player.
+
+        self.winner = None
 
         # turret texture
         self.turret_texture = pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_turret.png")
@@ -190,8 +193,8 @@ class Player(Object):
             self.speed_y = 0
 
         # update camera
-        campos_x = self.scale[0] / 2 + self.global_position[0] - Object.screen_size[0] / (2 * Object.scale_factor[0])
-        campos_y = self.scale[1] / 2 + self.global_position[1] - Object.screen_size[1] / (2 * Object.scale_factor[1])
+        campos_x = self.scale[0] / 2 + self.global_position[0] - Object.screen_size[0] / (2 * self.scale_factor[0])
+        campos_y = self.scale[1] / 2 + self.global_position[1] - Object.screen_size[1] / (2 * self.scale_factor[1])
         Object.camera_position = [campos_x, campos_y]
 
         # reset all blockers
@@ -205,8 +208,8 @@ class Player(Object):
 
         # calculate distance between mouse and player
         c = self.local_position()
-        x_distance = target[0] - (c[0] + 22.5 * Object.scale_factor[0])
-        y_distance = target[1] - (c[1] + 22.5 * Object.scale_factor[1])
+        x_distance = target[0] - (c[0] + 22.5 * self.scale_factor[0])
+        y_distance = target[1] - (c[1] + 22.5 * self.scale_factor[1])
 
         # calculate rotation angle using the arc-tangent function
         self.rotation = math.degrees(math.atan2(y_distance, x_distance))
@@ -252,7 +255,7 @@ class Player(Object):
         turret_sprite = pygame.transform.rotate(self.turret_texture, -self.rotation - 90)
         turret_rect = turret_sprite.get_rect(center=center)
         # scale turret
-        turret_sprite = pygame.transform.scale(turret_sprite, (int(turret_rect.width * Object.scale_factor[0]), int(turret_rect.height * Object.scale_factor[1])))
+        turret_sprite = pygame.transform.scale(turret_sprite, (int(turret_rect.width * self.scale_factor[0]), int(turret_rect.height * self.scale_factor[1])))
         turret_rect = turret_sprite.get_rect(center=center)
 
         # draw name
@@ -263,16 +266,26 @@ class Player(Object):
 
     # draw in-game ui (for example, hp hearts)
     def draw_player_ui(self):
+        # hitpoint texture
         hp_texture = pygame.image.load(f"{Object.UI_DIRECTORY}/hitpoint.png")
         ehp_texture = pygame.image.load(f"{Object.UI_DIRECTORY}/empty_hitpoint.png")
-        hp_sprite = pygame.transform.scale(hp_texture, (int(70 * Object.scale_factor[0]), int(70 * Object.scale_factor[1])))
-        ehp_sprite = pygame.transform.scale(ehp_texture, (int(70 * Object.scale_factor[0]), int(70 * Object.scale_factor[1])))
+        hp_sprite = pygame.transform.scale(hp_texture, (int(70 * self.scale_factor[0]), int(70 * self.scale_factor[1])))
+        ehp_sprite = pygame.transform.scale(ehp_texture, (int(70 * self.scale_factor[0]), int(70 * self.scale_factor[1])))
         # draw full hit points
         for i in range(self.hp):
             Object.screen.blit(hp_sprite, ((100 * i + 30) * self.scale_factor[0], 25 * self.scale_factor[1]))
         # draw empty hit points
         for i in range(self.max_hp - self.hp):
             Object.screen.blit(ehp_sprite, ((100 * (self.hp + i) + 30) * self.scale_factor[0], 25 * self.scale_factor[1]))
+
+        # victory message
+        if self.winner is not None:
+            if self.winner == "red":
+                color = (255, 0, 0)
+            else:
+                color = (0, 0, 255)
+            v_text = self.v_font.render(self.winner + " team victory!", False, color)
+            Object.screen.blit(v_text, (400 * self.scale_factor[0], 200 * self.scale_factor[1]))
 
     def kill(self):
         # in case the player was killed while having more than 0 hp
@@ -337,11 +350,11 @@ class Block(Object):
     # returns at which side of the block another object is (top, right, bottom, left)
     def get_side(self, obj: Object):
         # get the top left and the bottom right corners of the block and the referenced object
-        block_corner = self.local_position()[0] + self.scale[0] - 3 * Object.scale_factor[0], self.local_position()[1] + self.scale[1] - 3 * Object.scale_factor[1]
-        obj_corner = obj.local_position()[0] + obj.scale[0] - 3 * Object.scale_factor[0], obj.local_position()[1] + obj.scale[1] - 3 * Object.scale_factor[1]
+        block_corner = self.local_position()[0] + self.scale[0] - 3 * self.scale_factor[0], self.local_position()[1] + self.scale[1] - 3 * self.scale_factor[1]
+        obj_corner = obj.local_position()[0] + obj.scale[0] - 3 * self.scale_factor[0], obj.local_position()[1] + obj.scale[1] - 3 * self.scale_factor[1]
 
         # on the top side
-        if self.local_position()[1] + 2 * Object.scale_factor[1] > obj_corner[1]:
+        if self.local_position()[1] + 2 * self.scale_factor[1] > obj_corner[1]:
             return 0
         # on the right side
         if block_corner[0] < obj.local_position()[0]:
@@ -350,14 +363,14 @@ class Block(Object):
         if block_corner[1] < obj.local_position()[1]:
             return 2
         # on the left side
-        if self.local_position()[0] + 2 * Object.scale_factor[0] > obj_corner[0]:
+        if self.local_position()[0] + 2 * self.scale_factor[0] > obj_corner[0]:
             return 3
 
     # blocks have a bigger collider than their sprite
     def get_rect(self):
-        rect = pygame.Rect(0, 0, self.scale[0] + 10 * Object.scale_factor[0], self.scale[1] + 10 * Object.scale_factor[1])
-        rect.x = self.local_position()[0] - 5 * Object.scale_factor[0]
-        rect.y = self.local_position()[1] - 5 * Object.scale_factor[1]
+        rect = pygame.Rect(0, 0, self.scale[0] + 10 * self.scale_factor[0], self.scale[1] + 10 * self.scale_factor[1])
+        rect.x = self.local_position()[0] - 5 * self.scale_factor[0]
+        rect.y = self.local_position()[1] - 5 * self.scale_factor[1]
 
         return rect
 
@@ -375,9 +388,9 @@ class Bullet(Object):
         self.y_speed = Bullet.SPEED * math.sin(math.radians(parent.rotation))
 
         # get bullet spawn position (which is between the base and the tip of the turret)
-        bullet_position = [parent.global_position[0] + (parent.scale[0] / 2 - Bullet.SCALE[0] * Object.scale_factor[0] / 2), parent.global_position[1] + (parent.scale[1] / 2 - Bullet.SCALE[1] * Object.scale_factor[1] / 2)]
-        bullet_position[0] += self.x_speed * Bullet.DISTANCE_FROM_CENTER * Object.scale_factor[0]
-        bullet_position[1] += self.y_speed * Bullet.DISTANCE_FROM_CENTER * Object.scale_factor[1]
+        bullet_position = [parent.global_position[0] + (parent.scale[0] / 2 - Bullet.SCALE[0] * self.scale_factor[0] / 2), parent.global_position[1] + (parent.scale[1] / 2 - Bullet.SCALE[1] * self.scale_factor[1] / 2)]
+        bullet_position[0] += self.x_speed * Bullet.DISTANCE_FROM_CENTER * self.scale_factor[0]
+        bullet_position[1] += self.y_speed * Bullet.DISTANCE_FROM_CENTER * self.scale_factor[1]
 
         super().__init__(bullet_position, parent.rotation, Bullet.SCALE, pygame.image.load(f"{Object.SPRITE_DIRECTORY}/bullet.png"), 0)
         # fire bullet
