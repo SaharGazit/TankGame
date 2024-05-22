@@ -1,3 +1,5 @@
+import os
+import random
 import time
 
 import pygame
@@ -213,5 +215,3 @@ class Game:
 
     def trigger_event(self, action):
         self.client.send_data(f"E|{action[0]}")
-
-

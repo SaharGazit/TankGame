@@ -60,40 +60,46 @@ class LobbyUI:
             self.client.name = data[0]
             self.client.own_port = int(data[1])
 
-        arguments = ""
         running = True
         reconnect = False
+        arguments = ""
         while running:
             # executes the current screen function
             exec(f"self.{self.screen_name}({arguments})")
+            arguments = ""
 
-            # code -2: restart program
+            # case -2: restart program
             if self.exit_code == -2:
                 running = False
                 reconnect = True
-            # code -1: shut down program immediately
+            # case -1: shut down program immediately
             elif self.exit_code == -1:
                 running = False
-            # code 0: program running. not supposed to reach this point with code 0
+            # case 0: program running. not supposed to reach this point with code 0
             elif self.exit_code == 0:
                 raise Exception("Screen closed with exit code 0")
-            # code 1: quit the screen, go back
+            # case 1: quit the screen, go back
             elif self.exit_code == 1:
                 # quitting the title screens quits the game
+                print(self.screen_name)
                 if self.screen_name == "title":
                     running = False
                 else:
                     # go back to title screen
                     self.screen_name = "title"
-            # code 2: move to lobby screen (after hosting or joining a server)
+            # case 2: move to lobby screen (after hosting or joining a server)
             elif self.exit_code == 2:
                 self.screen_name = "lobby"
-            # code 3: move to lobby browser screen (before joining a server)
+            # case 3: move to lobby browser screen (before joining a server)
             elif self.exit_code == 3:
                 self.screen_name = "lobby_browser"
-            # code 4: move to game screen (after a lobby starts or after pressing practice)
+            # case 4: move to game screen (after a lobby starts or after pressing practice)
             elif self.exit_code == 4:
                 self.screen_name = "game"
+            # case login/signup: move to account screen
+            else:
+                arguments = f"'{self.exit_code}'"
+                self.screen_name = "account"
 
             # reset exit code
             self.exit_code = 0
@@ -179,8 +185,8 @@ class LobbyUI:
         player_tags = [(Button("Nametag", (30, 400), (100, 100), nam_texture1, False, True), Button("Nametag", (30, 550), (100, 100), nam_texture1, False, True), Button("Nametag", (30, 700), (100, 100), nam_texture1, False, True), Button("Nametag", (30, 850), (100, 100), nam_texture1, False, True)),
                        (Button("Nametag", (520, 400), (100, 100), nam_texture2, False, True), Button("Nametag", (520, 550), (100, 100), nam_texture2, False, True), Button("Nametag", (520, 700), (100, 100), nam_texture2, False, True), Button("Nametag", (520, 850), (100, 100), nam_texture2, False, True))]
         subtitle_font = pygame.font.Font(LobbyUI.button_font, int(30 * scale_factor[0]))
-        blue_text = subtitle_font.render("Blue Team", False, (0, 0, 0))
-        red_text = subtitle_font.render("Red Team", False, (0, 0, 0))
+        blue_text = subtitle_font.render("Blue Team", False, (0, 0, 230))
+        red_text = subtitle_font.render("Red Team", False, (230, 0, 0))
 
         # cancel button
         cancel_button = LobbyUI.Button('Cancel', (1300, 900), (400, 100), pygame.image.load(LobbyUI.button2_texture), True)
@@ -278,7 +284,6 @@ class LobbyUI:
                         self.button_list.append(cancel_button)
                         break
 
-
             # draw buttons
             for button in self.button_list:
                 button.draw_button(self.screen)
@@ -364,6 +369,44 @@ class LobbyUI:
 
             pygame.display.flip()
 
+    def account(self, screen_type):
+        Button = LobbyUI.Button
+        Window = LobbyUI.Window
+        scale_factor = LobbyUI.scale_factor
+
+        # title
+        title_font = pygame.font.Font(LobbyUI.title_font, int(80 * self.scale_factor[0]))
+        title_text = title_font.render(screen_type.upper(), False, (0, 0, 0))
+        title_alpha = 255
+
+        header_font = pygame.font.Font(LobbyUI.button_font, int(30 * scale_factor[0]))
+        username_header = header_font.render("Enter Username", False, (0, 0, 0))
+        password_header = header_font.render("Enter Password", False, (0, 0, 0))
+        password_header2 = header_font.render("Confirm Password", False, (0, 0, 0))
+
+        # no windows in lobby browser screen
+        self.activated_window = Window("None")
+        self.button_list = []
+
+        while self.exit_code == 0:
+            self.event_handler()
+
+            # background
+            self.screen.fill(LobbyUI.background_color)
+
+            # title
+            title_text.set_alpha(abs(title_alpha))
+            self.screen.blit(title_text, (700 * scale_factor[0], 50 * scale_factor[1]))
+            title_alpha = self.get_new_alpha_value(title_alpha)
+
+            # headers
+            self.screen.blit(username_header, (200 * self.scale_factor[0], 200 * self.scale_factor[1]))
+            self.screen.blit(password_header, (200 * self.scale_factor[0], 400 * self.scale_factor[1]))
+            self.screen.blit(password_header2, (200 * self.scale_factor[0], 600 * self.scale_factor[1]))
+
+            # update screen
+            pygame.display.flip()
+
     # switches window to lobby window
     def switch_to_lobby_window(self):
         self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id, len(self.client.user_list[0] + self.client.user_list[1]), self.client.get_owner(), self.client.can_start()])
@@ -404,7 +447,7 @@ class LobbyUI:
                 # actions for when the player presses Escape
                 if event.key == pygame.K_ESCAPE:
                     # quit window immediately. if the current screen is the lobby browser
-                    if self.screen_name == "lobby_browser":
+                    if self.screen_name == "lobby_browser" or self.screen_name == "account":
                         self.exit_code = 1
 
                     # when there is no activated window, or the current window is the lobby window, open the quit confirmation window
@@ -442,7 +485,7 @@ class LobbyUI:
                                     self.exit_code = 4
                                 # confirm quit/back case: exit the current window
                                 elif button.button_type == "ConfirmQuit" or button.button_type == "Back":
-                                    self.exit_code = -1
+                                    self.exit_code = 1
                                 # cancel quit case: remove the quit window
                                 elif button.button_type == "CancelQuit":
                                     remove_window()
@@ -456,7 +499,9 @@ class LobbyUI:
                                 # cancel case: cancel the game countdown
                                 elif button.button_type == "Cancel":
                                     self.client.send_data("cancel")
-                                # can only press one button at once
+                                # login/signup case: go to account screen
+                                elif button.button_type == "Login" or button.button_type == "Signup":
+                                    self.exit_code = button.button_type
                                 break
 
                     # remove the window, and check for main button interactions (static buttons)
@@ -559,7 +604,7 @@ class LobbyUI:
     class Window:
         TEXTS = {"None": "[]",
                  "Play": "[(self.text_font.render('Select Option:', False, (0, 0, 0)), (1185, 90))]",
-                 "Account": "[(self.text_font.render('Coming Soon', False, (0, 0, 0)), (1185, 90))]",
+                 "Account": "[(self.text_font.render('Manage Account:', False, (0, 0, 0)), (1185, 90))]",
                  "Quit": "[(self.text_font.render('Are you sure you want to quit?', False, (0, 0, 0)), (1185, 90))]",
                  "Lobby": "[(self.text_font.render('Game Info:', False, (0, 0, 0)), (1185, 90)), "
                           "(self.text_font.render('Lobby ID:   ' + str(data[0]) + '#', False, (0, 0, 0)), (1185, 200)), "
@@ -571,7 +616,8 @@ class LobbyUI:
                    "Play": "[LobbyUI.Button('Host', (1150, 170), (400, 100), pygame.image.load(LobbyUI.button2_texture), True), "
                            "LobbyUI.Button('Join', (1150, 280), (400, 100), pygame.image.load(LobbyUI.button2_texture), True), "
                            "LobbyUI.Button('Practice', (1150, 390), (400, 100), pygame.image.load(LobbyUI.button2_texture), True)]",
-                   "Account": "[]",
+                   "Account": "[LobbyUI.Button('Login', (1150, 170), (400, 100), pygame.image.load(LobbyUI.button2_texture), True), "
+                              "LobbyUI.Button('Signup', (1150, 280), (400, 100), pygame.image.load(LobbyUI.button2_texture), True)]",
                    "Quit": "[LobbyUI.Button('ConfirmQuit', (1310.5, 170), (125, 125), pygame.image.load(LobbyUI.confirm_texture)), "
                            "LobbyUI.Button('CancelQuit', (1584.5, 170), (125, 125), pygame.image.load(LobbyUI.cancel_texture))]",
                    "Lobby": "[LobbyUI.Button('Start', (1300, 900), (400, 100), pygame.image.load(LobbyUI.button2_texture), True)]"
@@ -634,4 +680,7 @@ class LobbyUI:
             screen_.blit(self.id, (position[0] + 68 * self.scale_factor[0], position[1] + 98 * self.scale_factor[1]))
             screen_.blit(self.owner_name, (position[0] + 230 * self.scale_factor[0], position[1] + 98 * self.scale_factor[1]))
             screen_.blit(self.player_count, (position[0] + 1010 * self.scale_factor[0], position[1] + 98 * self.scale_factor[1]))
+
+    class InputField:
+        pass
 
