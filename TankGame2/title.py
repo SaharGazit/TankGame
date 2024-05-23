@@ -44,8 +44,9 @@ class LobbyUI:
         self.activated_window = LobbyUI.Window("None")
         self.exit_code = 0  # equals 0 while the program is running. after the program finishes, it determines what to do next
 
-        # list of available buttons
+        # list of available buttons and fields
         self.button_list = []
+        self.field_list = []
 
         # client
         self.client = Client()
@@ -372,6 +373,7 @@ class LobbyUI:
     def account(self, screen_type):
         Button = LobbyUI.Button
         Window = LobbyUI.Window
+        Field = LobbyUI.InputField
         scale_factor = LobbyUI.scale_factor
 
         # title
@@ -379,14 +381,28 @@ class LobbyUI:
         title_text = title_font.render(screen_type.upper(), False, (0, 0, 0))
         title_alpha = 255
 
+        # text input headers
         header_font = pygame.font.Font(LobbyUI.button_font, int(30 * scale_factor[0]))
-        username_header = header_font.render("Enter Username", False, (0, 0, 0))
-        password_header = header_font.render("Enter Password", False, (0, 0, 0))
+        username_header = header_font.render("Username", False, (0, 0, 0))
+        password_header = header_font.render("Password", False, (0, 0, 0))
         password_header2 = header_font.render("Confirm Password", False, (0, 0, 0))
+
+        # input fields
+        field_font = pygame.font.Font(LobbyUI.button_font, int(20 * scale_factor[0]))
+        username = Field((675, 300), field_font)
+        password = Field((675, 560), field_font, True)
+        con_password = Field((675, 820), field_font, True)
+
+        # buttons
+        can_texture = pygame.image.load(LobbyUI.cancel_texture)
+        back_button = Button('Back', (1770, 22.5), (125, 125), can_texture)
 
         # no windows in lobby browser screen
         self.activated_window = Window("None")
-        self.button_list = []
+        self.button_list = [back_button]
+        self.field_list = [username, password]
+        if screen_type == "Signup":
+            self.field_list.append(con_password)
 
         while self.exit_code == 0:
             self.event_handler()
@@ -400,16 +416,44 @@ class LobbyUI:
             title_alpha = self.get_new_alpha_value(title_alpha)
 
             # headers
-            self.screen.blit(username_header, (200 * self.scale_factor[0], 200 * self.scale_factor[1]))
-            self.screen.blit(password_header, (200 * self.scale_factor[0], 400 * self.scale_factor[1]))
-            self.screen.blit(password_header2, (200 * self.scale_factor[0], 600 * self.scale_factor[1]))
+            self.screen.blit(username_header, (790 * self.scale_factor[0], 200 * self.scale_factor[1]))
+            self.screen.blit(password_header, (790 * self.scale_factor[0], 460 * self.scale_factor[1]))
+            if screen_type == "Signup":
+                self.screen.blit(password_header2, (705 * self.scale_factor[0], 720 * self.scale_factor[1]))
+
+            # input fields
+            for field in self.field_list:
+                field.draw_field(self.screen)
+
+            # buttons
+            for button in self.button_list:
+                button.draw_button(self.screen)
 
             # update screen
             pygame.display.flip()
 
+        self.field_list = []
+
     # switches window to lobby window
     def switch_to_lobby_window(self):
         self.activated_window = LobbyUI.Window("Lobby", data=[self.client.lobby_id, len(self.client.user_list[0] + self.client.user_list[1]), self.client.get_owner(), self.client.can_start()])
+
+    def remove_window(self, fd=False):
+        if self.screen_name == "lobby":
+            self.switch_to_lobby_window()
+
+            # remove all window buttons except lobby window buttons
+            self.button_list = [b for b in self.button_list if b.static]
+            if not fd:
+                self.button_list += self.activated_window.buttons
+
+        # in the lobby screen, the side window can't be removed
+        else:
+            # remove the activated window
+            self.activated_window = LobbyUI.Window("None")
+
+            # remove all window buttons
+            self.button_list = [b for b in self.button_list if b.static]
 
     def game(self):
         game = main.Game(self.screen, self.client)
@@ -420,31 +464,15 @@ class LobbyUI:
         # 60 dps
         self.clock.tick(60)
 
-        def remove_window(fd=False):
-            if self.screen_name == "lobby":
-                self.switch_to_lobby_window()
-
-                # remove all window buttons except lobby window buttons
-                self.button_list = [b for b in self.button_list if b.static]
-                if not fd:
-                    self.button_list += self.activated_window.buttons
-
-            # in the lobby screen, the side window can't be removed
-            else:
-                # remove the activated window
-                self.activated_window = LobbyUI.Window("None")
-
-                # remove all window buttons
-                self.button_list = [b for b in self.button_list if b.static]
-
         mouse_x, mouse_y = pygame.mouse.get_pos()
         for event in pygame.event.get():
             # if user closes the window, stop the game from running.
             if event.type == pygame.QUIT:
                 self.exit_code = -1
 
+            # triggered when the user stops holding a key
             if event.type == pygame.KEYUP:
-                # actions for when the player presses Escape
+                # pressing escape
                 if event.key == pygame.K_ESCAPE:
                     # quit window immediately. if the current screen is the lobby browser
                     if self.screen_name == "lobby_browser" or self.screen_name == "account":
@@ -461,13 +489,28 @@ class LobbyUI:
 
                     # when there is an activated window, close it
                     else:
-                        remove_window()
+                        self.remove_window()
+
+            # triggered when the user presses down a key
+            if event.type == pygame.KEYDOWN:
+                # get key name
+                key_name = pygame.key.name(event.key)
+                # check for selected input fields
+                for field in self.field_list:
+                    if field.selected:
+                        # add clicked letter to the text
+                        if len(key_name) == 1 and (key_name.isnumeric() or key_name.isalpha()):
+                            field.text = field.text + key_name
+                        # delete last letter from the text, the text is not empty
+                        elif key_name == "backspace" and len(field.text) > 0:
+                            field.text = field.text[:-1]
 
             # left click events
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    # check if player pressed inside the new window (non-static buttons) or a lobby browser button since they function the same way
-                    if self.activated_window.get_rect().collidepoint(mouse_x, mouse_y) or self.screen_name == "lobby_browser":
+                    # check if player pressed inside the new window (non-static buttons) or a lobby browser/account button since they function the same way
+                    if self.activated_window.get_rect().collidepoint(mouse_x, mouse_y) or self.screen_name == "lobby_browser" or self.screen_name == "account":
+                        # check button
                         for button in [a for a in self.button_list if not a.static]:
                             # get which button the player is clicking on, and activate it
                             if button.get_rect().collidepoint(mouse_x, mouse_y):
@@ -488,7 +531,7 @@ class LobbyUI:
                                     self.exit_code = 1
                                 # cancel quit case: remove the quit window
                                 elif button.button_type == "CancelQuit":
-                                    remove_window()
+                                    self.remove_window()
                                 # lobby case: join a selected lobby
                                 elif button.button_type[:-1] == "Lobby":
                                     self.client.send_data(f"join{button.button_type[-1]}")
@@ -503,23 +546,28 @@ class LobbyUI:
                                 elif button.button_type == "Login" or button.button_type == "Signup":
                                     self.exit_code = button.button_type
                                 break
+                        # check input fields
+                        for field in self.field_list:
+                            # get which field the player is pressing on
+                            if field.rect.collidepoint(mouse_x, mouse_y):
+                                field.selected = not field.selected
+                            # unselect the field if the player clicked elsewhere
+                            else:
+                                field.selected = False
 
                     # remove the window, and check for main button interactions (static buttons)
                     else:
                         prev_type = self.activated_window.window_type
-                        remove_window(True)
+                        self.remove_window(True)
                         # pressed a main button
                         for button in [a for a in self.button_list if a.static]:
                             # find the interacted button
                             if button.get_rect().collidepoint(mouse_x, mouse_y):
-                                # close the window, if the player pressed on its button twice
-                                if button.button_type == prev_type:
-                                    remove_window()
                                 # restart game on pressing reconnect
-                                elif button.button_type == "Reconnect":
+                                if button.button_type == "Reconnect":
                                     self.exit_code = -2
                                 # activate the window that belongs to the button
-                                else:
+                                elif button.button_type != prev_type:
                                     self.activated_window = LobbyUI.Window(button.button_type, self.client.offline_mode)
                                     self.button_list += self.activated_window.buttons
 
@@ -682,5 +730,34 @@ class LobbyUI:
             screen_.blit(self.player_count, (position[0] + 1010 * self.scale_factor[0], position[1] + 98 * self.scale_factor[1]))
 
     class InputField:
-        pass
+        UNSELECTED_COLOR = (255, 255, 255)
+        SELECTED_COLOR = (200, 200, 200)
+        TEXT_COLOR = (140, 140, 140)
+
+        def __init__(self, position, font, hidden=False):
+            self.scale_factor = LobbyUI.scale_factor
+            self.position = (position[0] * self.scale_factor[0], position[1] * self.scale_factor[1])
+            self.scale = (450 * self.scale_factor[0], 60 * self.scale_factor[1])
+            self.rect = pygame.Rect(self.position, self.scale)
+
+            self.text = ""
+            self.font = font
+
+            self.selected = False
+            self.hidden = hidden
+
+        def draw_field(self, screen_):
+            if self.selected:
+                pygame.draw.rect(screen_, LobbyUI.InputField.SELECTED_COLOR, self.rect)
+            else:
+                pygame.draw.rect(screen_, LobbyUI.InputField.UNSELECTED_COLOR, self.rect)
+
+
+            if self.hidden:
+                text = "•" * len(self.text)
+            else:
+                text = self.text
+
+            field_text = self.font.render(text, False, LobbyUI.InputField.TEXT_COLOR)
+            screen_.blit(field_text, (self.position[0] + 5 * self.scale_factor[0], self.position[1] + 22 * self.scale_factor[1]))
 
