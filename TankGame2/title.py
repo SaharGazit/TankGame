@@ -38,6 +38,7 @@ class LobbyUI:
         LobbyUI.scale_factor = (user_screen_size[0] / LobbyUI.design_resolution[0], user_screen_size[1] / LobbyUI.design_resolution[1])
 
         self.screen_name = "title"  # determines which screen to print and interact with
+        self.shift_held = False
         self.clock = pygame.time.Clock()
 
         # running process for current screen
@@ -491,19 +492,33 @@ class LobbyUI:
                     else:
                         self.remove_window()
 
+                # cancel shift
+                elif event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
+                    self.shift_held = False
+
             # triggered when the user presses down a key
             if event.type == pygame.KEYDOWN:
                 # get key name
                 key_name = pygame.key.name(event.key)
+                # set shift status
+                if key_name == "left shift" or key_name == "right shift":
+                    self.shift_held = True
+
+                extra_symbols = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')']
                 # check for selected input fields
                 for field in self.field_list:
                     if field.selected:
-                        # add clicked letter to the text
-                        if len(key_name) == 1 and (key_name.isnumeric() or key_name.isalpha()):
-                            field.text = field.text + key_name
-                        # delete last letter from the text, the text is not empty
-                        elif key_name == "backspace" and len(field.text) > 0:
-                            field.text = field.text[:-1]
+                        if self.shift_held:
+                            # add shifted letter
+                            if key_name.isnumeric():
+                                field.text = field.text + extra_symbols[int(key_name) - 1]
+                        else:
+                            # add clicked letter to the text
+                            if len(key_name) == 1 and (key_name.isnumeric() or key_name.isalpha()):
+                                field.text = field.text + key_name
+                            # delete last letter from the text, the text is not empty
+                            elif key_name == "backspace" and len(field.text) > 0:
+                                field.text = field.text[:-1]
 
             # left click events
             if event.type == pygame.MOUSEBUTTONDOWN:
