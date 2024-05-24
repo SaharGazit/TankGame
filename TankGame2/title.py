@@ -388,6 +388,10 @@ class LobbyUI:
         password_header = header_font.render("Password", False, (0, 0, 0))
         password_header2 = header_font.render("Confirm Password", False, (0, 0, 0))
 
+        # error text
+        error_font = pygame.font.Font(LobbyUI.button_font, int(20 * scale_factor[0]))
+        error = ""
+
         # input fields
         field_font = pygame.font.Font(LobbyUI.button_font, int(20 * scale_factor[0]))
         username = Field((675, 300), field_font)
@@ -396,17 +400,31 @@ class LobbyUI:
 
         # buttons
         can_texture = pygame.image.load(LobbyUI.cancel_texture)
+        button_texture = pygame.image.load(LobbyUI.button2_texture)
         back_button = Button('Back', (1770, 22.5), (125, 125), can_texture)
+        ok_button = Button('Done', (1200, 280), (400, 100), button_texture, True)
 
         # no windows in lobby browser screen
         self.activated_window = Window("None")
-        self.button_list = [back_button]
+        self.button_list = [back_button, ok_button]
         self.field_list = [username, password]
         if screen_type == "Signup":
             self.field_list.append(con_password)
 
         while self.exit_code == 0:
             self.event_handler()
+
+            # handle server data
+            datas = self.client.get_buffer_data()
+            for data in datas:
+                try:
+                    data = data.split("|")
+                    # update error message
+                    if data[0] == "invalid":
+                        error = data[1]
+
+                except IndexError:
+                    continue
 
             # background
             self.screen.fill(LobbyUI.background_color)
@@ -421,6 +439,10 @@ class LobbyUI:
             self.screen.blit(password_header, (790 * self.scale_factor[0], 460 * self.scale_factor[1]))
             if screen_type == "Signup":
                 self.screen.blit(password_header2, (705 * self.scale_factor[0], 720 * self.scale_factor[1]))
+
+            # error text
+            error_text = error_font.render(error, False, (200, 0, 0))
+            self.screen.blit(error_text, (1210, 400))
 
             # input fields
             for field in self.field_list:
@@ -560,6 +582,43 @@ class LobbyUI:
                                 # login/signup case: go to account screen
                                 elif button.button_type == "Login" or button.button_type == "Signup":
                                     self.exit_code = button.button_type
+                                # logged in / signed up (pressed the done button)
+                                elif button.button_type == "Done":
+
+                                    accepted = True
+                                    action = "login"
+                                    # check password confirmation
+                                    length = len(self.field_list)
+                                    if length == 3:
+                                        action = "signup"
+                                        # check if password equals to confirm password
+                                        if self.field_list[2].text != self.field_list[1].text:
+                                            accepted = False
+                                            self.client.buffer.append(f"invalid|passwords don't match")
+                                        # ignore confirm password in the next segment
+                                        length = 2
+
+                                    # handle each field
+                                    for i in range(length * accepted):
+                                        status = self.field_list[i].valid_input()
+                                        # input is invalid, update error message
+                                        if status != "accepted":
+                                            accepted = False
+                                            # get field name
+                                            if self.field_list[i].hidden:
+                                                f_name = "password"
+                                            else:
+                                                f_name = "username"
+
+                                            self.client.buffer.append(f"invalid|{f_name} {status}")
+                                            break
+
+                                    if accepted:
+                                        # send request to server
+                                        self.client.send_data(f"{action}|{self.field_list[0].text}|{self.field_list[1].text}")
+                                        # empty fields
+                                        for field in self.field_list:
+                                            field.text = ""
                                 break
                         # check input fields
                         for field in self.field_list:
@@ -776,3 +835,17 @@ class LobbyUI:
             field_text = self.font.render(text, False, LobbyUI.InputField.TEXT_COLOR)
             screen_.blit(field_text, (self.position[0] + 5 * self.scale_factor[0], self.position[1] + 22 * self.scale_factor[1]))
 
+        def valid_input(self):
+            if self.hidden:
+                # password needs to be 8 or more character long
+                if len(self.text) < 8:
+                    return "is too short (minimum 8)"
+                # password needs to contain letters and numbers
+                elif not any(letter.isdigit() for letter in self.text) or not any(letter.isalpha() for letter in self.text):
+                    return "needs to contain both letters and digits"
+
+                # username needs to be 3 or more character long
+            elif len(self.text) < 3:
+                return "is too short (minimum 3)"
+            else:
+                return "accepted"
