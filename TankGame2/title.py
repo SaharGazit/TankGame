@@ -602,6 +602,7 @@ class LobbyUI:
                                     for i in range(length * accepted):
                                         status = self.field_list[i].valid_input()
                                         # input is invalid, update error message
+                                        print(status)
                                         if status != "accepted":
                                             accepted = False
                                             # get field name
@@ -838,11 +839,13 @@ class LobbyUI:
         def valid_input(self):
             if self.hidden:
                 # password needs to be 8 or more character long
-                if len(self.text) < 8:
+                if len(self.text) < 6:
                     return "is too short (minimum 8)"
                 # password needs to contain letters and numbers
                 elif not any(letter.isdigit() for letter in self.text) or not any(letter.isalpha() for letter in self.text):
                     return "needs to contain both letters and digits"
+                else:
+                    return "accepted"
 
                 # username needs to be 3 or more character long
             elif len(self.text) < 3:

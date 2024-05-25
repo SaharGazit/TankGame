@@ -1,1 +1,3 @@
 start button wont shop up after canceling the leaving window in lobby
+
+change server script names

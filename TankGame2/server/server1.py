@@ -3,9 +3,14 @@ from lobby import Lobby
 import socket
 import wonderwords
 import select
+from pymongo import MongoClient
 
 
 class MainServer:
+    # database cluster
+    cluster = "mongodb+srv://sahargazit:MONGOCLAT@cluster0.dtxvb6d.mongodb.net/game?retryWrites=true&w=majority&appName=Cluster0" \
+
+
     def __init__(self):
         self.host = '0.0.0.0'
         self.port = protocol.server_port
@@ -16,6 +21,16 @@ class MainServer:
         # tcp socket for handling the main stage
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((self.host, self.port))
+
+        # mongodb client
+        client = MongoClient(MainServer.cluster)
+        users = client.game.users
+
+        # temp
+        user = {'username': 'Sahar', 'password': '12345'}
+        users.insert_one(user)
+        result = users.find_one({"username": "Sahar?"})
+        print(result)
 
     def main(self):
         print("Server started on {}:{}".format(self.host, self.port))
@@ -99,6 +114,13 @@ class MainServer:
                         # handle game events
                         elif data[0] == "E":
                             lobby.broadcast(data + "|" + user.name, sock)
+                        else:
+                            data = data.split("|")
+                            # handle account
+                            if data[0] == "login":
+                                print("login!" + str(data))
+                            elif data[0] == "signup":
+                                print("signup!" + str(data))
 
                 # disconnect users not responding
                 except ConnectionResetError:
