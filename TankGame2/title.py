@@ -58,9 +58,8 @@ class LobbyUI:
 
         # get account data
         if not self.client.offline_mode:
-            data = self.client.get_buffer_data(False)[0].split("|")
-            self.client.name = data[0]
-            self.client.own_port = int(data[1])
+            data = self.client.get_buffer_data(False)[0]
+            self.client.own_port = int(data)
 
         running = True
         reconnect = False
@@ -421,7 +420,18 @@ class LobbyUI:
                     data = data.split("|")
                     # update error message
                     if data[0] == "invalid":
-                        error = data[1]
+                        if data[1] == "1":
+                            error = "username already exists"
+                        elif data[1] == "2":
+                            error = "incorrect username/password"
+                        else:
+                            error = data[1]
+                    elif data[0] == "success":
+                        if screen_type == "Signup":
+                            self.exit_code = "Login"
+                        else:
+                            self.exit_code = 1
+                            self.client.login(username.text)
 
                 except IndexError:
                     continue
@@ -602,7 +612,6 @@ class LobbyUI:
                                     for i in range(length * accepted):
                                         status = self.field_list[i].valid_input()
                                         # input is invalid, update error message
-                                        print(status)
                                         if status != "accepted":
                                             accepted = False
                                             # get field name
@@ -617,9 +626,6 @@ class LobbyUI:
                                     if accepted:
                                         # send request to server
                                         self.client.send_data(f"{action}|{self.field_list[0].text}|{self.field_list[1].text}")
-                                        # empty fields
-                                        for field in self.field_list:
-                                            field.text = ""
                                 break
                         # check input fields
                         for field in self.field_list:
@@ -643,7 +649,7 @@ class LobbyUI:
                                     self.exit_code = -2
                                 # activate the window that belongs to the button
                                 elif button.button_type != prev_type:
-                                    self.activated_window = LobbyUI.Window(button.button_type, self.client.offline_mode)
+                                    self.activated_window = LobbyUI.Window(button.button_type, self.client.offline_mode, [self.client.logged])
                                     self.button_list += self.activated_window.buttons
 
         # update button hovering
@@ -764,10 +770,17 @@ class LobbyUI:
             exec(f"self.buttons = {LobbyUI.Window.BUTTONS[self.window_type]}")
             # disable buttons with conditions
             if window_type == "Play":
-                for button in self.buttons:
-                    if offline and (button.button_type == "Host" or button.button_type == "Join"):
-                        button.disabled = True
-            if window_type == "Lobby":
+                if offline or not data[0]:
+                    self.buttons[0].disabled = True
+                    self.buttons[1].disabled = True
+            elif window_type == "Account":
+                if data[0]:
+                    self.buttons[0].disabled = True
+                    self.buttons[1].disabled = True
+                else:
+                    # TODO: disabled logout button
+                    pass
+            elif window_type == "Lobby":
                 for button in self.buttons:
                     if not data[3] and button.button_type == "Start":
                         button.disabled = True

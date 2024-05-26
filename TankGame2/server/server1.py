@@ -1,15 +1,13 @@
 import protocol
 from lobby import Lobby
 import socket
-import wonderwords
 import select
 from pymongo import MongoClient
 
 
 class MainServer:
-    # database cluster
-    cluster = "mongodb+srv://sahargazit:MONGOCLAT@cluster0.dtxvb6d.mongodb.net/game?retryWrites=true&w=majority&appName=Cluster0" \
-
+    # database cluster at https://cloud.mongodb.com/v2/6651df10ac34d407537687c6#/metrics/replicaSet/6651e3235035b8486c814035/explorer/game/users/find
+    cluster = "mongodb+srv://sahargazit:MONGOCLAT@cluster0.dtxvb6d.mongodb.net/game?retryWrites=true&w=majority&appName=Cluster0"
 
     def __init__(self):
         self.host = '0.0.0.0'
@@ -24,13 +22,7 @@ class MainServer:
 
         # mongodb client
         client = MongoClient(MainServer.cluster)
-        users = client.game.users
-
-        # temp
-        user = {'username': 'Sahar', 'password': '12345'}
-        users.insert_one(user)
-        result = users.find_one({"username": "Sahar?"})
-        print(result)
+        self.userbase = client.game.users
 
     def main(self):
         print("Server started on {}:{}".format(self.host, self.port))
@@ -39,7 +31,6 @@ class MainServer:
         self.server_socket.listen()
 
         running = True
-        r = wonderwords.RandomWord()
         while running:
             # use select to wait for incoming connections or data from existing connections
             sockets, _, _ = select.select(
@@ -52,17 +43,14 @@ class MainServer:
                         conn, addr = self.server_socket.accept()
 
                         # create a user object
-                        user = protocol.User(addr=addr)
-                        # temp: the server manually logins the user - this will be done until I start working on the databases
-                        random_name = r.word(include_parts_of_speech=["noun"], word_min_length=3, word_max_length=8)
-                        user.login(random_name)
+                        user = protocol.User("guest", addr=addr)
 
                         # accept client
                         self.main_lobby.add_player(user, conn)
-                        print(f"Accepted Connection from {addr} as {random_name}")
+                        print(f"Accepted Connection from {addr}")
 
-                        # send the player their details
-                        conn.sendall(f"{user.name}|{user.address[1]}".encode())
+                        # confirm connection to player with port
+                        conn.sendall(f"{user.address[1]}".encode())
 
                     else:
                         # identify user and lobby
@@ -116,11 +104,17 @@ class MainServer:
                             lobby.broadcast(data + "|" + user.name, sock)
                         else:
                             data = data.split("|")
+                            result = ""
                             # handle account
                             if data[0] == "login":
-                                print("login!" + str(data))
+                                credentials = {"username": data[1], "password": data[2]}
+                                result = self.login_user(credentials, user)
+                                if result == "success":
+                                    user.login(data[1])
                             elif data[0] == "signup":
-                                print("signup!" + str(data))
+                                credentials = {"username": data[1], "password": data[2]}
+                                result = self.signup_user(credentials)
+                            sock.sendall(result.encode())
 
                 # disconnect users not responding
                 except ConnectionResetError:
@@ -166,3 +160,23 @@ class MainServer:
         for lobby in self.lobbies[1:]:
             if lobby.id == id_:
                 return lobby
+
+    def login_user(self, credentials, user):
+        the_user = self.find__user_in_database(credentials)
+        if the_user is None:
+            return "invalid|2"  # code for "invalid username/password"
+        elif the_user["password"] == credentials["password"]:
+            user.login(the_user["username"])
+            return "success"
+        else:
+            return "invalid|2"  # code for "incorrect username/password"
+
+    def signup_user(self, credentials):
+        if self.find__user_in_database(credentials) is None:
+            self.userbase.insert_one(credentials)
+            return "success"
+        else:
+            return "invalid|1"  # code for "username already exists"
+
+    def find__user_in_database(self, user):
+        return self.userbase.find_one({"username": user["username"]})

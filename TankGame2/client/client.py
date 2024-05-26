@@ -21,6 +21,7 @@ class Client:
         self.lobby_id = -1
 
         self.vcclient = None
+        self.logged = False
 
         # a queue that holds data from the server
         self.buffer = []
@@ -137,7 +138,6 @@ class Client:
     def can_start(self):
         return self.get_owner() == self.name and len(self.user_list[0]) > 0 and len(self.user_list[1]) > 0
 
-
     def start_voice_client(self):
         self.vcclient = VoiceChatClient(self.lobby_id, self.own_port)
         self.vcclient.start(self.user_list[0] + self.user_list[1])
@@ -146,3 +146,6 @@ class Client:
         self.vcclient.running = False
         self.vcclient.client_socket.close()
 
+    def login(self, name):
+        self.name = name
+        self.logged = True
