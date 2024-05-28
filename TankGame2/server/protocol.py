@@ -43,4 +43,6 @@ def send_data(data, sock, addr=None):
     if sock_type == socket.SOCK_STREAM:
         sock.sendall(data.encode())
     elif sock_type == socket.SOCK_DGRAM:
-        sock.sendto(data.encode(), addr)
+        if type(data) == str:
+            data = data.encode()
+        sock.sendto(data, addr)
