@@ -1,3 +1,5 @@
+import socket
+
 server_ip = "127.0.0.1"
 server_port = 30000
 vcserver_port = 40000
@@ -34,3 +36,11 @@ class User:
             self.volume_factor = (600 - distance_to_main) / 400
         else:
             self.volume_factor = 0
+
+
+def send_data(data, sock, addr=None):
+    sock_type = sock.getsockopt(socket.SOL_SOCKET, socket.SO_TYPE)
+    if sock_type == socket.SOCK_STREAM:
+        sock.sendall(data.encode())
+    elif sock_type == socket.SOCK_DGRAM:
+        sock.sendto(data.encode(), addr)

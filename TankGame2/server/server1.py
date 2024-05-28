@@ -50,7 +50,7 @@ class MainServer:
                         print(f"Accepted Connection from {addr}")
 
                         # confirm connection to player with port
-                        conn.sendall(f"{user.address[1]}".encode())
+                        protocol.send_data(str(user.address[1]), conn)
 
                     else:
                         # identify user and lobby
@@ -80,7 +80,7 @@ class MainServer:
                         # client requested lobby list
                         elif data == "list":
                             # return the list of lobbies
-                            sock.sendall(self.get_lobby_list().encode())
+                            protocol.send_data(self.get_lobby_list(), sock)
                         # client declared it joins a lobby
                         elif data[:-1] == "join":
                             target_lobby = self.get_lobby_by_id(int(data[-1]))
@@ -90,10 +90,9 @@ class MainServer:
                                     self.move_user(sock, self.main_lobby, target_lobby)
                                 # bring player back to the title screen, if the server is full or if it doesn't exist
                                 else:
-                                    sock.sendall("kick".encode())
+                                    protocol.send_data("kick", sock)
                             else:
-                                print("aaa")
-                                sock.sendall("kick".encode())
+                                protocol.send_data("kick", sock)
                         # lobby's owner wants to start or cancel its game
                         elif data == "start":
                             lobby.start_cooldown()
@@ -114,7 +113,7 @@ class MainServer:
                             elif data[0] == "signup":
                                 credentials = {"username": data[1], "password": data[2]}
                                 result = self.signup_user(credentials)
-                            sock.sendall(result.encode())
+                            protocol.send_data(result, sock)
 
                 # disconnect users not responding
                 except ConnectionResetError:

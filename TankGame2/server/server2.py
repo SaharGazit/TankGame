@@ -74,7 +74,7 @@ class GameServer:
                 self.spawn_positions[team].remove(pos)
 
                 # send new player position
-                self.server_socket.sendto(f"{self.teams[team][addr][0]}|{pos[0]}|{pos[1]}".encode(), addr)
+                protocol.send_data(f"{self.teams[team][addr][0]}|{pos[0]}|{pos[1]}", self.server_socket, addr)
 
             # handle client data
             else:
@@ -84,4 +84,4 @@ class GameServer:
         for team in range(2):
             for player in self.teams[team].keys():
                 if self.teams[team][player][1] and player != exc:
-                    self.server_socket.sendto(data.encode(), player)
+                    protocol.send_data(data, self.server_socket, player)
