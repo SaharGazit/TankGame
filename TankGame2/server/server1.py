@@ -62,7 +62,7 @@ class MainServer:
                                 lobby = lo
                                 break
                         # get data
-                        data = sock.recv(1024).decode()
+                        data = protocol.receive_data(sock)
 
                         # client declared it is hosting a lobby
                         if data == "host":

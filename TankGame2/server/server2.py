@@ -46,7 +46,7 @@ class GameServer:
     def listen(self):
         while self.running:
             try:
-                data, addr = self.server_socket.recvfrom(1024)
+                data, addr = protocol.receive_data(self.server_socket)
             except socket.timeout:
                 continue
             except ConnectionResetError:
@@ -78,7 +78,7 @@ class GameServer:
 
             # handle client data
             else:
-                self.broadcast("G|" + data.decode(), addr)
+                self.broadcast("G|" + data, addr)
 
     def broadcast(self, data, exc=None):
         for team in range(2):
