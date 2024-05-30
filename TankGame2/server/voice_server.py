@@ -43,7 +43,7 @@ class VoiceChatServer:
     def listen(self):
         while self.running:
             try:
-                data, client_address = self.server_socket.recvfrom(4096)
+                data, client_address = protocol.receive_data(self.server_socket, True)
                 if client_address in self.clients.keys():
                     # add client index to the message
                     data = f"{self.clients[client_address]}||".encode() + data

@@ -1,3 +1,8 @@
-start button wont shop up after canceling the leaving window in lobby
 
-change server script names
+pressing tab brings you to the next input field
+
+logout button
+
+map
+
+win count

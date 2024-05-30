@@ -44,7 +44,7 @@ class Client:
         self.server_socket_udp.bind(("0.0.0.0", self.own_port + 1))
 
         self.server_port_udp = self.server_port_tcp + self.lobby_id
-        self.server_socket_udp.sendto("R".encode(), (self.server_ip, self.server_port_udp))
+        protocol.send_data("R", self.server_socket_udp, (self.server_ip, self.server_port_udp))
 
         listening_thread = threading.Thread(target=self.listen_udp, daemon=True)
         listening_thread.start()
@@ -57,21 +57,21 @@ class Client:
     def listen_tcp(self):
         while self.running_tcp:
 
-            data = self.server_socket_tcp.recv(1024)
+            data = protocol.receive_data(self.server_socket_tcp)
             # print(data.decode())
 
             # push data to the buffer
-            self.buffer.append(data.decode())
+            self.buffer.append(data)
 
     def listen_udp(self):
         try:
             while self.running_udp:
-                data, addr = self.server_socket_udp.recvfrom(1024)
+                data, addr = protocol.receive_data(self.server_socket_udp)
                 # print(data.decode())
 
                 if addr == (self.server_ip, self.server_port_udp):
                     # push data to the buffer
-                    self.buffer.append(data.decode())
+                    self.buffer.append(data)
         except OSError:
             self.running_udp = False
 
@@ -86,14 +86,10 @@ class Client:
         return data
 
     def send_data(self, data):
-        if self.server_socket_tcp is not None:
-            self.server_socket_tcp.send(data.encode())
-        else:
-            print("no server found")
+        protocol.send_data(data, self.server_socket_tcp)
 
     def send_player_status(self, data):
-        if self.server_socket_udp is not None:
-            self.server_socket_udp.sendto(f"{self.name}|{data}".encode(), (self.server_ip, self.server_port_udp))
+        protocol.send_data(f"{self.name}|{data}", self.server_socket_udp, (self.server_ip, self.server_port_udp))
 
     # get the username of the owner of the current lobby
     def get_owner(self, raw=False):

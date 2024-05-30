@@ -109,9 +109,10 @@ class MainServer:
                                 credentials = {"username": data[1], "password": data[2]}
                                 result = self.login_user(credentials, user)
                                 if result == "success":
+                                    print(f"{user.address} logged as {data[1]}")
                                     user.login(data[1])
                             elif data[0] == "signup":
-                                credentials = {"username": data[1], "password": data[2]}
+                                credentials = {"username": data[1], "password": data[2], "logged": False}
                                 result = self.signup_user(credentials)
                             protocol.send_data(result, sock)
 
@@ -153,6 +154,9 @@ class MainServer:
                 name = lobby.users[sock].name
                 lobby.remove_player(sock)
                 print(f"{name} disconnected")
+
+                self.userbase.update_one({"username": name}, {"$set": {"logged": False}})
+
                 break
 
     def get_lobby_by_id(self, id_):
@@ -165,8 +169,13 @@ class MainServer:
         if the_user is None:
             return "invalid|2"  # code for "invalid username/password"
         elif the_user["password"] == credentials["password"]:
-            user.login(the_user["username"])
-            return "success"
+            if the_user["logged"]:
+                return "invalid|3"  # code for "account already online"
+            else:
+                user.login(the_user["username"])
+                # change logged status to true
+                self.userbase.update_one({"username": the_user["username"]}, {"$set": {"logged": True}})
+                return "success"
         else:
             return "invalid|2"  # code for "incorrect username/password"
 

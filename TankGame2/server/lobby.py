@@ -1,4 +1,4 @@
-from server2 import GameServer
+from game_server import GameServer
 
 
 class Lobby:

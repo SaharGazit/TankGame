@@ -424,6 +424,8 @@ class LobbyUI:
                             error = "username already exists"
                         elif data[1] == "2":
                             error = "incorrect username/password"
+                        elif data[1] == "3":
+                            error = "account already online"
                         else:
                             error = data[1]
                     elif data[0] == "success":

@@ -8,6 +8,7 @@ MAX_PLAYERS_IN_LOBBY = 8
 BYTE_CHUNK = 1024
 VC_BYTE_CHUNK = 4096
 
+
 class User:
     def __init__(self, name="guest", team=0, addr=None):  # no socket, since it's already a part of a dictionary
         self.logged = name != "guest"
@@ -28,14 +29,14 @@ class User:
         self.name = username
         self.logged = True
 
-    hundred_radius = 200
-    zero_radius = 600
+    min_radius = 400
+    max_radius = 1000
 
     def set_volume_factor(self, distance_to_main):
-        if distance_to_main < 200:
+        if distance_to_main < User.min_radius:
             self.volume_factor = 1
-        elif distance_to_main <= 600:
-            self.volume_factor = (600 - distance_to_main) / 400
+        elif distance_to_main <= User.max_radius:
+            self.volume_factor = (User.max_radius - distance_to_main) / (User.max_radius - User.min_radius)
         else:
             self.volume_factor = 0
 

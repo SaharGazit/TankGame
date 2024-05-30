@@ -72,7 +72,7 @@ class VoiceChatClient:
 
             try:
                 # send audio
-                self.client_socket.sendto(data, (self.host, self.server_port))
+                protocol.send_data(data, self.client_socket, (self.host, self.server_port))
             # prevent crashing if server crashed
             except OSError:
                 print("VCCLIENT: server stopped responding")
@@ -83,7 +83,7 @@ class VoiceChatClient:
         while self.running:
             # get audio from server
             try:
-                data, addr = self.client_socket.recvfrom(4096)
+                data, addr = protocol.receive_data(self.client_socket, True)
             # timeout is triggered after the server doesn't send anything, to check if self.running is still true.
             # this is to prevent the program to get stuck waiting for data, while it actually supposed to stop.
             except socket.timeout:

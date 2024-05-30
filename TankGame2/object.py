@@ -113,7 +113,7 @@ class Player(Object):
                 self.user.set_volume_factor(self.distance(main, self))
             else:
                 # mute voice if the player is a ghost, and main player isn't one
-                self.user.set_volume_factor(1000)
+                self.user.set_volume_factor(10000)
         self.handle_powerups()
 
         if self.alive:
