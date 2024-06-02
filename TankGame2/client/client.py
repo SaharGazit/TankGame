@@ -1,6 +1,10 @@
 import socket
 import threading
+
+from Crypto.Cipher import PKCS1_OAEP
+
 from . import VoiceChatClient, protocol
+from Crypto.PublicKey import RSA
 
 
 class Client:
@@ -22,6 +26,10 @@ class Client:
 
         self.vcclient = None
         self.logged = False
+        self.authenticated = False
+
+        self.private_key = RSA.generate(2048)
+        self.public_key = self.private_key.public_key()
 
         # a queue that holds data from the server
         self.buffer = []
@@ -30,6 +38,8 @@ class Client:
         self.server_socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.server_socket_tcp.connect((self.server_ip, self.server_port_tcp))
+            self.own_port = self.server_socket_tcp.getsockname()[1]
+            protocol.send_data(self.public_key.export_key(), self.server_socket_tcp)
         except ConnectionRefusedError:
             self.offline_mode = True
 
@@ -60,13 +70,20 @@ class Client:
             data = protocol.receive_data(self.server_socket_tcp)
             # print(data.decode())
 
-            # push data to the buffer
-            self.buffer.append(data)
+            if self.authenticated:
+                # push data to the buffer
+                self.buffer.append(data.decode())
+            else:
+                print(data)
+                decrypted_aes_key = self.decrypt_aes_key(data)
+                print("Received and decrypted AES key:", decrypted_aes_key)
+                self.authenticated = True
 
     def listen_udp(self):
         try:
             while self.running_udp:
                 data, addr = protocol.receive_data(self.server_socket_udp)
+                data = data.decode()
                 # print(data.decode())
 
                 if addr == (self.server_ip, self.server_port_udp):
@@ -145,3 +162,8 @@ class Client:
     def login(self, name):
         self.name = name
         self.logged = True
+
+    def decrypt_aes_key(self, encrypted_aes_key):
+        cipher_rsa = PKCS1_OAEP.new(self.private_key)
+        aes_key = cipher_rsa.decrypt(encrypted_aes_key)
+        return aes_key

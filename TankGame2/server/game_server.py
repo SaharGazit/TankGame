@@ -47,6 +47,7 @@ class GameServer:
         while self.running:
             try:
                 data, addr = protocol.receive_data(self.server_socket)
+                data = data.decode()
             except socket.timeout:
                 continue
             except ConnectionResetError:

@@ -3,6 +3,8 @@ from lobby import Lobby
 import socket
 import select
 from pymongo import MongoClient
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
 
 
 class MainServer:
@@ -23,6 +25,9 @@ class MainServer:
         # mongodb client
         client = MongoClient(MainServer.cluster)
         self.userbase = client.game.users
+
+        # server key
+        self.aes_key = protocol.AES_KEY
 
     def main(self):
         print("Server started on {}:{}".format(self.host, self.port))
@@ -49,9 +54,6 @@ class MainServer:
                         self.main_lobby.add_player(user, conn)
                         print(f"Accepted Connection from {addr}")
 
-                        # confirm connection to player with port
-                        protocol.send_data(str(user.address[1]), conn)
-
                     else:
                         # identify user and lobby
                         user = None
@@ -64,57 +66,68 @@ class MainServer:
                         # get data
                         data = protocol.receive_data(sock)
 
-                        # client declared it is hosting a lobby
-                        if data == "host":
-                            # add a new lobby
-                            self.lobbies.append(Lobby(self.next_lobby_id))
-                            print(f"{user.name} has created lobby {self.lobbies[-1].id}")
-                            self.next_lobby_id += 1
+                        if user.authenticated:
+                            # decrypt and decode message
+                            data = data.decode()
 
-                            # add user to the lobby
-                            self.move_user(sock, self.main_lobby, self.lobbies[-1])
-                        # client declared it left its lobby
-                        elif data == "main":
-                            # move user out of the lobby
-                            self.move_user(sock, lobby, self.main_lobby)
-                        # client requested lobby list
-                        elif data == "list":
-                            # return the list of lobbies
-                            protocol.send_data(self.get_lobby_list(), sock)
-                        # client declared it joins a lobby
-                        elif data[:-1] == "join":
-                            target_lobby = self.get_lobby_by_id(int(data[-1]))
-                            if target_lobby is not None:
-                                if len(target_lobby.users) != protocol.MAX_PLAYERS_IN_LOBBY:
-                                    # add user to the lobby
-                                    self.move_user(sock, self.main_lobby, target_lobby)
-                                # bring player back to the title screen, if the server is full or if it doesn't exist
+                            # client declared it is hosting a lobby
+                            if data == "host":
+                                # add a new lobby
+                                self.lobbies.append(Lobby(self.next_lobby_id))
+                                print(f"{user.name} has created lobby {self.lobbies[-1].id}")
+                                self.next_lobby_id += 1
+
+                                # add user to the lobby
+                                self.move_user(sock, self.main_lobby, self.lobbies[-1])
+                            # client declared it left its lobby
+                            elif data == "main":
+                                # move user out of the lobby
+                                self.move_user(sock, lobby, self.main_lobby)
+                            # client requested lobby list
+                            elif data == "list":
+                                # return the list of lobbies
+                                protocol.send_data(self.get_lobby_list(), sock)
+                            # client declared it joins a lobby
+                            elif data[:-1] == "join":
+                                target_lobby = self.get_lobby_by_id(int(data[-1]))
+                                if target_lobby is not None:
+                                    if len(target_lobby.users) != protocol.MAX_PLAYERS_IN_LOBBY:
+                                        # add user to the lobby
+                                        self.move_user(sock, self.main_lobby, target_lobby)
+                                    # bring player back to the title screen, if the server is full or if it doesn't exist
+                                    else:
+                                        protocol.send_data("kick", sock)
                                 else:
                                     protocol.send_data("kick", sock)
+                            # lobby's owner wants to start or cancel its game
+                            elif data == "start":
+                                lobby.start_cooldown()
+                            elif data == "cancel":
+                                lobby.cancel_cooldown()
+                            # handle game events
+                            elif data[0] == "E":
+                                lobby.broadcast(data + "|" + user.name, sock)
                             else:
-                                protocol.send_data("kick", sock)
-                        # lobby's owner wants to start or cancel its game
-                        elif data == "start":
-                            lobby.start_cooldown()
-                        elif data == "cancel":
-                            lobby.cancel_cooldown()
-                        # handle game events
-                        elif data[0] == "E":
-                            lobby.broadcast(data + "|" + user.name, sock)
+                                data = data.split("|")
+                                result = ""
+                                # handle account
+                                if data[0] == "login":
+                                    credentials = {"username": data[1], "password": data[2]}
+                                    result = self.login_user(credentials, user)
+                                    if result == "success":
+                                        print(f"{user.address} logged as {data[1]}")
+                                        user.login(data[1])
+                                elif data[0] == "signup":
+                                    credentials = {"username": data[1], "password": data[2], "logged": False}
+                                    result = self.signup_user(credentials)
+                                protocol.send_data(result, sock)
+
                         else:
-                            data = data.split("|")
-                            result = ""
-                            # handle account
-                            if data[0] == "login":
-                                credentials = {"username": data[1], "password": data[2]}
-                                result = self.login_user(credentials, user)
-                                if result == "success":
-                                    print(f"{user.address} logged as {data[1]}")
-                                    user.login(data[1])
-                            elif data[0] == "signup":
-                                credentials = {"username": data[1], "password": data[2], "logged": False}
-                                result = self.signup_user(credentials)
-                            protocol.send_data(result, sock)
+                            # get key
+                            client_public_key = RSA.import_key(data)
+                            encrypted_aes_key = self.encrypt_aes_key(client_public_key)
+                            protocol.send_data(encrypted_aes_key, sock)
+                            user.authenticated = True
 
                 # disconnect users not responding
                 except ConnectionResetError:
@@ -126,6 +139,11 @@ class MainServer:
                     print(f"Lobby {lobby.id} has closed")
                     lobby.game_server.running = False
                     self.lobbies.remove(lobby)
+
+        # # un-log all players after server closes down
+        # all_users = self.userbase.find({})
+        # for user in all_users:
+        #     self.userbase.update_one({"username": user["username"]}, {"$set": {"logged": False}})
 
     def get_lobby_list(self):
         # form lobby list string
@@ -188,3 +206,8 @@ class MainServer:
 
     def find__user_in_database(self, user):
         return self.userbase.find_one({"username": user["username"]})
+
+    def encrypt_aes_key(self, client_key):
+        cipher_rsa = PKCS1_OAEP.new(client_key)
+        encrypted_aes_key = cipher_rsa.encrypt(self.aes_key)
+        return encrypted_aes_key

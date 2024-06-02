@@ -56,11 +56,6 @@ class LobbyUI:
         # connect to the server
         self.client.connect_tcp()
 
-        # get account data
-        if not self.client.offline_mode:
-            data = self.client.get_buffer_data(False)[0]
-            self.client.own_port = int(data)
-
         running = True
         reconnect = False
         arguments = ""
