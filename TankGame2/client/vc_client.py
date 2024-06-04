@@ -19,7 +19,7 @@ class VoiceChatClient:
     # lobby id - the correct voice server port for this lobby is equal to protocol.vcserver_port plus the lobby id
     # so for example, if protocol.vcserver_port is 40000, and this lobby is number 10, the port would be 40010
     # port - this is the port the client uses that the server can recognize from previous interactions
-    def __init__(self, lobby_id, client_port):
+    def __init__(self, lobby_id, client_port, key):
         # server ip and port
         self.host = protocol.server_ip
         self.server_port = protocol.vcserver_port + lobby_id
@@ -36,6 +36,8 @@ class VoiceChatClient:
         self.running = False  # true as long as the client is running
         self.input_stream = None  # stream for recording audio from this user
         self.output_streams = {}  # dictionary that contains a different stream for every user, in order to play their audio
+
+        self.aes_key = key
 
     # starts the client: plays audio from other users, and listens to this user's audio
     # users - a list of users, used to indentify which stream belongs to whom.
@@ -72,6 +74,7 @@ class VoiceChatClient:
 
             try:
                 # send audio
+                data = protocol.encrypt_data(self.aes_key, data)
                 protocol.send_data(data, self.client_socket, (self.host, self.server_port))
             # prevent crashing if server crashed
             except OSError:
@@ -84,6 +87,7 @@ class VoiceChatClient:
             # get audio from server
             try:
                 data, addr = protocol.receive_data(self.client_socket, True)
+                data = protocol.decrypt_data(self.aes_key, data)
             # timeout is triggered after the server doesn't send anything, to check if self.running is still true.
             # this is to prevent the program to get stuck waiting for data, while it actually supposed to stop.
             except socket.timeout:

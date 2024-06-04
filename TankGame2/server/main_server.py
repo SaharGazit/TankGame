@@ -12,9 +12,12 @@ class MainServer:
     cluster = "mongodb+srv://sahargazit:MONGOCLAT@cluster0.dtxvb6d.mongodb.net/game?retryWrites=true&w=majority&appName=Cluster0"
 
     def __init__(self):
+        # server key
+        self.aes_key = protocol.AES_KEY
+
         self.host = '0.0.0.0'
         self.port = protocol.server_port
-        self.main_lobby = Lobby(0)  # players who haven't connected to a server yet (socket:User)
+        self.main_lobby = Lobby(0, self.aes_key)  # players who haven't connected to a server yet (socket:User)
         self.lobbies = [self.main_lobby]  # all lobbies
         self.next_lobby_id = 1
 
@@ -25,9 +28,6 @@ class MainServer:
         # mongodb client
         client = MongoClient(MainServer.cluster)
         self.userbase = client.game.users
-
-        # server key
-        self.aes_key = protocol.AES_KEY
 
     def main(self):
         print("Server started on {}:{}".format(self.host, self.port))
@@ -68,12 +68,12 @@ class MainServer:
 
                         if user.authenticated:
                             # decrypt and decode message
-                            data = data.decode()
+                            data = protocol.decrypt_data(self.aes_key, data).decode()
 
                             # client declared it is hosting a lobby
                             if data == "host":
                                 # add a new lobby
-                                self.lobbies.append(Lobby(self.next_lobby_id))
+                                self.lobbies.append(Lobby(self.next_lobby_id, self.aes_key))
                                 print(f"{user.name} has created lobby {self.lobbies[-1].id}")
                                 self.next_lobby_id += 1
 
@@ -86,7 +86,7 @@ class MainServer:
                             # client requested lobby list
                             elif data == "list":
                                 # return the list of lobbies
-                                protocol.send_data(self.get_lobby_list(), sock)
+                                self.send_data(self.get_lobby_list(), sock)
                             # client declared it joins a lobby
                             elif data[:-1] == "join":
                                 target_lobby = self.get_lobby_by_id(int(data[-1]))
@@ -96,9 +96,9 @@ class MainServer:
                                         self.move_user(sock, self.main_lobby, target_lobby)
                                     # bring player back to the title screen, if the server is full or if it doesn't exist
                                     else:
-                                        protocol.send_data("kick", sock)
+                                        self.send_data("kick", sock)
                                 else:
-                                    protocol.send_data("kick", sock)
+                                    self.send_data("kick", sock)
                             # lobby's owner wants to start or cancel its game
                             elif data == "start":
                                 lobby.start_cooldown()
@@ -120,7 +120,7 @@ class MainServer:
                                 elif data[0] == "signup":
                                     credentials = {"username": data[1], "password": data[2], "logged": False}
                                     result = self.signup_user(credentials)
-                                protocol.send_data(result, sock)
+                                self.send_data(result, sock)
 
                         else:
                             # get key
@@ -211,3 +211,7 @@ class MainServer:
         cipher_rsa = PKCS1_OAEP.new(client_key)
         encrypted_aes_key = cipher_rsa.encrypt(self.aes_key)
         return encrypted_aes_key
+
+    def send_data(self, data, sock):
+        data = protocol.encrypt_data(self.aes_key, data.encode())
+        protocol.send_data(data, sock)

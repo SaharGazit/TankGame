@@ -1,13 +1,15 @@
 from game_server import GameServer
-
+import protocol
 
 class Lobby:
-    def __init__(self, lobby_id):
+    def __init__(self, lobby_id, key):
         self.id = lobby_id
         self.users = {}
 
         self.countdown = False
-        self.game_server = GameServer(self.id)
+        self.game_server = GameServer(self.id, key)
+
+        self.aes_key = key
 
 
     def add_player(self, player, sock):
@@ -75,12 +77,14 @@ class Lobby:
             if user.owner:
                 names_string += "#"
 
-        sock.sendall(f"L{self.id}|list{names_string}".encode())
+        data = protocol.encrypt_data(self.aes_key, f"L{self.id}|list{names_string}".encode())
+        sock.sendall(data)
 
     def broadcast(self, data, exc=None):
+        data = protocol.encrypt_data(self.aes_key, data.encode())
         for sock in self.users.keys():
             if sock != exc:
-                sock.sendall(data.encode())
+                sock.sendall(data)
 
     def get_owner_name(self):
         return [user.name for user in self.users.values() if user.owner][0]

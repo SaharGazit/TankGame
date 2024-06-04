@@ -7,7 +7,7 @@ import random
 
 class GameServer:
 
-    def __init__(self, id_):
+    def __init__(self, id_, key):
         self.host = "0.0.0.0"
         self.port = protocol.server_port + id_
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -17,7 +17,9 @@ class GameServer:
         self.teams = [{}, {}]
         self.spawn_positions = [[(1000, 1000), (1100, 1000), (1200, 1000), (1300, 1000)], [(200, 200), (300, 200), (400, 200), (500, 200)]]
 
-        self.vcserver = VoiceChatServer(id_)
+        self.vcserver = VoiceChatServer(id_, key)
+
+        self.aes_key = key
 
         self.running = False
         self.game_started = False
@@ -47,7 +49,7 @@ class GameServer:
         while self.running:
             try:
                 data, addr = protocol.receive_data(self.server_socket)
-                data = data.decode()
+                data = protocol.decrypt_data(self.aes_key, data).decode()
             except socket.timeout:
                 continue
             except ConnectionResetError:
@@ -75,7 +77,7 @@ class GameServer:
                 self.spawn_positions[team].remove(pos)
 
                 # send new player position
-                protocol.send_data(f"{self.teams[team][addr][0]}|{pos[0]}|{pos[1]}", self.server_socket, addr)
+                self.send_data(f"{self.teams[team][addr][0]}|{pos[0]}|{pos[1]}", self.server_socket, addr)
 
             # handle client data
             else:
@@ -85,4 +87,8 @@ class GameServer:
         for team in range(2):
             for player in self.teams[team].keys():
                 if self.teams[team][player][1] and player != exc:
-                    protocol.send_data(data, self.server_socket, player)
+                    self.send_data(data, self.server_socket, player)
+
+    def send_data(self, data, sock, addr):
+        data = protocol.encrypt_data(self.aes_key, data.encode())
+        protocol.send_data(data, sock, addr)

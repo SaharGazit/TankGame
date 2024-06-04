@@ -8,7 +8,7 @@ class VoiceChatServer:
     # initiates the voice chat server
     # lobby_id - the correct voice server port for this lobby is equal to protocol.vcserver_port plus the lobby id
     # so for example, if protocol.vcserver_port is 40000, and this lobby is number 10, the port would be 40010
-    def __init__(self, lobby_id):
+    def __init__(self, lobby_id, key):
         # server IP and port
         self.host = '0.0.0.0'
         self.port = protocol.vcserver_port + lobby_id
@@ -21,6 +21,8 @@ class VoiceChatServer:
 
         self.clients = {}  # dictionary of socket addresses and names
         self.running = False  # true as long as the server is running
+
+        self.aes_key = key
 
     # starts listening for audio from the clients
     # users - dictionary that consists of socket addresses and their username
@@ -44,6 +46,7 @@ class VoiceChatServer:
         while self.running:
             try:
                 data, client_address = protocol.receive_data(self.server_socket, True)
+                data = protocol.decrypt_data(self.aes_key, data)
                 if client_address in self.clients.keys():
                     # add client index to the message
                     data = f"{self.clients[client_address]}||".encode() + data
@@ -61,6 +64,7 @@ class VoiceChatServer:
     # data - the data (in bytes) that should be sent
     # sender_address - the address that shouldn't get this data (typically the address that triggered this broadcasting)
     def broadcast(self, data, sender_address):
+        data = protocol.encrypt_data(self.aes_key, data)
         for client_address in self.clients.keys():
             if client_address != sender_address:
                 protocol.send_data(data, self.server_socket, client_address)

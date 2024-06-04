@@ -1,5 +1,9 @@
 import socket
 
+from Crypto.Random import get_random_bytes
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+
 server_ip = "127.0.0.1"
 server_port = 30000
 vcserver_port = 40000
@@ -44,9 +48,6 @@ class User:
 
 
 def send_data(data, sock, addr=None):
-    if type(data) == str:
-        data = data.encode()
-
     sock_type = sock.getsockopt(socket.SOL_SOCKET, socket.SO_TYPE)
     if sock_type == socket.SOCK_STREAM:
         sock.sendall(data)
@@ -68,3 +69,38 @@ def receive_data(sock, vc=False):
     return data
 
 
+def encrypt_data(key, data):
+    # Generate a random IV (Initialization Vector)
+    iv = get_random_bytes(16)
+
+    # Create AES cipher
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+
+    # Pad the data to be multiple of block size
+    padded_data = pad(data, AES.block_size)
+
+    # Encrypt the data
+    encrypted_data = cipher.encrypt(padded_data)
+
+    # Return the IV and encrypted data
+    return iv + encrypted_data
+
+
+def decrypt_data(key, encrypted_data):
+    # Extract the IV from the beginning of the encrypted data
+    iv = encrypted_data[:16]
+
+    # Extract the actual encrypted data
+    actual_encrypted_data = encrypted_data[16:]
+
+    # Create AES cipher
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+
+    # Decrypt the data
+    decrypted_data = cipher.decrypt(actual_encrypted_data)
+
+    # Unpad the data
+    original_data = unpad(decrypted_data, AES.block_size)
+
+    # Return the original data
+    return original_data

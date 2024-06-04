@@ -2,10 +2,9 @@ import socket
 import threading
 
 from Crypto.Cipher import PKCS1_OAEP
-
-from . import VoiceChatClient, protocol
 from Crypto.PublicKey import RSA
 
+from . import VoiceChatClient, protocol
 
 class Client:
     def __init__(self):
@@ -26,10 +25,10 @@ class Client:
 
         self.vcclient = None
         self.logged = False
-        self.authenticated = False
 
         self.private_key = RSA.generate(2048)
         self.public_key = self.private_key.public_key()
+        self.aes_key = None
 
         # a queue that holds data from the server
         self.buffer = []
@@ -54,7 +53,8 @@ class Client:
         self.server_socket_udp.bind(("0.0.0.0", self.own_port + 1))
 
         self.server_port_udp = self.server_port_tcp + self.lobby_id
-        protocol.send_data("R", self.server_socket_udp, (self.server_ip, self.server_port_udp))
+        data = protocol.encrypt_data(self.aes_key, b"R")
+        protocol.send_data(data, self.server_socket_udp, (self.server_ip, self.server_port_udp))
 
         listening_thread = threading.Thread(target=self.listen_udp, daemon=True)
         listening_thread.start()
@@ -68,23 +68,21 @@ class Client:
         while self.running_tcp:
 
             data = protocol.receive_data(self.server_socket_tcp)
-            # print(data.decode())
 
-            if self.authenticated:
+            if self.aes_key is None:
+                # get encryption key
+                self.aes_key = self.decrypt_aes_key(data)
+                print("Received and decrypted AES key:", self.aes_key)
+            elif len(data) > 0:
+                data = protocol.decrypt_data(self.aes_key, data)
                 # push data to the buffer
                 self.buffer.append(data.decode())
-            else:
-                print(data)
-                decrypted_aes_key = self.decrypt_aes_key(data)
-                print("Received and decrypted AES key:", decrypted_aes_key)
-                self.authenticated = True
 
     def listen_udp(self):
         try:
             while self.running_udp:
                 data, addr = protocol.receive_data(self.server_socket_udp)
-                data = data.decode()
-                # print(data.decode())
+                data = protocol.decrypt_data(self.aes_key, data).decode()
 
                 if addr == (self.server_ip, self.server_port_udp):
                     # push data to the buffer
@@ -103,10 +101,12 @@ class Client:
         return data
 
     def send_data(self, data):
+        data = protocol.encrypt_data(self.aes_key, data.encode())
         protocol.send_data(data, self.server_socket_tcp)
 
     def send_player_status(self, data):
-        protocol.send_data(f"{self.name}|{data}", self.server_socket_udp, (self.server_ip, self.server_port_udp))
+        data = protocol.encrypt_data(self.aes_key, f"{self.name}|{data}".encode())
+        protocol.send_data(data, self.server_socket_udp, (self.server_ip, self.server_port_udp))
 
     # get the username of the owner of the current lobby
     def get_owner(self, raw=False):
@@ -152,7 +152,7 @@ class Client:
         return self.get_owner() == self.name and len(self.user_list[0]) > 0 and len(self.user_list[1]) > 0
 
     def start_voice_client(self):
-        self.vcclient = VoiceChatClient(self.lobby_id, self.own_port)
+        self.vcclient = VoiceChatClient(self.lobby_id, self.own_port, self.aes_key)
         self.vcclient.start(self.user_list[0] + self.user_list[1])
 
     def stop_voice_client(self):
@@ -167,3 +167,5 @@ class Client:
         cipher_rsa = PKCS1_OAEP.new(self.private_key)
         aes_key = cipher_rsa.decrypt(encrypted_aes_key)
         return aes_key
+
+
