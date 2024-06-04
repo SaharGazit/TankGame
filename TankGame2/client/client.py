@@ -5,7 +5,7 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 
 from . import VoiceChatClient
-from TankGame2 import protocol
+from ..server import protocol
 
 
 class Client:

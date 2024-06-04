@@ -1,4 +1,4 @@
-from TankGame2 import protocol
+from TankGame2.server import protocol
 from lobby import Lobby
 import socket
 import select

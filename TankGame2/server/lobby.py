@@ -1,5 +1,5 @@
 from game_server import GameServer
-from TankGame2 import protocol
+from TankGame2.server import protocol
 
 
 class Lobby:

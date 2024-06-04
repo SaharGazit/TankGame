@@ -1,6 +1,6 @@
 import socket
 from voice_server import VoiceChatServer
-from TankGame2 import protocol
+from TankGame2.server import protocol
 import threading
 import random
 
