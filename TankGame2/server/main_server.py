@@ -1,4 +1,4 @@
-from TankGame2.server import protocol
+import protocol
 from lobby import Lobby
 import socket
 import select
@@ -15,7 +15,6 @@ class MainServer:
     def __init__(self):
         # server key
         self.aes_key = get_random_bytes(16)
-        print(self.aes_key)
 
         self.host = '0.0.0.0'
         self.port = protocol.server_port
