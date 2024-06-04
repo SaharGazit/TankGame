@@ -33,6 +33,11 @@ class MainServer:
     def main(self):
         print("Server started on {}:{}".format(self.host, self.port))
 
+        # reset all users "logged" variable to false, in case the server shut down unexpectedly last time
+        logged = self.userbase.find({"logged": True})
+        for user in logged:
+            self.userbase.update_one({"username": user["username"]}, {"$set": {"logged": False}})
+
         # listen for incoming connections
         self.server_socket.listen()
 
@@ -107,6 +112,7 @@ class MainServer:
                                 lobby.cancel_cooldown()
                             # user logged out
                             elif data == "logout":
+                                print(f"{user.address} logged out from {data[1]}")
                                 self.userbase.update_one({"username": user.name}, {"$set": {"logged": False}})
                                 user.logout()
                             # handle game events
