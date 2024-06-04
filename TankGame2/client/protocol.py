@@ -34,6 +34,10 @@ class User:
         self.name = username
         self.logged = True
 
+    def logout(self):
+        self.name = "guest"
+        self.logged = False
+
     min_radius = 400
     max_radius = 1000
 

@@ -64,10 +64,13 @@ class LobbyUI:
             exec(f"self.{self.screen_name}({arguments})")
             arguments = ""
 
-            # case -2: restart program
-            if self.exit_code == -2:
+            # case -3: restart program
+            if self.exit_code == -3:
                 running = False
                 reconnect = True
+            # case -2: restart page
+            elif self.exit_code == -2:
+                pass
             # case -1: shut down program immediately
             elif self.exit_code == -1:
                 running = False
@@ -589,9 +592,14 @@ class LobbyUI:
                                 # login/signup case: go to account screen
                                 elif button.button_type == "Login" or button.button_type == "Signup":
                                     self.exit_code = button.button_type
+                                # logout case: user logged out
+                                elif button.button_type == "Logout":
+                                    self.client.logged = False
+                                    self.client.name = "guest"
+                                    self.client.send_data("logout")
+                                    self.exit_code = -2
                                 # logged in / signed up (pressed the done button)
                                 elif button.button_type == "Done":
-
                                     accepted = True
                                     action = "login"
                                     # check password confirmation
@@ -643,7 +651,7 @@ class LobbyUI:
                             if button.get_rect().collidepoint(mouse_x, mouse_y):
                                 # restart game on pressing reconnect
                                 if button.button_type == "Reconnect":
-                                    self.exit_code = -2
+                                    self.exit_code = -3
                                 # activate the window that belongs to the button
                                 elif button.button_type != prev_type:
                                     self.activated_window = LobbyUI.Window(button.button_type, self.client.offline_mode, [self.client.logged])
@@ -743,7 +751,8 @@ class LobbyUI:
                            "LobbyUI.Button('Join', (1150, 280), (400, 100), pygame.image.load(LobbyUI.button2_texture), True), "
                            "LobbyUI.Button('Practice', (1150, 390), (400, 100), pygame.image.load(LobbyUI.button2_texture), True)]",
                    "Account": "[LobbyUI.Button('Login', (1150, 170), (400, 100), pygame.image.load(LobbyUI.button2_texture), True), "
-                              "LobbyUI.Button('Signup', (1150, 280), (400, 100), pygame.image.load(LobbyUI.button2_texture), True)]",
+                              "LobbyUI.Button('Signup', (1150, 280), (400, 100), pygame.image.load(LobbyUI.button2_texture), True), "
+                              "LobbyUI.Button('Logout', (1150, 390), (400, 100), pygame.image.load(LobbyUI.button2_texture), True)]",
                    "Quit": "[LobbyUI.Button('ConfirmQuit', (1310.5, 170), (125, 125), pygame.image.load(LobbyUI.confirm_texture)), "
                            "LobbyUI.Button('CancelQuit', (1584.5, 170), (125, 125), pygame.image.load(LobbyUI.cancel_texture))]",
                    "Lobby": "[LobbyUI.Button('Start', (1300, 900), (400, 100), pygame.image.load(LobbyUI.button2_texture), True)]"
@@ -775,7 +784,7 @@ class LobbyUI:
                     self.buttons[0].disabled = True
                     self.buttons[1].disabled = True
                 else:
-                    # TODO: disabled logout button
+                    self.buttons[2].disabled = True
                     pass
             elif window_type == "Lobby":
                 for button in self.buttons:

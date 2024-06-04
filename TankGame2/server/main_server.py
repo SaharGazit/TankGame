@@ -105,6 +105,10 @@ class MainServer:
                                 lobby.start_cooldown()
                             elif data == "cancel":
                                 lobby.cancel_cooldown()
+                            # user logged out
+                            elif data == "logout":
+                                self.userbase.update_one({"username": user.name}, {"$set": {"logged": False}})
+                                user.logout()
                             # handle game events
                             elif data[0] == "E":
                                 lobby.broadcast(data + "|" + user.name, sock)
@@ -141,11 +145,6 @@ class MainServer:
                     lobby.game_server.running = False
                     self.lobbies.remove(lobby)
 
-        # # un-log all players after server closes down
-        # all_users = self.userbase.find({})
-        # for user in all_users:
-        #     self.userbase.update_one({"username": user["username"]}, {"$set": {"logged": False}})
-
     def get_lobby_list(self):
         # form lobby list string
         ll = ""
@@ -173,9 +172,7 @@ class MainServer:
                 name = lobby.users[sock].name
                 lobby.remove_player(sock)
                 print(f"{name} disconnected")
-
                 self.userbase.update_one({"username": name}, {"$set": {"logged": False}})
-
                 break
 
     def get_lobby_by_id(self, id_):
