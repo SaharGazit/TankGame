@@ -4,7 +4,9 @@ import threading
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 
-from . import VoiceChatClient, protocol
+from . import VoiceChatClient
+from TankGame2 import protocol
+
 
 class Client:
     def __init__(self):

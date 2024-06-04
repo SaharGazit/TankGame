@@ -1,5 +1,6 @@
 from game_server import GameServer
-import protocol
+from TankGame2 import protocol
+
 
 class Lobby:
     def __init__(self, lobby_id, key):

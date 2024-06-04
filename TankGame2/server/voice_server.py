@@ -1,4 +1,4 @@
-import protocol
+from TankGame2 import protocol
 import socket
 import threading
 

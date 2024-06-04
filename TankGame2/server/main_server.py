@@ -1,10 +1,11 @@
-import protocol
+from TankGame2 import protocol
 from lobby import Lobby
 import socket
 import select
 from pymongo import MongoClient
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
+from Crypto.Random import get_random_bytes
 
 
 class MainServer:
@@ -13,7 +14,8 @@ class MainServer:
 
     def __init__(self):
         # server key
-        self.aes_key = protocol.AES_KEY
+        self.aes_key = get_random_bytes(16)
+        print(self.aes_key)
 
         self.host = '0.0.0.0'
         self.port = protocol.server_port

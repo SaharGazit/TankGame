@@ -11,7 +11,6 @@ MAX_PLAYERS_IN_LOBBY = 8
 
 BYTE_CHUNK = 2024
 VC_BYTE_CHUNK = 4096
-AES_KEY = b'R\xc9\x1b\x08L\xe4M9\x83\xb0\x9a\x81\xa2J\xf4\xfa'
 
 
 class User:

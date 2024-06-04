@@ -1,7 +1,7 @@
 import socket
 import pyaudio
 import threading
-from . import protocol
+from TankGame2 import protocol
 import numpy
 
 
