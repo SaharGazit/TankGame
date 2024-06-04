@@ -1,7 +1,7 @@
 import socket
 import pyaudio
 import threading
-import protocol
+from . import protocol
 import numpy
 
 

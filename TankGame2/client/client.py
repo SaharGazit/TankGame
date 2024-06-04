@@ -4,8 +4,7 @@ import threading
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 
-from . import VoiceChatClient
-import protocol
+from . import VoiceChatClient, protocol
 
 
 class Client:
