@@ -44,8 +44,7 @@ class MainServer:
         running = True
         while running:
             # use select to wait for incoming connections or data from existing connections
-            sockets, _, _ = select.select(
-                [self.server_socket] + [sock for lobby in self.lobbies for sock in lobby.users.keys()], [], [])
+            sockets, _, _ = select.select([self.server_socket] + [sock for lobby in self.lobbies for sock in lobby.users.keys()], [], [])
             for sock in sockets:
                 try:
                     # check if the new client is already connected or not

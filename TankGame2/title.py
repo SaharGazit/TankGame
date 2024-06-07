@@ -276,7 +276,6 @@ class LobbyUI:
                     self.exit_code = 4
 
                 # replace start button with cancel button
-                # TODO: button delay after pressing cancel
                 for b in self.button_list:
                     if b.button_type == "Start" and not b.disabled:
                         self.button_list.remove(b)
@@ -538,9 +537,16 @@ class LobbyUI:
 
                 extra_symbols = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')']
                 # check for selected input fields
-                for field in self.field_list:
-                    if field.selected:
-                        if self.shift_held:
+                found_selected = False
+                for i in range(len(self.field_list)):
+                    field = self.field_list[i]
+                    if field.selected and not found_selected:
+                        # move to next field
+                        if key_name == "tab":
+                            if i != len(self.field_list) - 1:
+                                field.selected = False
+                                self.field_list[i + 1].selected = True
+                        elif self.shift_held:
                             # add shifted letter
                             if key_name.isnumeric():
                                 field.text = field.text + extra_symbols[int(key_name) - 1]
@@ -551,6 +557,11 @@ class LobbyUI:
                             # delete last letter from the text, the text is not empty
                             elif key_name == "backspace" and len(field.text) > 0:
                                 field.text = field.text[:-1]
+                        found_selected = True
+                if not found_selected and key_name == "tab":
+                    # select first field
+                    self.field_list[0].selected = True
+
 
             # left click events
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -859,7 +870,7 @@ class LobbyUI:
             if self.hidden:
                 # password needs to be 8 or more character long
                 if len(self.text) < 6:
-                    return "is too short (minimum 8)"
+                    return "is too short (minimum 6)"
                 # password needs to contain letters and numbers
                 elif not any(letter.isdigit() for letter in self.text) or not any(letter.isalpha() for letter in self.text):
                     return "needs to contain both letters and digits"
