@@ -91,7 +91,7 @@ class Player(Object):
         # player info
         self.main = main
         self.max_hp = Player.DEFAULT_HP
-        self.hp = self.max_hp
+        self.hp = Player.DEFAULT_HP
         self.alive = True
         self.powerups = {}  # list of powerup effects currently on the player.
 
@@ -301,14 +301,11 @@ class Player(Object):
 
 
 class Block(Object):
-    CORNER_FIX = 1
 
     def __init__(self, starting_position, size, block_type, block_id):
         super().__init__(starting_position, 0, size, pygame.image.load(f"{Object.SPRITE_DIRECTORY}/{block_type}.png"), block_id)
 
         self.block_type = block_type
-        # list of colliders from every direction
-        self.side_colliders = []
 
     def draw_object(self, debug_colliders=False):
         if debug_colliders:

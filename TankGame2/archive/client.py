@@ -9,7 +9,7 @@ class Client:
     RENDEZVOUS = ('127.0.0.2', 50000)
 
     def __init__(self, mod, title):
-        self.host = "127.0.0." + str(random.randint(3, 100))  # TODO: fix this when you pass to lan/online
+        self.host = "127.0.0." + str(random.randint(3, 100))
         self.port = 0  # client port
         self.peer = ()
 
@@ -38,7 +38,6 @@ class Client:
             if self.mod == "debug":
                 message += self.host
                 sock.sendto(message.encode(), Client.RENDEZVOUS)
-                # TODO: LAN
 
             # get data from the server
             while not self.force_stop_queueing:

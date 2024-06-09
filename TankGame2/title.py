@@ -80,7 +80,6 @@ class LobbyUI:
             # case 1: quit the screen, go back
             elif self.exit_code == 1:
                 # quitting the title screens quits the game
-                print(self.screen_name)
                 if self.screen_name == "title":
                     running = False
                 else:
