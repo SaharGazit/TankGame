@@ -70,6 +70,8 @@ class Player(Object):
 
     name_colors = [(50, 50, 50), (0, 0, 255), (177, 0, 0)]
 
+    WORLD_SIZE = 5000
+
     def __init__(self, user, starting_position, main=True):
         # inherited from Object class
         super().__init__(starting_position, 0, (48, 48), pygame.image.load(f"{Object.SPRITE_DIRECTORY}/tank_hull.png"), Player.next_player_id)
@@ -178,9 +180,9 @@ class Player(Object):
             self.speed_y += self.acceleration[1]
 
         # increase or decrease position by speed. check if play is not blocked in the direction he goes to.
-        if (self.speed_x > 0 and not self.block_collision[3]) or (self.speed_x < 0 and not self.block_collision[1]):
+        if (self.speed_x > 0 and not self.block_collision[3] and self.global_position[0] < Player.WORLD_SIZE) or (self.speed_x < 0 and not self.block_collision[1] and self.global_position[0] > -Player.WORLD_SIZE):
             self.global_position[0] += self.speed_x
-        if (self.speed_y > 0 and not self.block_collision[0]) or (self.speed_y < 0 and not self.block_collision[2]):
+        if (self.speed_y > 0 and not self.block_collision[0] and self.global_position[1] < Player.WORLD_SIZE) or (self.speed_y < 0 and not self.block_collision[2] and self.global_position[1] > -Player.WORLD_SIZE):
             self.global_position[1] += self.speed_y
 
         # reduce speed by natural deceleration
