@@ -168,5 +168,3 @@ class Client:
         cipher_rsa = PKCS1_OAEP.new(self.private_key)
         aes_key = cipher_rsa.decrypt(encrypted_aes_key)
         return aes_key
-
-

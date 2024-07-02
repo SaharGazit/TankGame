@@ -70,7 +70,7 @@ class Player(Object):
 
     name_colors = [(50, 50, 50), (0, 0, 255), (177, 0, 0)]
 
-    WORLD_SIZE = 5000
+    WORLD_SIZE = 5400
 
     def __init__(self, user, starting_position, main=True):
         # inherited from Object class

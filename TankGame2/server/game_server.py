@@ -15,7 +15,7 @@ class GameServer:
         self.server_socket.settimeout(0.1)
 
         self.teams = [{}, {}]
-        self.spawn_positions = [[(1000, 1000), (1100, 1000), (1200, 1000), (1300, 1000)], [(200, 200), (300, 200), (400, 200), (500, 200)]]
+        self.spawn_positions = [[(-5200, 200), (-5200, 100), (-5200, 0), (-5200, -100)], [(5200, 200), (5200, 100), (5200, 0), (5200, -100)]]
 
         self.vcserver = VoiceChatServer(id_, key)
 
@@ -41,7 +41,7 @@ class GameServer:
     def stop(self):
         self.running = False
         self.teams = [{}, {}]
-        self.spawn_positions = [[(1000, 1000), (1100, 1000)], [(200, 200), (300, 200), (400, 200), (500, 200)]]
+        self.spawn_positions = [[(-5200, 200), (-5200, 100), (-5200, 0), (-5200, -100)], [(5200, 200), (5200, 100), (5200, 0), (5200, -100)]]
 
         self.vcserver.stop()
 
