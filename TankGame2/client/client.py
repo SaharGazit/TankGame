@@ -31,7 +31,7 @@ class Client:
         self.public_key = self.private_key.public_key()
         self.aes_key = None
 
-        # a queue that holds data from the server
+        # A queue that holds the data from the server
         self.buffer = []
 
     def connect_tcp(self):
@@ -71,12 +71,12 @@ class Client:
             data = protocol.receive_data(self.server_socket_tcp)
 
             if self.aes_key is None:
-                # get encryption key
+                # Get the encryption key
                 self.aes_key = self.decrypt_aes_key(data)
                 print("Received and decrypted AES key:", self.aes_key)
             elif len(data) > 0:
                 data = protocol.decrypt_data(self.aes_key, data)
-                # push data to the buffer
+                # Push data to the buffer
                 self.buffer.append(data.decode())
 
     def listen_udp(self):
@@ -125,13 +125,13 @@ class Client:
         data = data.split("|")
         self.lobby_id = int(data[0][1])
 
-        # get list
+        # Get list
         if data[1] == "list":
-            # update user lists
+            # Update user lists
             self.user_list = [[], []]
             for string in data[2:]:
                 self.user_list[int(string[0]) - 1].append(protocol.User(string[1:], int(string[0])))
-        # add a player
+        # Add a player
         elif data[1] == "join":
             # add new user
             team = int(data[3])
@@ -145,7 +145,7 @@ class Client:
                         break
         elif data[1] == "promote":
             for user in self.user_list[0] + self.user_list[1]:
-                # promote new owner (also demote old one)
+                # Promote a new owner (also demote the old one)
                 user.owner = user.name == data[2]
 
 
